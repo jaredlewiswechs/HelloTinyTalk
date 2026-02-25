@@ -21,6 +21,7 @@ Endpoints:
 import os
 import re
 import uuid
+import tempfile
 from flask import Flask, request, jsonify, send_from_directory
 
 from .kernel import TinyTalkKernel
@@ -32,6 +33,7 @@ from .js_transpiler import transpile_js
 from .runtime import ExecutionBounds
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+UPLOAD_DIR = tempfile.mkdtemp(prefix="tinytalk_uploads_")
 
 app = Flask(__name__, static_folder=STATIC_DIR)
 
@@ -235,6 +237,30 @@ def examples():
                         "code": f.read(),
                     })
     return jsonify(result)
+
+
+@app.route("/api/upload", methods=["POST"])
+def upload_file():
+    """Upload a CSV or JSON file so it can be used with read_csv / read_json."""
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "No file provided"}), 400
+
+    f = request.files["file"]
+    if not f.filename:
+        return jsonify({"success": False, "error": "No file selected"}), 400
+
+    filename = os.path.basename(f.filename)
+    if not filename.lower().endswith((".csv", ".json")):
+        return jsonify({"success": False, "error": "Only .csv and .json files are supported"}), 400
+
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    f.save(filepath)
+
+    # Register with stdlib so read_csv/read_json can find it by name
+    from .stdlib import register_uploaded_file
+    register_uploaded_file(filename, filepath)
+
+    return jsonify({"success": True, "filename": filename})
 
 
 def _parse_error_location(error_msg: str) -> tuple:

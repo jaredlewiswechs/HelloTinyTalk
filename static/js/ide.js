@@ -256,6 +256,49 @@
     }
   });
 
+  // ── Import CSV / JSON ──────────────────────────────────────────────
+
+  document.getElementById('btn-import').addEventListener('click', function () {
+    document.getElementById('file-import').click();
+  });
+
+  document.getElementById('file-import').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    setStatus('Importing ' + file.name + '...', '');
+
+    fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.success) {
+        var fn = file.name.toLowerCase().endsWith('.json') ? 'read_json' : 'read_csv';
+        var snippet = 'let data = ' + fn + '("' + data.filename + '")\n';
+
+        // Insert at top of editor
+        var range = new monaco.Range(1, 1, 1, 1);
+        editor.executeEdits('import', [{ range: range, text: snippet }]);
+        editor.setPosition({ lineNumber: 1, column: 1 });
+
+        setStatus('Imported ' + data.filename, 'Variable "data" ready to use');
+      } else {
+        setStatus('Import failed: ' + data.error, '');
+      }
+    })
+    .catch(function (err) {
+      setStatus('Import error: ' + err.message, '');
+    });
+
+    // Reset so the same file can be re-imported
+    this.value = '';
+  });
+
   // ── Mode switching (Program / REPL) ────────────────────────────────
 
   document.getElementById('sel-mode').addEventListener('change', function () {
