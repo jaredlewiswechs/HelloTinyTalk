@@ -27,6 +27,7 @@ from .runtime import ExecutionBounds, TinyTalkError
 from .tt_types import Value, ValueType
 from .transpiler import transpile, transpile_pandas
 from .sql_transpiler import transpile_sql
+from .js_transpiler import transpile_js
 
 __version__ = "2.1.0"
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
     "transpile",
     "transpile_pandas",
     "transpile_sql",
+    "transpile_js",
 ]

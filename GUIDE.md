@@ -40,13 +40,14 @@
 28. [Rolling Aggregates — Window Functions](#28-rolling-aggregates--window-functions)
 29. [Python Transpiler — Export to Python/pandas](#29-python-transpiler--export-to-pythonpandas)
 30. [SQL Transpiler — See the SQL Behind Your Pipelines](#30-sql-transpiler--see-the-sql-behind-your-pipelines)
-31. [Imports — Building Multi-File Programs](#31-imports--building-multi-file-programs)
-32. [Type Annotations — Optional Safety Nets](#32-type-annotations--optional-safety-nets)
-33. [Built-in Functions — The Standard Toolkit](#33-built-in-functions--the-standard-toolkit)
-34. [Running Your Code](#34-running-your-code)
-35. [The REPL — Interactive Data Exploration](#35-the-repl--interactive-data-exploration)
-36. [Error Messages — TinyTalk Teaches You](#36-error-messages--tinytalk-teaches-you)
-37. [Quick Reference Cheat Sheet](#37-quick-reference-cheat-sheet)
+31. [JavaScript Transpiler — Export to JS](#31-javascript-transpiler--export-to-js)
+32. [Imports — Building Multi-File Programs](#32-imports--building-multi-file-programs)
+33. [Type Annotations — Optional Safety Nets](#33-type-annotations--optional-safety-nets)
+34. [Built-in Functions — The Standard Toolkit](#34-built-in-functions--the-standard-toolkit)
+35. [Running Your Code](#35-running-your-code)
+36. [The REPL — Interactive Data Exploration](#36-the-repl--interactive-data-exploration)
+37. [Error Messages — TinyTalk Teaches You](#37-error-messages--tinytalk-teaches-you)
+38. [Quick Reference Cheat Sheet](#38-quick-reference-cheat-sheet)
 
 ---
 
@@ -1741,7 +1742,7 @@ GROUP BY dept;
 
 This is the bridge between TinyTalk and industry SQL. A student writes a readable
 data pipeline and immediately sees the SQL equivalent. Combined with the Python
-transpiler, you now get **three industry languages from one syntax**.
+transpiler and the JavaScript transpiler, you now get **four industry languages from one syntax**.
 
 ```
 // TinyTalk (what students write)
@@ -1756,7 +1757,98 @@ sorted([{k: row[k] for k in ["name", "age"]} for row in [x for x in data if (lam
 
 ---
 
-## 31. Imports — Building Multi-File Programs
+## 31. JavaScript Transpiler — Export to JS
+
+TinyTalk also transpiles to JavaScript, bringing TinyTalk concepts to the language
+of the web. Students write in TinyTalk's readable syntax, then see how the same
+logic looks in JavaScript with modern array methods.
+
+### Usage from Python
+
+```python
+from newTinyTalk import transpile_js
+
+tt_code = '''
+let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let result = data _filter((x) => x > 3) _sort _reverse _take(3)
+show(result)
+'''
+
+print(transpile_js(tt_code))
+# let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+# let result = data.filter((x) => x > 3).slice().sort((a, b) => a - b).slice().reverse().slice(0, 3);
+# console.log(result);
+```
+
+### From the command line
+
+```bash
+tinytalk transpile-js analysis.tt
+```
+
+### What maps to what
+
+| TinyTalk | JavaScript |
+|----------|------------|
+| `let x = 10` | `let x = 10;` |
+| `const PI = 3.14` | `const PI = 3.14;` |
+| `fn add(a, b) { ... }` | `function add(a, b) { ... }` |
+| `(x) => x * 2` | `(x) => x * 2` |
+| `show(x)` | `console.log(x)` |
+| `"Hello {name}"` | `` `Hello ${name}` `` |
+| `true ? a : b` | `(true ? a : b)` |
+| `is` / `isnt` | `===` / `!==` |
+| `and` / `or` | `&&` / `\|\|` |
+| `not x` | `!x` |
+| `_filter(fn)` | `.filter(fn)` |
+| `_map(fn)` | `.map(fn)` |
+| `_sort` | `.slice().sort((a, b) => a - b)` |
+| `_sortBy(fn)` | `.slice().sort(...)` |
+| `_reverse` | `.slice().reverse()` |
+| `_take(n)` | `.slice(0, n)` |
+| `_drop(n)` | `.slice(n)` |
+| `_first` | `[0]` |
+| `_last` | `.at(-1)` |
+| `_unique` | `[...new Set(...)]` |
+| `_flatten` | `.flat()` |
+| `_sum` | `.reduce((a, b) => a + b, 0)` |
+| `_avg` | `.reduce(...) / .length` |
+| `_count` | `.length` |
+| `_min` / `_max` | `Math.min(...)` / `Math.max(...)` |
+| `_reduce(fn, init)` | `.reduce(fn, init)` |
+| `_group(fn)` | `.reduce(...)` (grouping) |
+| `_select(cols)` | `.map(row => ...)` |
+| `_mutate(fn)` | `.map(row => ({...row, ...fn(row)}))` |
+| `_rename(map)` | `.map(row => ...)` (key remapping) |
+| `_join(right, fn)` | `.flatMap(...)` |
+| `sqrt(x)` | `Math.sqrt(x)` |
+| `upcase(s)` | `s.toUpperCase()` |
+| `parse_json(s)` | `JSON.parse(s)` |
+| `to_json(v)` | `JSON.stringify(v)` |
+
+### For educators
+
+The JavaScript transpiler completes the picture: students write one TinyTalk pipeline
+and see it in **four** industry formats — Python, pandas, SQL, and JavaScript.
+
+```
+// Student writes this:
+data _filter((r) => r["score"] > 90) _sortBy((r) => r["score"]) _reverse _take(5)
+
+// JavaScript equivalent:
+data.filter((r) => r["score"] > 90)
+    .slice().sort((a, b) => ((r) => r["score"])(a) < ((r) => r["score"])(b) ? -1 : ((r) => r["score"])(a) > ((r) => r["score"])(b) ? 1 : 0)
+    .slice().reverse()
+    .slice(0, 5)
+```
+
+Step chains map naturally to JavaScript's built-in array methods (`.filter()`,
+`.map()`, `.reduce()`, `.sort()`, `.slice()`), making the transition from
+TinyTalk to JavaScript intuitive.
+
+---
+
+## 32. Imports — Building Multi-File Programs
 
 Once your program outgrows a single file, you need a module system. TinyTalk
 supports three import styles, so programs can compose across files.
@@ -1842,7 +1934,7 @@ show("Area: " + str(square(7)))  // Area: 49
 
 ---
 
-## 32. Type Annotations — Optional Safety Nets
+## 33. Type Annotations — Optional Safety Nets
 
 Type annotations help catch mistakes early and make code self-documenting.
 They are **completely optional** — code without annotations runs exactly
@@ -1940,7 +2032,7 @@ call time.
 
 ---
 
-## 33. Built-in Functions — The Standard Toolkit
+## 34. Built-in Functions — The Standard Toolkit
 
 ### Output
 
@@ -2067,7 +2159,7 @@ call time.
 
 ---
 
-## 34. Running Your Code
+## 35. Running Your Code
 
 ### From the command line
 
@@ -2088,6 +2180,9 @@ tinytalk transpile analysis.tt
 
 # Transpile to SQL
 tinytalk transpile-sql analysis.tt
+
+# Transpile to JavaScript
+tinytalk transpile-js analysis.tt
 ```
 
 ### Via the API
@@ -2128,7 +2223,7 @@ print(result.success)   # True
 
 ---
 
-## 35. The REPL — Interactive Data Exploration
+## 36. The REPL — Interactive Data Exploration
 
 The TinyTalk REPL is more than a prompt — it's a data exploration environment.
 State persists across lines, so you can load a dataset, explore it with step
@@ -2224,7 +2319,7 @@ with `tinytalk run analysis.tt`.
 
 ---
 
-## 36. Error Messages — TinyTalk Teaches You
+## 37. Error Messages — TinyTalk Teaches You
 
 Most small languages die because their errors are cryptic. TinyTalk's error
 messages are designed to **teach**, not just complain.
@@ -2282,7 +2377,7 @@ three questions:
 
 ---
 
-## 37. Quick Reference Cheat Sheet
+## 38. Quick Reference Cheat Sheet
 
 ### Variables
 ```
@@ -2357,16 +2452,18 @@ data _window(5, (w) => w _max)              // sliding max
 
 ### Transpilers
 ```python
-from newTinyTalk import transpile, transpile_pandas, transpile_sql
+from newTinyTalk import transpile, transpile_pandas, transpile_sql, transpile_js
 
 transpile('data _filter((x) => x > 5) _sum')       # → plain Python
 transpile_pandas('data _filter((x) => x > 5) _sum') # → pandas
 transpile_sql('data _filter((r) => r["age"] > 30) _select("name") _take(10)')  # → SQL
+transpile_js('data _filter((x) => x > 5) _sum')     # → JavaScript
 ```
 
 ```bash
 tinytalk transpile analysis.tt       # Python output
 tinytalk transpile-sql analysis.tt   # SQL output
+tinytalk transpile-js analysis.tt    # JavaScript output
 ```
 
 ### REPL commands
@@ -2455,7 +2552,7 @@ enough to write real programs. The key things that make it unique:
 
 1. **Step chains** — Transform data like a pipeline, not a pile of nested calls
 2. **dplyr-style analysis** — `_select`, `_mutate`, `_summarize`, `_group` — feels like R
-3. **Three transpiler targets** — See your pipeline as Python, pandas, or SQL
+3. **Four transpiler targets** — See your pipeline as Python, pandas, SQL, or JavaScript
 4. **Import system** — `import`, `from...use`, namespace aliases — build real projects across files
 5. **Persistent REPL** — Load data, explore, define functions, export results — a data workbench
 6. **Type annotations** — Optional `fn add(a: int, b: int): int` — catch mistakes, self-document

@@ -8,6 +8,7 @@ Endpoints:
     POST /api/check          Parse-only syntax check (returns errors)
     POST /api/transpile      Transpile to Python
     POST /api/transpile-sql  Transpile to SQL
+    POST /api/transpile-js   Transpile to JavaScript
     GET  /api/health         Health check
     GET  /api/examples       List example programs
 """
@@ -21,6 +22,7 @@ from .lexer import Lexer
 from .parser import Parser
 from .transpiler import transpile, transpile_pandas
 from .sql_transpiler import transpile_sql
+from .js_transpiler import transpile_js
 from .runtime import ExecutionBounds
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -118,6 +120,22 @@ def transpile_sql_code():
 
     try:
         output = transpile_sql(source)
+        return jsonify({"success": True, "output": output})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/transpile-js", methods=["POST"])
+def transpile_js_code():
+    """Transpile TinyTalk to JavaScript."""
+    data = request.get_json(force=True, silent=True) or {}
+    source = data.get("code", data.get("source", ""))
+
+    if not source:
+        return jsonify({"success": False, "error": "No code provided"}), 400
+
+    try:
+        output = transpile_js(source)
         return jsonify({"success": True, "output": output})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})

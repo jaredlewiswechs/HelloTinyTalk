@@ -1,5 +1,5 @@
 """
-Tests for the TinyTalk → Python transpiler.
+Tests for the TinyTalk → Python and JavaScript transpilers.
 Validates both output correctness and round-trip equivalence.
 """
 
@@ -7,7 +7,7 @@ import pytest
 import io
 import contextlib
 
-from newTinyTalk import TinyTalkKernel, transpile, transpile_pandas
+from newTinyTalk import TinyTalkKernel, transpile, transpile_pandas, transpile_js
 
 
 # ---------------------------------------------------------------------------
@@ -410,3 +410,320 @@ class TestPandasMode:
     def test_rolling(self):
         py = transpile_pandas("data _window(3, avg_fn)")
         assert ".rolling(3)" in py
+
+
+# ---------------------------------------------------------------------------
+# JavaScript transpiler tests
+# ---------------------------------------------------------------------------
+
+class TestJSTranspilerBasics:
+    def test_literal_int(self):
+        js = transpile_js("show(42)")
+        assert "42" in js
+        assert "console.log" in js
+
+    def test_literal_string(self):
+        js = transpile_js('show("hello")')
+        assert '"hello"' in js
+
+    def test_variable_assignment(self):
+        js = transpile_js("let x = 10")
+        assert "let x = 10;" in js
+
+    def test_const_assignment(self):
+        js = transpile_js("const PI_APPROX = 3.14")
+        assert "const PI_APPROX = 3.14;" in js
+
+    def test_boolean_true(self):
+        js = transpile_js("let flag = true")
+        assert "true" in js
+
+    def test_boolean_false(self):
+        js = transpile_js("let flag = false")
+        assert "false" in js
+
+    def test_null(self):
+        js = transpile_js("let x = null")
+        assert "null" in js
+
+    def test_math_constants(self):
+        js = transpile_js("show(PI)")
+        assert "Math.PI" in js
+
+
+class TestJSTranspilerControlFlow:
+    def test_if_else(self):
+        js = transpile_js('if true { show("yes") } else { show("no") }')
+        assert "if (true)" in js
+        assert "} else {" in js
+
+    def test_for_loop(self):
+        js = transpile_js("for i in range(5) { show(i) }")
+        assert "for (const i of" in js
+
+    def test_while_loop(self):
+        js = transpile_js("let x = 0\nwhile x < 5 { x += 1 }")
+        assert "while" in js
+
+    def test_function_def(self):
+        js = transpile_js("fn add(a, b) { return a + b }")
+        assert "function add(a, b)" in js
+        assert "return" in js
+
+    def test_break_continue(self):
+        js = transpile_js("""
+for i in range(10) {
+    if i == 5 { break }
+    if i % 2 == 0 { continue }
+}
+""")
+        assert "break;" in js
+        assert "continue;" in js
+
+
+class TestJSTranspilerExpressions:
+    def test_binary_ops(self):
+        js = transpile_js("show(2 + 3 * 4)")
+        assert "+" in js
+        assert "*" in js
+
+    def test_comparison(self):
+        js = transpile_js("show(5 > 3)")
+        assert ">" in js
+
+    def test_is_operator(self):
+        js = transpile_js("show(5 is 5)")
+        assert "===" in js
+
+    def test_has_operator(self):
+        js = transpile_js("show([1,2,3] has 2)")
+        assert ".includes(" in js
+
+    def test_ternary(self):
+        js = transpile_js("let x = true ? 1 : 0")
+        assert "?" in js
+        assert ":" in js
+
+    def test_lambda(self):
+        js = transpile_js("let f = (x) => x * 2")
+        assert "=>" in js
+
+    def test_string_interpolation(self):
+        js = transpile_js('let name = "world"\nshow("hello {name}")')
+        assert "`" in js
+        assert "${" in js
+
+    def test_array_literal(self):
+        js = transpile_js("let a = [1, 2, 3]")
+        assert "[1, 2, 3]" in js
+
+    def test_map_literal(self):
+        js = transpile_js('let m = {"a": 1, "b": 2}')
+        assert "a: 1" in js
+
+    def test_and_or(self):
+        js = transpile_js("show(true and false)")
+        assert "&&" in js
+        js = transpile_js("show(true or false)")
+        assert "||" in js
+
+    def test_not(self):
+        js = transpile_js("show(not true)")
+        assert "!" in js
+
+    def test_integer_division(self):
+        js = transpile_js("show(7 // 2)")
+        assert "Math.trunc" in js
+
+
+class TestJSTranspilerStepChains:
+    def test_filter(self):
+        js = transpile_js("let r = [1,2,3,4,5] _filter((x) => x > 2)")
+        assert ".filter(" in js
+
+    def test_map(self):
+        js = transpile_js("let r = [1,2,3] _map((x) => x * 2)")
+        assert ".map(" in js
+
+    def test_sort(self):
+        js = transpile_js("let r = [3,1,2] _sort")
+        assert ".sort(" in js
+
+    def test_sortBy(self):
+        js = transpile_js('let r = data _sortBy((x) => x["age"])')
+        assert ".sort(" in js
+
+    def test_reverse(self):
+        js = transpile_js("let r = [1,2,3] _reverse")
+        assert ".reverse()" in js
+
+    def test_take(self):
+        js = transpile_js("let r = [1,2,3,4,5] _take(3)")
+        assert ".slice(0, 3)" in js
+
+    def test_drop(self):
+        js = transpile_js("let r = [1,2,3,4,5] _drop(2)")
+        assert ".slice(2)" in js
+
+    def test_first(self):
+        js = transpile_js("let r = [1,2,3] _first")
+        assert "[0]" in js
+
+    def test_last(self):
+        js = transpile_js("let r = [1,2,3] _last")
+        assert ".at(-1)" in js
+
+    def test_unique(self):
+        js = transpile_js("let r = [1,1,2,2,3] _unique")
+        assert "new Set" in js
+
+    def test_count(self):
+        js = transpile_js("let r = [1,2,3] _count")
+        assert ".length" in js
+
+    def test_sum(self):
+        js = transpile_js("let r = [1,2,3] _sum")
+        assert ".reduce(" in js
+
+    def test_avg(self):
+        js = transpile_js("let r = [1,2,3] _avg")
+        assert ".reduce(" in js
+        assert ".length" in js
+
+    def test_min_max(self):
+        js = transpile_js("let r = [1,2,3] _min")
+        assert "Math.min" in js
+        js = transpile_js("let r = [1,2,3] _max")
+        assert "Math.max" in js
+
+    def test_flatten(self):
+        js = transpile_js("let r = [[1,2],[3,4]] _flatten")
+        assert ".flat()" in js
+
+    def test_chunk(self):
+        js = transpile_js("let r = [1,2,3,4,5,6] _chunk(2)")
+        assert "slice" in js
+
+    def test_reduce(self):
+        js = transpile_js("let r = [1,2,3,4] _reduce((a, b) => a + b, 0)")
+        assert ".reduce(" in js
+
+    def test_chain_multiple(self):
+        js = transpile_js("let r = data _filter((x) => x > 0) _sort _take(5)")
+        assert ".filter(" in js
+        assert ".sort(" in js
+        assert ".slice(0, 5)" in js
+
+    def test_pivot(self):
+        js = transpile_js('data _pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
+        assert ".reduce(" in js
+
+    def test_unpivot(self):
+        js = transpile_js('data _unpivot(["id"])')
+        assert ".flatMap(" in js
+
+    def test_window(self):
+        js = transpile_js("data _window(3, (w) => w)")
+        assert ".map(" in js
+        assert ".slice(" in js
+
+
+class TestJSTranspilerBuiltins:
+    def test_len(self):
+        js = transpile_js("show(len([1,2,3]))")
+        assert ".length" in js
+
+    def test_split(self):
+        js = transpile_js('show(split("a,b,c", ","))')
+        assert ".split(" in js
+
+    def test_join(self):
+        js = transpile_js('show(join(["a","b","c"], "-"))')
+        assert ".join(" in js
+
+    def test_upcase(self):
+        js = transpile_js('show(upcase("hello"))')
+        assert ".toUpperCase()" in js
+
+    def test_downcase(self):
+        js = transpile_js('show(downcase("HELLO"))')
+        assert ".toLowerCase()" in js
+
+    def test_trim(self):
+        js = transpile_js('show(trim("  hello  "))')
+        assert ".trim()" in js
+
+    def test_math_functions(self):
+        js = transpile_js("show(sqrt(16))")
+        assert "Math.sqrt" in js
+
+    def test_push(self):
+        js = transpile_js('let a = []\npush(a, 1)')
+        assert ".push(" in js
+
+    def test_keys(self):
+        js = transpile_js('show(keys({"a": 1}))')
+        assert "Object.keys" in js
+
+    def test_parse_json(self):
+        js = transpile_js('parse_json("{}")')
+        assert "JSON.parse" in js
+
+    def test_to_json(self):
+        js = transpile_js('to_json({"a": 1})')
+        assert "JSON.stringify" in js
+
+    def test_assert(self):
+        js = transpile_js('assert(true, "should be true")')
+        assert "console.assert" in js
+
+    def test_assert_equal(self):
+        js = transpile_js("assert_equal(1, 1)")
+        assert "console.assert" in js
+        assert "===" in js
+
+
+class TestJSTranspilerDplyrVerbs:
+    def test_select(self):
+        js = transpile_js('data _select(["name", "age"])')
+        assert ".map(" in js
+
+    def test_mutate(self):
+        js = transpile_js('data _mutate((r) => {"doubled": r["x"] * 2})')
+        assert ".map(" in js
+        assert "...row" in js
+
+    def test_rename(self):
+        js = transpile_js('data _rename({"old": "new"})')
+        assert ".map(" in js
+
+    def test_pull(self):
+        js = transpile_js('data _pull("name")')
+        assert ".map(" in js
+
+    def test_arrange(self):
+        js = transpile_js('data _arrange((r) => r["age"])')
+        assert ".sort(" in js
+
+
+class TestJSTranspilerTryCatch:
+    def test_try_catch(self):
+        js = transpile_js('try { show("ok") } catch(e) { show(e) }')
+        assert "try {" in js
+        assert "catch (e)" in js
+
+    def test_throw(self):
+        js = transpile_js('throw "oops"')
+        assert "throw new Error" in js
+
+
+class TestJSTranspilerMatch:
+    def test_match(self):
+        js = transpile_js("""
+match x {
+    1 => show("one")
+    2 => show("two")
+}
+""")
+        assert "switch" in js
+        assert "case" in js

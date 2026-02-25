@@ -9,6 +9,7 @@ Usage:
     tinytalk check <file.tt>          Parse and report errors (no execution)
     tinytalk transpile <file.tt>      Transpile to Python
     tinytalk transpile-sql <file.tt>  Transpile to SQL
+    tinytalk transpile-js <file.tt>   Transpile to JavaScript
 """
 
 import sys
@@ -34,6 +35,8 @@ def main():
         transpile_file(args[1])
     elif cmd in ("transpile-sql", "sql") and len(args) >= 2:
         transpile_sql_file(args[1])
+    elif cmd in ("transpile-js", "js") and len(args) >= 2:
+        transpile_js_file(args[1])
     else:
         print(f"Unknown command: {cmd}")
         print("Use 'tinytalk help' for usage.")
@@ -103,6 +106,19 @@ def transpile_sql_file(path: str):
         source = f.read()
 
     print(transpile_sql(source))
+
+
+def transpile_js_file(path: str):
+    from .js_transpiler import transpile_js
+
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        sys.exit(1)
+
+    with open(path, "r") as f:
+        source = f.read()
+
+    print(transpile_js(source))
 
 
 def start_repl():
