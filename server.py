@@ -1,12 +1,11 @@
 """
-TinyTalk API Server + TX Blueprint + IDE
-Flask-based HTTP API for running TinyTalk code, Texas residential blueprinting
-constraint engine, plus web IDEs for both.
+TinyTalk API Server + TX Blueprint
+Flask-based HTTP API for running TinyTalk code, plus a Monaco-based web IDE.
+TX Blueprint app available at /blueprint.
 
 Endpoints:
-    GET  /                          TX Blueprint app
-    GET  /ide                       TinyTalk Web IDE (Monaco editor)
-    GET  /blueprint                 TX Blueprint app (alias)
+    GET  /                          TinyTalk Web IDE (Monaco editor)
+    GET  /blueprint                 TX Blueprint app
     POST /api/run                   Execute TinyTalk code
     POST /api/run-debug             Execute with step chain debugging
     POST /api/check                 Parse-only syntax check (returns errors)
@@ -46,14 +45,13 @@ API_BOUNDS = ExecutionBounds(
 
 
 @app.route("/")
+def ide():
+    return send_from_directory(STATIC_DIR, "index.html")
+
+
 @app.route("/blueprint")
 def blueprint():
     return send_from_directory(os.path.join(STATIC_DIR, "blueprinting"), "index.html")
-
-
-@app.route("/ide")
-def ide():
-    return send_from_directory(STATIC_DIR, "index.html")
 
 
 @app.route("/api/health", methods=["GET"])
