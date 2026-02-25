@@ -26,13 +26,14 @@ import tempfile
 from flask import Flask, request, jsonify, send_from_directory
 
 from .kernel import TinyTalkKernel
-from .stdlib import _CHART_MARKER
+from .stdlib import _CHART_MARKER, format_value
 from .lexer import Lexer
 from .parser import Parser
 from .transpiler import transpile, transpile_pandas
 from .sql_transpiler import transpile_sql
 from .js_transpiler import transpile_js
 from .runtime import ExecutionBounds
+from .help_system import search_help, get_help, get_all_functions_by_category, get_categories
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 UPLOAD_DIR = tempfile.mkdtemp(prefix="tinytalk_uploads_")
@@ -51,6 +52,12 @@ API_BOUNDS = ExecutionBounds(
 @app.route("/")
 def ide():
     return send_from_directory(STATIC_DIR, "index.html")
+
+
+@app.route("/studio")
+def studio():
+    """RStudio-style 4-pane IDE."""
+    return send_from_directory(STATIC_DIR, "rstudio.html")
 
 
 @app.route("/blueprint")
@@ -281,6 +288,112 @@ def upload_file():
     register_uploaded_file(filename, filepath)
 
     return jsonify({"success": True, "filename": filename})
+
+
+# ---------------------------------------------------------------------------
+# Environment Inspector (RStudio-style)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/repl/env", methods=["POST"])
+def repl_env():
+    """Return the current REPL session environment (all variables with types and previews)."""
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get("session", "")
+
+    if not session_id or session_id not in _repl_sessions:
+        return jsonify({"variables": []})
+
+    kernel = _repl_sessions[session_id]
+    return jsonify({"variables": kernel.get_environment()})
+
+
+@app.route("/api/repl/data-view", methods=["POST"])
+def repl_data_view():
+    """Return a paginated view of a data variable (list of maps) for the data viewer.
+
+    Like RStudio's View() — shows data in a spreadsheet-like format.
+    """
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get("session", "")
+    var_name = data.get("variable", "")
+    page = data.get("page", 0)
+    page_size = data.get("page_size", 50)
+
+    if not session_id or session_id not in _repl_sessions or not var_name:
+        return jsonify({"success": False, "error": "Invalid session or variable"})
+
+    kernel = _repl_sessions[session_id]
+    if not kernel._runtime:
+        return jsonify({"success": False, "error": "No runtime"})
+
+    val = kernel._runtime.global_scope.get(var_name)
+    if val is None:
+        return jsonify({"success": False, "error": f"Variable '{var_name}' not found"})
+
+    from .tt_types import ValueType
+    if val.type != ValueType.LIST:
+        return jsonify({"success": False, "error": f"'{var_name}' is not a list/data frame"})
+
+    rows = val.data
+    total = len(rows)
+    start = page * page_size
+    end = min(start + page_size, total)
+    page_rows = rows[start:end]
+
+    # Extract columns from first row
+    columns = []
+    if page_rows and page_rows[0].type == ValueType.MAP:
+        columns = list(page_rows[0].data.keys())
+
+    # Convert to serializable rows
+    table_rows = []
+    for row in page_rows:
+        if row.type == ValueType.MAP:
+            table_rows.append({k: format_value(v) for k, v in row.data.items()})
+        else:
+            table_rows.append({"value": format_value(row)})
+
+    return jsonify({
+        "success": True,
+        "variable": var_name,
+        "columns": columns if columns else ["value"],
+        "rows": table_rows,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Help System
+# ---------------------------------------------------------------------------
+
+@app.route("/api/help", methods=["GET"])
+def help_index():
+    """Return all functions grouped by category for the Help pane."""
+    return jsonify({
+        "categories": get_categories(),
+        "functions": get_all_functions_by_category(),
+    })
+
+
+@app.route("/api/help/search", methods=["GET"])
+def help_search():
+    """Search help entries."""
+    query = request.args.get("q", "")
+    if not query:
+        return jsonify({"results": []})
+    return jsonify({"results": search_help(query)})
+
+
+@app.route("/api/help/<name>", methods=["GET"])
+def help_entry(name):
+    """Get help for a specific function/step/keyword."""
+    entry = get_help(name)
+    if entry:
+        return jsonify(entry)
+    return jsonify({"error": f"No help found for '{name}'"}), 404
 
 
 def _extract_charts(output: str):
