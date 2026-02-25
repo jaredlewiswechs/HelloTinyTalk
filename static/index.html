@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyTalk IDE</title>
+  <link rel="stylesheet" href="/static/css/ide.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <header id="toolbar">
+    <div class="toolbar-left">
+      <span class="logo">TinyTalk</span>
+      <button id="btn-run" title="Run (Ctrl+Enter)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
+        Run
+      </button>
+      <div class="separator"></div>
+      <select id="sel-examples">
+        <option value="">Examples...</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <button id="btn-transpile-py" class="btn-secondary" title="Transpile to Python">Python</button>
+      <button id="btn-transpile-sql" class="btn-secondary" title="Transpile to SQL">SQL</button>
+      <button id="btn-clear" class="btn-secondary" title="Clear output">Clear</button>
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <div id="main">
+    <!-- Editor pane -->
+    <div id="editor-pane">
+      <div id="editor"></div>
+    </div>
+
+    <!-- Resize handle -->
+    <div id="resize-handle"></div>
+
+    <!-- Output pane -->
+    <div id="output-pane">
+      <div id="output-tabs">
+        <button class="tab active" data-tab="output">Output</button>
+        <button class="tab" data-tab="python">Python</button>
+        <button class="tab" data-tab="sql">SQL</button>
+      </div>
+      <div id="output-panels">
+        <pre id="panel-output" class="panel active"></pre>
+        <pre id="panel-python" class="panel"></pre>
+        <pre id="panel-sql" class="panel"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <footer id="statusbar">
+    <span id="status-msg">Ready</span>
+    <span id="status-stats"></span>
+  </footer>
+
+  <!-- Monaco from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <script src="/static/js/tinytalk.monarch.js"></script>
+  <script src="/static/js/tinytalk.completion.js"></script>
+  <script src="/static/js/ide.js"></script>
+</body>
+</html>
