@@ -332,6 +332,41 @@ select:hover {
   font-size: 11px;
 }
 
+/* ── Chart panel ────────────────────────────────────────────────── */
+
+#panel-charts {
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+.chart-wrapper {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 360px;
+  position: relative;
+}
+
+.chart-empty {
+  color: var(--text-muted);
+  padding: 24px;
+  text-align: center;
+  line-height: 1.8;
+  font-size: 13px;
+}
+
+.chart-empty code {
+  background: var(--bg-surface);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-teal);
+}
+
 /* ── Responsive: stack vertically on narrow screens ──────────────── */
 
 @media (max-width: 768px) {

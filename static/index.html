@@ -55,6 +55,7 @@
     <div id="output-pane">
       <div id="output-tabs">
         <button class="tab active" data-tab="output">Output</button>
+        <button class="tab" data-tab="charts">Charts</button>
         <button class="tab" data-tab="debug">Debug</button>
         <button class="tab" data-tab="python">Python</button>
         <button class="tab" data-tab="sql">SQL</button>
@@ -62,6 +63,7 @@
       </div>
       <div id="output-panels">
         <pre id="panel-output" class="panel active"></pre>
+        <div id="panel-charts" class="panel"></div>
         <div id="panel-debug" class="panel"></div>
         <pre id="panel-python" class="panel"></pre>
         <pre id="panel-sql" class="panel"></pre>
@@ -75,6 +77,9 @@
     <span id="status-msg">Ready</span>
     <span id="status-stats"></span>
   </footer>
+
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
   <!-- Monaco from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>

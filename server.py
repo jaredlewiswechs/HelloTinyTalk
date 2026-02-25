@@ -20,11 +20,13 @@ Endpoints:
 
 import os
 import re
+import json
 import uuid
 import tempfile
 from flask import Flask, request, jsonify, send_from_directory
 
 from .kernel import TinyTalkKernel
+from .stdlib import _CHART_MARKER
 from .lexer import Lexer
 from .parser import Parser
 from .transpiler import transpile, transpile_pandas
@@ -76,12 +78,18 @@ def run_code():
     kernel = TinyTalkKernel(bounds=API_BOUNDS)
     result = kernel.run(source)
 
+    output = result.output
+    charts = []
+    if result.success:
+        output, charts = _extract_charts(output)
+
     return jsonify({
         "success": result.success,
-        "output": result.output,
+        "output": output,
         "error": result.error or None,
         "elapsed_ms": result.elapsed_ms,
         "op_count": result.op_count,
+        "charts": charts,
     })
 
 
@@ -97,13 +105,19 @@ def run_debug():
     kernel = TinyTalkKernel(bounds=API_BOUNDS, debug_chains=True)
     result = kernel.run(source)
 
+    output = result.output
+    charts = []
+    if result.success:
+        output, charts = _extract_charts(output)
+
     return jsonify({
         "success": result.success,
-        "output": result.output,
+        "output": output,
         "error": result.error or None,
         "elapsed_ms": result.elapsed_ms,
         "op_count": result.op_count,
         "chain_traces": kernel.get_debug_traces(),
+        "charts": charts,
     })
 
 
@@ -124,12 +138,18 @@ def repl_eval():
     kernel = _repl_sessions[session_id]
     result = kernel.run(source)
 
+    output = result.output
+    charts = []
+    if result.success:
+        output, charts = _extract_charts(output)
+
     return jsonify({
         "success": result.success,
-        "output": result.output,
+        "output": output,
         "error": result.error or None,
         "elapsed_ms": result.elapsed_ms,
         "session": session_id,
+        "charts": charts,
     })
 
 
@@ -261,6 +281,22 @@ def upload_file():
     register_uploaded_file(filename, filepath)
 
     return jsonify({"success": True, "filename": filename})
+
+
+def _extract_charts(output: str):
+    """Extract chart directives from program output, returning clean output and chart list."""
+    charts = []
+    clean_lines = []
+    for line in output.split("\n"):
+        if line.startswith(_CHART_MARKER):
+            try:
+                chart_json = line[len(_CHART_MARKER):]
+                charts.append(json.loads(chart_json))
+            except (json.JSONDecodeError, ValueError):
+                clean_lines.append(line)
+        else:
+            clean_lines.append(line)
+    return "\n".join(clean_lines), charts
 
 
 def _parse_error_location(error_msg: str) -> tuple:

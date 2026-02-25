@@ -1,0 +1,36 @@
+// Data Analysis with Charts
+// Step chains + visualizations for exploring data.
+
+// === Sales data ===
+let sales = [
+    {"month": "Jan", "revenue": 4200, "expenses": 3100},
+    {"month": "Feb", "revenue": 5800, "expenses": 3400},
+    {"month": "Mar", "revenue": 6100, "expenses": 3800},
+    {"month": "Apr", "revenue": 7500, "expenses": 4200},
+    {"month": "May", "revenue": 8200, "expenses": 4600},
+    {"month": "Jun", "revenue": 9800, "expenses": 5100}
+]
+
+// Extract columns using step chains
+let months = sales _map((r) => r.month)
+let revenue = sales _map((r) => r.revenue)
+let expenses = sales _map((r) => r.expenses)
+let profit = sales _map((r) => r.revenue - r.expenses)
+
+// Multi-series comparison
+chart_multi(months, {
+    "Revenue": revenue,
+    "Expenses": expenses,
+    "Profit": profit
+}, "Monthly Financials ($)")
+
+// Summary stats
+show("=== Financial Summary ===")
+show("Total Revenue:  ${revenue _sum}")
+show("Total Expenses: ${expenses _sum}")
+show("Total Profit:   ${profit _sum}")
+show("Best Month:     {sales _sort((a b) => b.revenue - a.revenue) _take(1) _map((r) => r.month)}")
+show("Avg Monthly Rev: ${round(revenue _avg)}")
+
+// Profit margin as bar chart
+chart_bar(months, profit, "Monthly Profit ($)")

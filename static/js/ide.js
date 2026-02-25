@@ -245,6 +245,7 @@
     document.getElementById('panel-python').textContent = '';
     document.getElementById('panel-sql').textContent = '';
     document.getElementById('panel-js').textContent = '';
+    renderCharts([]);
     setStatus('Cleared', '');
   });
 
@@ -337,6 +338,13 @@
       if (data.success) {
         outputEl.textContent = data.output || '(no output)';
         setStatus('Done', data.elapsed_ms + 'ms | ' + data.op_count + ' ops');
+        // Render charts if present
+        if (data.charts && data.charts.length > 0) {
+          renderCharts(data.charts);
+          switchTab('charts');
+        } else {
+          renderCharts([]);
+        }
       } else {
         outputEl.textContent = 'Error: ' + data.error;
         outputEl.classList.add('error');
@@ -371,8 +379,15 @@
         outputEl.textContent = data.output || '(no output)';
         renderDebugTraces(data.chain_traces || []);
         setStatus('Done (debug)', data.elapsed_ms + 'ms | ' + data.op_count + ' ops');
-        if (data.chain_traces && data.chain_traces.length > 0) {
-          switchTab('debug');
+        // Render charts if present
+        if (data.charts && data.charts.length > 0) {
+          renderCharts(data.charts);
+          switchTab('charts');
+        } else {
+          renderCharts([]);
+          if (data.chain_traces && data.chain_traces.length > 0) {
+            switchTab('debug');
+          }
         }
       } else {
         outputEl.textContent = 'Error: ' + data.error;
@@ -459,6 +474,11 @@
         outputEl.textContent = existing + prefix + (data.output || '') + '\n';
         outputEl.classList.remove('error');
         setStatus('REPL', data.elapsed_ms + 'ms');
+        // Render charts if present
+        if (data.charts && data.charts.length > 0) {
+          renderCharts(data.charts);
+          switchTab('charts');
+        }
       } else {
         outputEl.textContent = existing + prefix + 'Error: ' + data.error + '\n';
         setStatus('REPL error', data.elapsed_ms + 'ms');
@@ -606,6 +626,186 @@
 
   function escapeHtml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── Chart rendering ──────────────────────────────────────────────
+
+  var activeCharts = [];
+
+  // Catppuccin-inspired palette for chart colors
+  var CHART_COLORS = [
+    '#89B4FA', '#A6E3A1', '#F38BA8', '#F9E2AF', '#94E2D5',
+    '#CBA6F7', '#FAB387', '#89DCEB', '#F5C2E7', '#B4BEFE',
+  ];
+
+  function destroyCharts() {
+    activeCharts.forEach(function (c) { c.destroy(); });
+    activeCharts = [];
+  }
+
+  function renderCharts(charts) {
+    var panel = document.getElementById('panel-charts');
+    destroyCharts();
+    panel.innerHTML = '';
+
+    if (!charts || charts.length === 0) {
+      panel.innerHTML = '<div class="chart-empty">No charts to display.<br>Use <code>chart_bar()</code>, <code>chart_line()</code>, <code>chart_pie()</code>, <code>chart_scatter()</code>, or <code>chart_histogram()</code> to create visualizations.</div>';
+      return;
+    }
+
+    charts.forEach(function (spec, idx) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'chart-wrapper';
+
+      var canvas = document.createElement('canvas');
+      canvas.id = 'chart-' + idx;
+      canvas.style.maxHeight = '360px';
+      wrapper.appendChild(canvas);
+      panel.appendChild(wrapper);
+
+      var config = buildChartConfig(spec, idx);
+      var chart = new Chart(canvas.getContext('2d'), config);
+      activeCharts.push(chart);
+    });
+  }
+
+  function buildChartConfig(spec) {
+    var defaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#CDD6F4', font: { family: "'JetBrains Mono', monospace", size: 11 } } },
+        title: {
+          display: !!spec.title,
+          text: spec.title || '',
+          color: '#CDD6F4',
+          font: { family: "'JetBrains Mono', monospace", size: 14, weight: '600' },
+        },
+      },
+      scales: {},
+    };
+
+    // Axis styling for non-pie charts
+    var axisDefaults = {
+      grid: { color: 'rgba(69, 71, 90, 0.6)' },
+      ticks: { color: '#A6ADC8', font: { family: "'JetBrains Mono', monospace", size: 10 } },
+    };
+
+    if (spec.type === 'bar') {
+      defaults.scales = { x: axisDefaults, y: axisDefaults };
+      return {
+        type: 'bar',
+        data: {
+          labels: spec.labels,
+          datasets: [{
+            label: spec.title || 'Values',
+            data: spec.values,
+            backgroundColor: spec.values.map(function (_, i) { return CHART_COLORS[i % CHART_COLORS.length] + 'CC'; }),
+            borderColor: spec.values.map(function (_, i) { return CHART_COLORS[i % CHART_COLORS.length]; }),
+            borderWidth: 1,
+            borderRadius: 4,
+          }],
+        },
+        options: defaults,
+      };
+    }
+
+    if (spec.type === 'line') {
+      defaults.scales = { x: axisDefaults, y: axisDefaults };
+      return {
+        type: 'line',
+        data: {
+          labels: spec.labels,
+          datasets: [{
+            label: spec.title || 'Values',
+            data: spec.values,
+            borderColor: CHART_COLORS[0],
+            backgroundColor: CHART_COLORS[0] + '33',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: CHART_COLORS[0],
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          }],
+        },
+        options: defaults,
+      };
+    }
+
+    if (spec.type === 'pie') {
+      delete defaults.scales;
+      return {
+        type: 'pie',
+        data: {
+          labels: spec.labels,
+          datasets: [{
+            data: spec.values,
+            backgroundColor: spec.values.map(function (_, i) { return CHART_COLORS[i % CHART_COLORS.length] + 'CC'; }),
+            borderColor: '#1E1E2E',
+            borderWidth: 2,
+          }],
+        },
+        options: defaults,
+      };
+    }
+
+    if (spec.type === 'scatter') {
+      defaults.scales = { x: axisDefaults, y: axisDefaults };
+      var points = spec.x.map(function (xv, i) { return { x: xv, y: spec.y[i] }; });
+      return {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: spec.title || 'Data',
+            data: points,
+            backgroundColor: CHART_COLORS[0] + 'CC',
+            borderColor: CHART_COLORS[0],
+            pointRadius: 5,
+            pointHoverRadius: 8,
+          }],
+        },
+        options: defaults,
+      };
+    }
+
+    if (spec.type === 'multi') {
+      defaults.scales = { x: axisDefaults, y: axisDefaults };
+      var datasets = [];
+      var seriesNames = Object.keys(spec.series);
+      seriesNames.forEach(function (name, i) {
+        datasets.push({
+          label: name,
+          data: spec.series[name],
+          borderColor: CHART_COLORS[i % CHART_COLORS.length],
+          backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '33',
+          fill: false,
+          tension: 0.3,
+          pointRadius: 3,
+        });
+      });
+      return {
+        type: 'line',
+        data: { labels: spec.labels, datasets: datasets },
+        options: defaults,
+      };
+    }
+
+    // Fallback: bar chart
+    defaults.scales = { x: axisDefaults, y: axisDefaults };
+    return {
+      type: 'bar',
+      data: {
+        labels: spec.labels || [],
+        datasets: [{
+          label: spec.title || 'Values',
+          data: spec.values || [],
+          backgroundColor: CHART_COLORS[0] + 'CC',
+          borderColor: CHART_COLORS[0],
+          borderWidth: 1,
+        }],
+      },
+      options: defaults,
+    };
   }
 
   // Suppress unused variable warning

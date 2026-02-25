@@ -1,0 +1,37 @@
+// Dashboard — Multiple Charts at Once
+// Build a data dashboard entirely in TinyTalk.
+
+// === Website analytics data ===
+let days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+let visits   = [1200, 1800, 2200, 1900, 2500, 3200, 2800]
+let signups  = [45, 72, 88, 65, 110, 145, 120]
+let bounces  = [35, 28, 22, 30, 18, 15, 20]
+
+// 1. Traffic overview
+chart_line(days, visits, "Daily Visits")
+
+// 2. Signup funnel
+chart_bar(days, signups, "Daily Signups")
+
+// 3. Conversion rate by day
+let conversion = []
+for i in range(len(days)) {
+    append(conversion, round(signups[i] / visits[i] * 100, 1))
+}
+chart_line(days, conversion, "Conversion Rate (%)")
+
+// 4. Bounce rate (pie for average breakdown)
+let avg_bounce = round(bounces _avg, 1)
+chart_pie(
+    ["Bounced", "Engaged"],
+    [avg_bounce, 100 - avg_bounce],
+    "Avg Bounce vs Engagement"
+)
+
+// Summary
+show("=== Weekly Dashboard ===")
+show("Total Visits:    {visits _sum}")
+show("Total Signups:   {signups _sum}")
+show("Avg Conversion:  {round(conversion _avg, 1)}%")
+show("Best Day:        {days[visits _map((v i) => [v, i]) _sort((a b) => b[0] - a[0]) _take(1) _map((p) => p[1])[0]]}")
+show("Avg Bounce Rate: {avg_bounce}%")

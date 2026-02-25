@@ -1,0 +1,27 @@
+// Scatter Plot — Exploring Correlations
+// Visualize relationships between variables.
+
+// === Height vs Weight data ===
+let heights = [152, 160, 165, 170, 172, 175, 178, 180, 183, 188, 190, 193]
+let weights = [50, 58, 62, 68, 70, 74, 78, 82, 85, 92, 95, 100]
+
+chart_scatter(heights, weights, "Height vs Weight")
+
+// === Math: plot a function ===
+let x_vals = []
+let y_sin = []
+let y_cos = []
+for i in range(0, 25) {
+    let x = i * 0.5
+    append(x_vals, x)
+    append(y_sin, round(sin(x) * 100) / 100)
+    append(y_cos, round(cos(x) * 100) / 100)
+}
+
+chart_multi(
+    x_vals _map((x) => str(round(x, 1))),
+    {"sin(x)": y_sin, "cos(x)": y_cos},
+    "Trigonometric Functions"
+)
+
+show("Plotted {len(x_vals)} points for sin(x) and cos(x)")
