@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texas Residential Blueprinting — Constraint-First Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/blueprinting/css/app.css">
+</head>
+<body>
+  <!-- ─── Top Bar ─── -->
+  <header id="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 21h18M3 7v14M21 7v14M6 7V4h12v3M9 21v-4h6v4"/>
+          <rect x="7" y="10" width="4" height="4" fill="currentColor" opacity="0.3"/>
+          <rect x="13" y="10" width="4" height="4" fill="currentColor" opacity="0.3"/>
+        </svg>
+        <span>TX Blueprint</span>
+      </div>
+      <div class="topbar-sep"></div>
+      <span class="topbar-subtitle" id="project-name">Untitled Project</span>
+    </div>
+    <div class="topbar-center">
+      <button class="tool-btn" id="btn-select" data-mode="select" title="Select / Move (V)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z"/></svg>
+      </button>
+      <button class="tool-btn active" id="btn-draw" data-mode="draw" title="Draw Room (R)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M3 9h18"/></svg>
+      </button>
+      <button class="tool-btn" id="btn-pan" data-mode="pan" title="Pan (Space+Drag)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M7 7l-5 5 5 5M17 7l5 5-5 5"/></svg>
+      </button>
+      <div class="topbar-sep"></div>
+      <button class="tool-btn" id="btn-zoom-fit" title="Zoom to Fit (F)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+      <button class="tool-btn text-btn" id="btn-delete" title="Delete Selected (Del)">Delete</button>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-primary" id="btn-export">Export Plans</button>
+    </div>
+  </header>
+
+  <!-- ─── Main Layout ─── -->
+  <div id="app-layout">
+    <!-- Left Sidebar — Project Config -->
+    <aside id="sidebar-left" class="sidebar">
+      <div class="sidebar-scroll">
+        <!-- Project Settings -->
+        <section class="panel-section">
+          <h3 class="section-title">Project</h3>
+          <div class="form-group">
+            <label>Jurisdiction</label>
+            <select id="sel-jurisdiction">
+              <option value="houston">Houston</option>
+              <option value="austin">Austin</option>
+              <option value="dallas">Dallas</option>
+              <option value="san_antonio">San Antonio</option>
+              <option value="fort_worth">Fort Worth</option>
+              <option value="unincorporated">Unincorporated (County)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Building Type</label>
+            <select id="sel-building-type">
+              <option value="single-family">Single-Family Residence</option>
+              <option value="duplex">Duplex</option>
+              <option value="triplex">Triplex</option>
+              <option value="fourplex">Fourplex</option>
+              <option value="adu">Accessory Dwelling Unit</option>
+              <option value="garage">Detached Garage / Storage</option>
+              <option value="townhome">Townhome</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Stories</label>
+              <input type="number" id="inp-stories" value="1" min="1" max="4">
+            </div>
+            <div class="form-group">
+              <label>Intended Use</label>
+              <select id="sel-use">
+                <option value="owner">Owner-Occupied</option>
+                <option value="rental">Rental</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lot Configuration -->
+        <section class="panel-section">
+          <h3 class="section-title">Lot</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Width (ft)</label>
+              <input type="number" id="inp-lot-width" value="50" min="10" max="500">
+            </div>
+            <div class="form-group">
+              <label>Depth (ft)</label>
+              <input type="number" id="inp-lot-depth" value="100" min="10" max="500">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-survey">
+              Survey / Site Plan Provided
+            </label>
+          </div>
+          <div class="info-box" id="setback-info"></div>
+        </section>
+
+        <!-- Room Palette -->
+        <section class="panel-section">
+          <h3 class="section-title">Room Palette</h3>
+          <p class="section-hint">Select a room type, then draw on the canvas</p>
+          <div id="room-palette" class="room-grid"></div>
+        </section>
+
+        <!-- Selected Room -->
+        <section class="panel-section" id="selected-room-panel" style="display:none;">
+          <h3 class="section-title">Selected Room</h3>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="sel-room-type"></select>
+          </div>
+          <div class="form-group">
+            <label>Label</label>
+            <input type="text" id="inp-room-label" placeholder="Optional label">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Width (ft)</label>
+              <input type="number" id="inp-room-w" min="2" step="1">
+            </div>
+            <div class="form-group">
+              <label>Height (ft)</label>
+              <input type="number" id="inp-room-h" min="2" step="1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>X (ft)</label>
+              <input type="number" id="inp-room-x" step="1">
+            </div>
+            <div class="form-group">
+              <label>Y (ft)</label>
+              <input type="number" id="inp-room-y" step="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-egress">
+              Has Egress Window
+            </label>
+          </div>
+          <div class="stat-row">
+            <span>Area</span>
+            <span id="room-area">—</span>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main id="canvas-container">
+      <canvas id="floor-plan-canvas"></canvas>
+      <div id="canvas-overlay">
+        <div id="canvas-stats">
+          <span id="stat-total-area">0 sqft</span>
+          <span class="stat-sep">|</span>
+          <span id="stat-max-span">0' max span</span>
+          <span class="stat-sep">|</span>
+          <span id="stat-rooms">0 rooms</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar — Constraints -->
+    <aside id="sidebar-right" class="sidebar">
+      <div class="sidebar-scroll">
+        <section class="panel-section">
+          <h3 class="section-title">
+            Constraint Status
+            <span class="constraint-badge" id="constraint-overall">—</span>
+          </h3>
+          <div id="constraint-list"></div>
+        </section>
+
+        <!-- Permit Checklist -->
+        <section class="panel-section">
+          <h3 class="section-title">Permit Requirements</h3>
+          <div id="permit-checklist"></div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="panel-section">
+          <h3 class="section-title">Design Summary</h3>
+          <div class="stat-row"><span>Total Floor Area</span><span id="sum-area">—</span></div>
+          <div class="stat-row"><span>Max Clear Span</span><span id="sum-span">—</span></div>
+          <div class="stat-row"><span>Building Footprint</span><span id="sum-footprint">—</span></div>
+          <div class="stat-row"><span>Lot Coverage</span><span id="sum-coverage">—</span></div>
+          <div class="stat-row"><span>Buildable Area</span><span id="sum-buildable">—</span></div>
+          <div class="stat-row"><span>Bedrooms</span><span id="sum-beds">—</span></div>
+          <div class="stat-row"><span>Bathrooms</span><span id="sum-baths">—</span></div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ─── Export Modal ─── -->
+  <div id="export-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Export Permit-Ready Documents</h2>
+        <button class="modal-close" id="btn-close-export">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-section">
+          <h4>Constraint Summary</h4>
+          <div id="export-constraints"></div>
+        </div>
+        <div class="export-section">
+          <h4>Required Documents</h4>
+          <div id="export-docs"></div>
+        </div>
+        <div class="export-section">
+          <h4>Project Data (JSON)</h4>
+          <pre id="export-json"></pre>
+        </div>
+        <div class="export-actions">
+          <button class="btn-primary" id="btn-download-json">Download JSON</button>
+          <button class="btn-secondary" id="btn-download-svg">Download Floor Plan (SVG)</button>
+          <button class="btn-secondary" id="btn-print">Print</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/blueprinting/js/jurisdictions.js"></script>
+  <script src="/static/blueprinting/js/constraints.js"></script>
+  <script src="/static/blueprinting/js/canvas.js"></script>
+  <script src="/static/blueprinting/js/app.js"></script>
+</body>
+</html>

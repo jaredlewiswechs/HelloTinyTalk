@@ -1,19 +1,22 @@
 """
-TinyTalk API Server + IDE
-Flask-based HTTP API for running TinyTalk code, plus a Monaco-based web IDE.
+TinyTalk API Server + TX Blueprint + IDE
+Flask-based HTTP API for running TinyTalk code, Texas residential blueprinting
+constraint engine, plus web IDEs for both.
 
 Endpoints:
-    GET  /                   Web IDE (Monaco editor)
-    POST /api/run            Execute TinyTalk code
-    POST /api/run-debug      Execute with step chain debugging
-    POST /api/check          Parse-only syntax check (returns errors)
-    POST /api/transpile      Transpile to Python
-    POST /api/transpile-sql  Transpile to SQL
-    POST /api/transpile-js   Transpile to JavaScript
-    POST /api/repl           REPL: execute a line with persistent state
-    POST /api/repl/reset     REPL: reset session
-    GET  /api/health         Health check
-    GET  /api/examples       List example programs
+    GET  /                          TX Blueprint app
+    GET  /ide                       TinyTalk Web IDE (Monaco editor)
+    GET  /blueprint                 TX Blueprint app (alias)
+    POST /api/run                   Execute TinyTalk code
+    POST /api/run-debug             Execute with step chain debugging
+    POST /api/check                 Parse-only syntax check (returns errors)
+    POST /api/transpile             Transpile to Python
+    POST /api/transpile-sql         Transpile to SQL
+    POST /api/transpile-js          Transpile to JavaScript
+    POST /api/repl                  REPL: execute a line with persistent state
+    POST /api/repl/reset            REPL: reset session
+    GET  /api/health                Health check
+    GET  /api/examples              List example programs
 """
 
 import os
@@ -43,6 +46,12 @@ API_BOUNDS = ExecutionBounds(
 
 
 @app.route("/")
+@app.route("/blueprint")
+def blueprint():
+    return send_from_directory(os.path.join(STATIC_DIR, "blueprinting"), "index.html")
+
+
+@app.route("/ide")
 def ide():
     return send_from_directory(STATIC_DIR, "index.html")
 
