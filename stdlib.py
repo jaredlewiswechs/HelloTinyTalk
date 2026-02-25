@@ -17,6 +17,25 @@ from .tt_types import Value, ValueType
 
 
 # ---------------------------------------------------------------------------
+# Uploaded files registry (web playground support)
+# ---------------------------------------------------------------------------
+
+_uploaded_files: dict = {}
+
+
+def register_uploaded_file(name: str, path: str):
+    """Register an uploaded file so read_csv/read_json can find it by name."""
+    _uploaded_files[name] = path
+
+
+def _resolve_file_path(path: str) -> str:
+    """Resolve a file path, checking the uploaded-files registry first."""
+    if path in _uploaded_files:
+        return _uploaded_files[path]
+    return path
+
+
+# ---------------------------------------------------------------------------
 # Formatting
 # ---------------------------------------------------------------------------
 
@@ -597,7 +616,7 @@ def builtin_read_csv(args: List[Value]) -> Value:
     """read_csv(path) -> list of maps.  Each row becomes a {header: value} map."""
     if not args or args[0].type != ValueType.STRING:
         raise ValueError("read_csv requires a file path string")
-    path = args[0].data
+    path = _resolve_file_path(args[0].data)
     try:
         with open(path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -662,7 +681,7 @@ def builtin_read_json(args: List[Value]) -> Value:
     """read_json(path) -> value.  Parses a JSON file into TinyTalk values."""
     if not args or args[0].type != ValueType.STRING:
         raise ValueError("read_json requires a file path string")
-    path = args[0].data
+    path = _resolve_file_path(args[0].data)
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)

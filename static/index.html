@@ -24,6 +24,12 @@
       <select id="sel-examples">
         <option value="">Examples...</option>
       </select>
+      <div class="separator"></div>
+      <button id="btn-import" class="btn-secondary" title="Import a CSV or JSON file">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7 1v8.59L4.71 7.29a1 1 0 0 0-1.42 1.42l4 4a1 1 0 0 0 1.42 0l4-4a1 1 0 0 0-1.42-1.42L9 9.59V1a1 1 0 0 0-2 0z"/><path d="M1 12a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-2 0v1H2v-1a1 1 0 0 0-1-1z"/></svg>
+        Import
+      </button>
+      <input type="file" id="file-import" accept=".csv,.json" style="display:none">
     </div>
     <div class="toolbar-right">
       <button id="btn-share" class="btn-secondary" title="Share — encode program in URL">Share</button>
