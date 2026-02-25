@@ -1280,8 +1280,11 @@ let report = sales
         "avg":   (rows) => rows _map((r) => r["qty"]) _avg
     })
 show(report)
-// [{total: 25, avg: 12.5}, {total: 25, avg: 12.5}]
+// [{_group: "A", total: 25, avg: 12.5}, {_group: "B", total: 25, avg: 12.5}]
 ```
+
+Each result row includes a `_group` field containing the group key, so you always
+know which group produced each summary.
 
 You can also use `_groupBy` as an alias for `_group`.
 
@@ -1528,6 +1531,14 @@ show(ma3)
 - Position 2: window is `[10, 12, 11]` → avg = 11.0
 - Position 3: window is `[12, 11, 15]` → avg = 12.7
 - ...
+
+> **Design note:** TinyTalk uses a *growing window* at the start rather than
+> `NaN`-padding or requiring full windows. This means the first `size - 1`
+> results are computed from fewer elements than requested. This differs from
+> pandas' default `min_periods=None` behavior (which produces `NaN` until the
+> window is full). The growing-window approach was chosen because it always
+> returns numeric values, which keeps step chains composable without requiring
+> null handling.
 
 ### More examples
 
