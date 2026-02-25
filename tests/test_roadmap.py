@@ -18,7 +18,7 @@ from newTinyTalk.errors import (
     step_type_mismatch_hint, step_args_hint,
 )
 from newTinyTalk.typechecker import check_type, check_param_type, check_return_type
-from newTinyTalk.types import Value, ValueType
+from newTinyTalk.tt_types import Value, ValueType
 
 
 def run(code: str, source_dir: str = "") -> RunResult:

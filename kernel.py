@@ -282,7 +282,7 @@ class TinyTalkKernel:
             elif arg.endswith(".csv"):
                 try:
                     from .stdlib import builtin_read_csv
-                    from .types import Value
+                    from .tt_types import Value
                     data = builtin_read_csv([Value.string_val(arg)])
                     runtime.global_scope.define("data", data)
                     print(f"Loaded {arg} into variable 'data' ({len(data.data)} rows)")
@@ -291,7 +291,7 @@ class TinyTalkKernel:
             elif arg.endswith(".json"):
                 try:
                     from .stdlib import builtin_read_json
-                    from .types import Value
+                    from .tt_types import Value
                     data = builtin_read_json([Value.string_val(arg)])
                     runtime.global_scope.define("data", data)
                     print(f"Loaded {arg} into variable 'data'")
@@ -308,7 +308,7 @@ class TinyTalkKernel:
             if last_result is None:
                 print("No result to export.")
                 return
-            from .types import Value
+            from .tt_types import Value
             if arg.endswith(".csv"):
                 try:
                     from .stdlib import builtin_write_csv

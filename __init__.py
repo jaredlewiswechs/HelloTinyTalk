@@ -24,7 +24,7 @@ Quick usage:
 
 from .kernel import TinyTalkKernel, RunResult
 from .runtime import ExecutionBounds, TinyTalkError
-from .types import Value, ValueType
+from .tt_types import Value, ValueType
 from .transpiler import transpile, transpile_pandas
 from .sql_transpiler import transpile_sql
 

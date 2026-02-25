@@ -15,8 +15,8 @@ Or:
 import sys
 import os
 
-# CRITICAL: Remove the package directory from sys.path BEFORE any stdlib imports.
-# The local types.py shadows Python's stdlib types module otherwise.
+# Remove the package directory from sys.path so the package is imported
+# via its parent, not as loose modules.
 _this_dir = os.path.dirname(os.path.abspath(__file__))
 _parent_dir = os.path.dirname(_this_dir)
 # Remove the package dir (it gets auto-added when running a script)

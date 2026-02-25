@@ -14,7 +14,7 @@ import time
 import os
 import re as _re
 
-from .types import Value, ValueType
+from .tt_types import Value, ValueType
 from .stdlib import format_value, BUILTIN_FUNCTIONS, STDLIB_CONSTANTS
 from .errors import (
     undefined_variable_hint, unknown_step_hint, step_type_mismatch_hint,
