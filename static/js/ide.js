@@ -1,6 +1,13 @@
 /**
  * TinyTalk IDE — main application logic.
  * Connects Monaco editor to the TinyTalk backend API.
+ *
+ * Features:
+ *   - Run & transpile TinyTalk code
+ *   - REPL mode with persistent state
+ *   - Step-through chain debugger
+ *   - Shareable playground links (URL-encoded programs)
+ *   - Live syntax checking with error recovery
  */
 
 /* global require, monaco, tinytalkLanguageDef, tinytalkTheme, tinytalkCompletionProvider */
@@ -13,6 +20,9 @@
   var editor;
   var currentMarkers = [];
   var checkTimeout = null;
+  var replSession = '';
+  var replHistory = [];
+  var isReplMode = false;
 
   var DEFAULT_CODE = [
     '// Welcome to TinyTalk!',
@@ -34,6 +44,35 @@
     'show("10! = {factorial(10)}")',
     '',
   ].join('\n');
+
+  // ── Shareable links: load code from URL ────────────────────────────
+
+  function getCodeFromURL() {
+    var params = new URLSearchParams(window.location.search);
+    var encoded = params.get('code');
+    if (encoded) {
+      try {
+        return decodeURIComponent(atob(encoded));
+      } catch (e) {
+        // Try URI-decoded version
+        try { return decodeURIComponent(encoded); } catch (e2) { /* ignore */ }
+      }
+    }
+    // Also check hash fragment
+    if (window.location.hash && window.location.hash.length > 1) {
+      try {
+        return decodeURIComponent(atob(window.location.hash.substring(1)));
+      } catch (e) { /* ignore */ }
+    }
+    return null;
+  }
+
+  function generateShareURL() {
+    var code = editor.getValue();
+    var encoded = btoa(encodeURIComponent(code));
+    var url = window.location.origin + window.location.pathname + '?code=' + encoded;
+    return url;
+  }
 
   // ── Monaco setup ───────────────────────────────────────────────────
 
@@ -73,9 +112,12 @@
     // Register theme
     monaco.editor.defineTheme('tinytalk-dark', tinytalkTheme);
 
+    // Check for shared code in URL
+    var initialCode = getCodeFromURL() || DEFAULT_CODE;
+
     // Create editor
     editor = monaco.editor.create(document.getElementById('editor'), {
-      value: DEFAULT_CODE,
+      value: initialCode,
       language: 'tinytalk',
       theme: 'tinytalk-dark',
       fontSize: 14,
@@ -94,7 +136,9 @@
     });
 
     // Keybindings
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () {
+      if (isReplMode) { replEval(); } else { runCode(); }
+    });
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, function () {
       transpileCode('python');
     });
@@ -107,6 +151,11 @@
 
     // Load examples
     loadExamples();
+
+    // If code was loaded from URL, show a hint
+    if (getCodeFromURL()) {
+      setStatus('Loaded shared program', 'Press Ctrl+Enter to run');
+    }
 
     // Initial focus
     editor.focus();
@@ -158,7 +207,25 @@
 
   // ── Button handlers ────────────────────────────────────────────────
 
-  document.getElementById('btn-run').addEventListener('click', runCode);
+  document.getElementById('btn-run').addEventListener('click', function () {
+    if (isReplMode) { replEval(); } else { runCode(); }
+  });
+
+  document.getElementById('btn-debug').addEventListener('click', runDebug);
+
+  document.getElementById('btn-share').addEventListener('click', function () {
+    var url = generateShareURL();
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(function () {
+      setStatus('Link copied to clipboard!', url.length + ' chars');
+    }).catch(function () {
+      // Fallback: show URL in output
+      var panel = document.getElementById('panel-output');
+      panel.textContent = 'Share this link:\n\n' + url;
+      switchTab('output');
+      setStatus('Share link generated', '');
+    });
+  });
 
   document.getElementById('btn-transpile-py').addEventListener('click', function () {
     transpileCode('python');
@@ -174,6 +241,7 @@
 
   document.getElementById('btn-clear').addEventListener('click', function () {
     document.getElementById('panel-output').textContent = '';
+    document.getElementById('panel-debug').innerHTML = '';
     document.getElementById('panel-python').textContent = '';
     document.getElementById('panel-sql').textContent = '';
     document.getElementById('panel-js').textContent = '';
@@ -185,6 +253,20 @@
       editor.setValue(this.value);
       this.selectedIndex = 0;
       editor.focus();
+    }
+  });
+
+  // ── Mode switching (Program / REPL) ────────────────────────────────
+
+  document.getElementById('sel-mode').addEventListener('change', function () {
+    isReplMode = this.value === 'repl';
+    if (isReplMode) {
+      replSession = '';
+      replHistory = [];
+      document.getElementById('panel-output').textContent = 'REPL mode active. Type code and press Ctrl+Enter.\nState persists between executions.\n\n';
+      setStatus('REPL mode', 'State persists across runs');
+    } else {
+      setStatus('Program mode', '');
     }
   });
 
@@ -222,6 +304,128 @@
     .catch(function (err) {
       outputEl.textContent = 'Network error: ' + err.message;
       outputEl.classList.add('error');
+      setStatus('Error', '');
+    });
+  }
+
+  function runDebug() {
+    var code = editor.getValue();
+    if (!code.trim()) return;
+
+    setStatus('Debugging...', '');
+    var outputEl = document.getElementById('panel-output');
+    outputEl.textContent = '';
+    outputEl.classList.remove('error');
+
+    fetch('/api/run-debug', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code }),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.success) {
+        outputEl.textContent = data.output || '(no output)';
+        renderDebugTraces(data.chain_traces || []);
+        setStatus('Done (debug)', data.elapsed_ms + 'ms | ' + data.op_count + ' ops');
+        if (data.chain_traces && data.chain_traces.length > 0) {
+          switchTab('debug');
+        }
+      } else {
+        outputEl.textContent = 'Error: ' + data.error;
+        outputEl.classList.add('error');
+        setStatus('Error', data.elapsed_ms + 'ms');
+        highlightError(data.error);
+        switchTab('output');
+      }
+    })
+    .catch(function (err) {
+      outputEl.textContent = 'Network error: ' + err.message;
+      outputEl.classList.add('error');
+      setStatus('Error', '');
+    });
+  }
+
+  function renderDebugTraces(traces) {
+    var panel = document.getElementById('panel-debug');
+    if (!traces || traces.length === 0) {
+      panel.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">No step chains found in this program.<br>Add step chains like: data _filter(...) _sort _take(3)</div>';
+      return;
+    }
+
+    var html = '';
+    traces.forEach(function (trace, ti) {
+      html += '<div class="debug-chain">';
+      html += '<div class="debug-header">Chain #' + (ti + 1) + '</div>';
+      html += '<div class="debug-step debug-source">';
+      html += '<span class="debug-label">source</span>';
+      html += '<span class="debug-preview">' + escapeHtml(trace.source) + '</span>';
+      if (trace.source_count !== null) {
+        html += '<span class="debug-count">' + trace.source_count + ' items</span>';
+      }
+      html += '</div>';
+
+      trace.steps.forEach(function (step) {
+        html += '<div class="debug-step">';
+        html += '<span class="debug-arrow">  \u2193</span>';
+        html += '<span class="debug-step-name">' + escapeHtml(step.step) + '</span>';
+        if (step.args) {
+          html += '<span class="debug-args">(' + escapeHtml(step.args) + ')</span>';
+        }
+        html += '<div class="debug-result">';
+        html += '<span class="debug-preview">' + escapeHtml(step.preview) + '</span>';
+        if (step.count !== null) {
+          html += '<span class="debug-count">' + step.count + ' items</span>';
+        }
+        html += '</div>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+    });
+
+    panel.innerHTML = html;
+  }
+
+  function replEval() {
+    var code = editor.getValue();
+    if (!code.trim()) return;
+
+    setStatus('Evaluating...', '');
+    var outputEl = document.getElementById('panel-output');
+
+    switchTab('output');
+
+    fetch('/api/repl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, session: replSession }),
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      replSession = data.session || replSession;
+      replHistory.push(code);
+
+      // Append to output (don't clear — REPL accumulates)
+      var existing = outputEl.textContent;
+      var prefix = '>> ' + code.split('\n')[0];
+      if (code.split('\n').length > 1) prefix += ' ...';
+      prefix += '\n';
+
+      if (data.success) {
+        outputEl.textContent = existing + prefix + (data.output || '') + '\n';
+        outputEl.classList.remove('error');
+        setStatus('REPL', data.elapsed_ms + 'ms');
+      } else {
+        outputEl.textContent = existing + prefix + 'Error: ' + data.error + '\n';
+        setStatus('REPL error', data.elapsed_ms + 'ms');
+      }
+
+      // Scroll to bottom
+      outputEl.scrollTop = outputEl.scrollHeight;
+    })
+    .catch(function (err) {
+      outputEl.textContent += 'Network error: ' + err.message + '\n';
       setStatus('Error', '');
     });
   }
@@ -355,6 +559,10 @@
       monaco.editor.setModelMarkers(editor.getModel(), 'tinytalk', markers);
       currentMarkers = markers;
     }
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   // Suppress unused variable warning

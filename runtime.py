@@ -155,13 +155,22 @@ class ExecutionBounds:
 # ---------------------------------------------------------------------------
 
 class Runtime:
-    def __init__(self, bounds: Optional[ExecutionBounds] = None, source_dir: str = ""):
+    def __init__(self, bounds: Optional[ExecutionBounds] = None, source_dir: str = "",
+                 debug_chains: bool = False, sandbox: bool = True):
         self.bounds = bounds or ExecutionBounds()
         self.global_scope = Scope()
         self.structs: Dict[str, TinyStruct] = {}
         self.enums: Dict[str, TinyEnum] = {}
         self._source_dir = source_dir or os.getcwd()
         self._imported_modules: Dict[str, Scope] = {}
+        self._sandbox = sandbox
+
+        # Chain debugger
+        self._debug_chains = debug_chains
+        self._chain_debugger = None
+        if debug_chains:
+            from .debugger import ChainDebugger
+            self._chain_debugger = ChainDebugger()
 
         # metrics
         self.op_count = 0
@@ -227,6 +236,12 @@ class Runtime:
             acc = self._call_function(fn_val.data, [acc, item], self.global_scope, 0)
         return acc
 
+    def get_debug_traces(self) -> list:
+        """Return step chain debug traces (if debug mode is enabled)."""
+        if self._chain_debugger:
+            return self._chain_debugger.get_traces()
+        return []
+
     # -- execute ------------------------------------------------------------
 
     def execute(self, ast) -> Value:
@@ -234,6 +249,8 @@ class Runtime:
         self.iteration_count = 0
         self.recursion_depth = 0
         self.start_time = time.time()
+        if self._chain_debugger:
+            self._chain_debugger.clear()
         try:
             return self._eval(ast, self.global_scope)
         except ReturnException as e:
@@ -982,20 +999,31 @@ class Runtime:
             import "utils.tt"                 -- run module, import all top-level names
             import "utils.tt" as utils        -- run module, bind to namespace alias
             from "stats.tt" use { mean, median }  -- selective imports
+            from python use requests          -- Python interop
+            from python use math { sin, cos } -- selective Python interop
         """
+        # Python interop: from python use <module>
+        if node.module == "python":
+            return self._eval_python_import(node, scope)
+
         from .lexer import Lexer
         from .parser import Parser
 
         mod_path = node.module
-        # Resolve relative to source directory
-        if not os.path.isabs(mod_path):
-            mod_path = os.path.join(self._source_dir, mod_path)
 
-        # Normalize and check for .tt extension
-        if not mod_path.endswith(".tt"):
-            mod_path += ".tt"
+        # Try package manager resolution first
+        from .package_manager import resolve_import_path
+        resolved = resolve_import_path(mod_path, self._source_dir)
 
-        abs_path = os.path.abspath(mod_path)
+        if resolved is None:
+            # Fall back to relative resolution
+            if not os.path.isabs(mod_path):
+                mod_path = os.path.join(self._source_dir, mod_path)
+            if not mod_path.endswith(".tt"):
+                mod_path += ".tt"
+            abs_path = os.path.abspath(mod_path)
+        else:
+            abs_path = resolved
 
         if not os.path.exists(abs_path):
             raise TinyTalkError(f"Module not found: '{node.module}'. Looked in: {abs_path}", node.line)
@@ -1050,13 +1078,67 @@ class Runtime:
 
         return Value.null_val()
 
+    def _eval_python_import(self, node: ImportStmt, scope: Scope) -> Value:
+        """Handle Python interop imports: from python use <module>"""
+        from .python_interop import import_python_module, is_module_allowed
+
+        # The items list contains the Python module name as the first element
+        # Parser produces: from python use requests -> items=["requests"]
+        # or: from python use math { sin, cos } -> alias="math", items=["sin","cos"]
+        if node.alias and not node.items:
+            # from python use requests (alias holds the module name)
+            py_module = node.alias
+            selective = []
+        elif node.items:
+            # The first item is the module name for "from python use X"
+            py_module = node.items[0]
+            selective = node.items[1:] if len(node.items) > 1 else []
+        else:
+            raise TinyTalkError("from python use requires a module name", node.line)
+
+        if not is_module_allowed(py_module, self._sandbox):
+            raise TinyTalkError(
+                f"Python module '{py_module}' is blocked in sandbox mode", node.line
+            )
+
+        try:
+            exports = import_python_module(py_module, selective if selective else None)
+        except ValueError as e:
+            raise TinyTalkError(str(e), node.line)
+
+        # Bind as a namespace map
+        scope.define(py_module, Value.map_val(exports))
+        return Value.null_val()
+
     # -- step chains --------------------------------------------------------
 
     def _eval_step_chain(self, node: StepChain, scope: Scope) -> Value:
         data = self._eval(node.source, scope)
-        for step_name, step_args in node.steps:
+
+        # Start debug trace if enabled
+        if self._chain_debugger:
+            from .debugger import preview_value
+            self._chain_debugger.begin_chain(data)
+
+        for i, (step_name, step_args) in enumerate(node.steps):
             args = [self._eval(a, scope) for a in step_args]
-            data = self._apply_step(data, step_name, args, scope, node.line)
+
+            # Try pandas fast path for large datasets
+            from .dataframe import try_pandas_fast_path
+            fast_result = try_pandas_fast_path(data, step_name, args)
+            if fast_result is not None:
+                data = fast_result
+            else:
+                data = self._apply_step(data, step_name, args, scope, node.line)
+
+            # Record debug snapshot
+            if self._chain_debugger:
+                self._chain_debugger.on_step(step_name, i, args, data)
+
+        # End debug trace
+        if self._chain_debugger:
+            self._chain_debugger.end_chain(data)
+
         return data
 
     def _apply_step(self, data: Value, step: str, args: List[Value], scope: Scope, line: int) -> Value:

@@ -42,20 +42,63 @@ EXPR_START_TOKENS = frozenset({
 })
 
 
+class ParseError:
+    """A collected parse error (for error recovery mode)."""
+    def __init__(self, message: str, line: int = 0, column: int = 0):
+        self.message = message
+        self.line = line
+        self.column = column
+
+
 class Parser:
-    def __init__(self, tokens: List[Token]):
+    def __init__(self, tokens: List[Token], recover: bool = False):
         self.tokens = tokens
         self.pos = 0
+        self._recover = recover
+        self.errors: List[ParseError] = []
 
     def parse(self) -> Program:
         stmts = []
         self._skip_newlines()
         while not self._at_end():
-            stmt = self._parse_statement()
-            if stmt:
-                stmts.append(stmt)
+            if self._recover:
+                try:
+                    stmt = self._parse_statement()
+                    if stmt:
+                        stmts.append(stmt)
+                except SyntaxError as e:
+                    tok = self._peek()
+                    self.errors.append(ParseError(str(e), tok.line, tok.col))
+                    self._synchronize()
+            else:
+                stmt = self._parse_statement()
+                if stmt:
+                    stmts.append(stmt)
             self._skip_newlines()
         return Program(statements=stmts)
+
+    def _synchronize(self):
+        """Advance to the next statement boundary for error recovery.
+
+        Production languages keep parsing after an error so they can report
+        multiple issues at once. This matters for the LSP (red squiggles
+        everywhere, not just on the first mistake) and for the REPL experience.
+        """
+        while not self._at_end():
+            tok = self._peek()
+            # Stop at statement-starting tokens
+            if tok.type in (TokenType.LET, TokenType.CONST, TokenType.FN,
+                           TokenType.IF, TokenType.FOR, TokenType.WHILE,
+                           TokenType.RETURN, TokenType.MATCH, TokenType.STRUCT,
+                           TokenType.IMPORT, TokenType.FROM, TokenType.TRY,
+                           TokenType.THROW, TokenType.BREAK, TokenType.CONTINUE,
+                           TokenType.WHEN, TokenType.LAW, TokenType.BLUEPRINT):
+                return
+            # Stop at newlines (statement separators)
+            if tok.type == TokenType.NEWLINE:
+                self._advance()
+                return
+            self._advance()
 
     # -- helpers ------------------------------------------------------------
 
