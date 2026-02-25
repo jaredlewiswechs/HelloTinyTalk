@@ -6,8 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "newTinyTalk"
 version = "2.0.0"
 description = "A Smalltalk-inspired programming language - ergonomic, human-readable, deploy-ready."
-readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "flask>=3.0.0",
@@ -20,3 +19,7 @@ dev = [
 
 [project.scripts]
 tinytalk = "newTinyTalk.cli:main"
+
+[tool.setuptools]
+py-modules = []
+packages = []
