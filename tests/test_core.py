@@ -1156,6 +1156,22 @@ show(result[0]["count"] + result[1]["count"])
 '''
         assert output(code) == "2\n3"
 
+    def test_summarize_group_key_injected(self):
+        code = '''
+let data = [
+    {"dept": "eng", "salary": 100},
+    {"dept": "eng", "salary": 120},
+    {"dept": "sales", "salary": 80}
+]
+let result = data _group((r) => r["dept"]) _summarize({
+    "total": (rows) => rows _map((r) => r["salary"]) _sum
+})
+show(result[0]["_group"])
+show(result[1]["_group"])
+show(result[0]["total"])
+'''
+        assert output(code) == "eng\nsales\n220"
+
     def test_summarize_avg(self):
         code = '''
 let scores = [{"s": 90}, {"s": 80}, {"s": 70}]

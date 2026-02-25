@@ -1079,7 +1079,7 @@ class Runtime:
             agg_map = args[0].data
             result = []
             for group_key, group_val in data.data.items():
-                row = {}
+                row = {"_group": Value.string_val(str(group_key))}
                 group_items = group_val if group_val.type == ValueType.LIST else Value.list_val([group_val])
                 for col_name, fn_val in agg_map.items():
                     if fn_val.type == ValueType.FUNCTION:
