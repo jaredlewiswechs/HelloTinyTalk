@@ -39,7 +39,7 @@
     </div>
   </header>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════════════════════════
        4-PANE LAYOUT (like RStudio)
        ┌─────────────┬──────────────┐
        │  Source      │  Environment │
@@ -49,9 +49,9 @@
        │  (REPL)      │  Plots /     │
        │              │  Help / Data │
        └─────────────┴──────────────┘
-  ═══════════════════════════════════════════════════════════════════ -->
+  ═══════════════════════════════════════════════════════════════ -->
   <div id="pane-grid">
-    <!-- ─── TOP LEFT: Source Editor ───────────────────────────────── -->
+    <!-- TOP ROW -->
     <div id="pane-source" class="pane">
       <div class="pane-header">
         <span class="pane-title">Source</span>
@@ -60,10 +60,6 @@
       <div id="editor"></div>
     </div>
 
-    <!-- ─── Vertical resize handle ───────────────────────────────── -->
-    <div id="v-resize" class="resize-handle resize-v"></div>
-
-    <!-- ─── TOP RIGHT: Environment / History ─────────────────────── -->
     <div id="pane-env" class="pane">
       <div class="pane-tabs">
         <button class="ptab active" data-pane="env" data-target="env-vars">Environment</button>
@@ -86,11 +82,7 @@
       </div>
     </div>
 
-    <!-- ─── Horizontal resize handle ─────────────────────────────── -->
-    <div id="h-resize-left" class="resize-handle resize-h" style="grid-column: 1;"></div>
-    <div id="h-resize-right" class="resize-handle resize-h" style="grid-column: 3;"></div>
-
-    <!-- ─── BOTTOM LEFT: Console (REPL) ──────────────────────────── -->
+    <!-- BOTTOM ROW -->
     <div id="pane-console" class="pane">
       <div class="pane-header">
         <span class="pane-title">Console</span>
@@ -103,10 +95,6 @@
       </div>
     </div>
 
-    <!-- ─── Vertical resize handle (bottom) ──────────────────────── -->
-    <div id="v-resize-bottom" class="resize-handle resize-v"></div>
-
-    <!-- ─── BOTTOM RIGHT: Output / Plots / Help / Data Viewer ────── -->
     <div id="pane-output" class="pane">
       <div class="pane-tabs">
         <button class="ptab active" data-pane="output" data-target="out-output">Output</button>

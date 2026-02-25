@@ -38,6 +38,12 @@ html, body {
   color: var(--text-primary);
 }
 
+/* CRITICAL: body must be a flex column so toolbar, grid, statusbar stack */
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Toolbar ──────────────────────────────────────────────────── */
 
 #toolbar {
@@ -45,6 +51,7 @@ html, body {
   align-items: center;
   justify-content: space-between;
   height: var(--toolbar-h);
+  min-height: var(--toolbar-h);
   padding: 0 12px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
@@ -146,37 +153,29 @@ select:hover {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   4-PANE GRID LAYOUT
+   4-PANE GRID — using grid-template-areas for bulletproof layout
+
+   "source  env"
+   "console output"
    ══════════════════════════════════════════════════════════════════ */
 
 #pane-grid {
+  flex: 1;
   display: grid;
-  grid-template-columns: 1fr 4px 1fr;
-  grid-template-rows: 1fr 4px 1fr;
-  height: calc(100vh - var(--toolbar-h) - var(--statusbar-h));
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    "source  env"
+    "console output";
+  gap: 3px;
+  background: var(--border-light);
   overflow: hidden;
 }
 
-/* Pane positions */
-#pane-source   { grid-column: 1; grid-row: 1; }
-#pane-env      { grid-column: 3; grid-row: 1; }
-#pane-console  { grid-column: 1; grid-row: 3; }
-#pane-output   { grid-column: 3; grid-row: 3; }
-
-/* Resize handles */
-#v-resize        { grid-column: 2; grid-row: 1; }
-#h-resize-left   { grid-column: 1; grid-row: 2; }
-#h-resize-right  { grid-column: 3; grid-row: 2; }
-#v-resize-bottom { grid-column: 2; grid-row: 3; }
-
-.resize-handle {
-  background: var(--border-light);
-  transition: background 0.15s;
-  z-index: 10;
-}
-.resize-v { cursor: col-resize; }
-.resize-h { cursor: row-resize; }
-.resize-handle:hover { background: var(--accent); }
+#pane-source  { grid-area: source; }
+#pane-env     { grid-area: env; }
+#pane-console { grid-area: console; }
+#pane-output  { grid-area: output; }
 
 /* ── Pane chrome ──────────────────────────────────────────────── */
 
@@ -185,7 +184,8 @@ select:hover {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-primary);
-  border: 1px solid var(--border-light);
+  min-width: 0;
+  min-height: 0;
 }
 
 .pane-header {
@@ -193,6 +193,7 @@ select:hover {
   align-items: center;
   justify-content: space-between;
   height: var(--pane-header-h);
+  min-height: var(--pane-header-h);
   padding: 0 10px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-light);
@@ -247,6 +248,7 @@ select:hover {
   flex: 1;
   overflow: auto;
   padding: 0;
+  min-height: 0;
 }
 .pane-body.active { display: flex; flex-direction: column; }
 
@@ -254,7 +256,7 @@ select:hover {
    SOURCE EDITOR PANE
    ══════════════════════════════════════════════════════════════════ */
 
-#editor { flex: 1; overflow: hidden; }
+#editor { flex: 1; overflow: hidden; min-height: 0; }
 
 /* ══════════════════════════════════════════════════════════════════
    CONSOLE PANE (REPL)
@@ -270,6 +272,7 @@ select:hover {
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-primary);
+  min-height: 0;
 }
 
 .console-line { margin: 0; }
@@ -339,6 +342,7 @@ select:hover {
   flex: 1;
   overflow-y: auto;
   padding: 4px 0;
+  min-height: 0;
 }
 
 .env-empty {
@@ -364,6 +368,9 @@ select:hover {
 .env-name {
   font-weight: 600;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .env-name .env-type {
   font-weight: 400;
@@ -405,6 +412,7 @@ select:hover {
   flex: 1;
   overflow-y: auto;
   padding: 4px 0;
+  min-height: 0;
 }
 
 .history-item {
@@ -441,6 +449,7 @@ select:hover {
   word-break: break-word;
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 #output-text.error { color: var(--accent-red); }
 
@@ -450,6 +459,7 @@ select:hover {
   padding: 12px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .chart-wrapper {
@@ -480,6 +490,13 @@ select:hover {
 }
 
 /* ── Data Viewer ─────────────────────────────────────────────── */
+
+#data-viewer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 
 .data-toolbar {
   display: flex;
@@ -519,6 +536,7 @@ select:hover {
 .data-table-wrap {
   flex: 1;
   overflow: auto;
+  min-height: 0;
 }
 
 .data-table {
@@ -575,6 +593,7 @@ select:hover {
   padding: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .help-search-wrap {
@@ -588,6 +607,7 @@ select:hover {
   padding: 8px;
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .help-entry {
@@ -651,6 +671,7 @@ select:hover {
   font-size: 12px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .debug-chain {
@@ -722,6 +743,7 @@ select:hover {
   flex: 1;
   overflow: auto;
   white-space: pre-wrap;
+  min-height: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -733,6 +755,7 @@ select:hover {
   align-items: center;
   justify-content: space-between;
   height: var(--statusbar-h);
+  min-height: var(--statusbar-h);
   padding: 0 12px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border);

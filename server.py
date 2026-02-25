@@ -51,12 +51,19 @@ API_BOUNDS = ExecutionBounds(
 
 @app.route("/")
 def ide():
+    """Default: RStudio-style 4-pane IDE."""
+    return send_from_directory(STATIC_DIR, "rstudio.html")
+
+
+@app.route("/classic")
+def classic_ide():
+    """Classic 2-pane IDE."""
     return send_from_directory(STATIC_DIR, "index.html")
 
 
 @app.route("/studio")
 def studio():
-    """RStudio-style 4-pane IDE."""
+    """Alias for the 4-pane IDE."""
     return send_from_directory(STATIC_DIR, "rstudio.html")
 
 
