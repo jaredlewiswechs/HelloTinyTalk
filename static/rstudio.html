@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyTalk Studio</title>
+  <link rel="stylesheet" href="/static/css/rstudio.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <header id="toolbar">
+    <div class="toolbar-left">
+      <span class="logo">TinyTalk <span class="logo-sub">Studio</span></span>
+      <button id="btn-run" title="Run all (Ctrl+Enter)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
+        Run
+      </button>
+      <button id="btn-run-selection" class="btn-secondary" title="Run selected lines (Ctrl+Shift+Enter)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M3 1l8 5-8 5V1z"/><rect x="12" y="1" width="2" height="10" rx="1"/></svg>
+        Run Line
+      </button>
+      <button id="btn-debug" class="btn-secondary" title="Debug step chains">Debug</button>
+      <div class="separator"></div>
+      <select id="sel-examples">
+        <option value="">Examples...</option>
+      </select>
+      <button id="btn-import" class="btn-secondary" title="Import CSV/JSON">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7 1v8.59L4.71 7.29a1 1 0 0 0-1.42 1.42l4 4a1 1 0 0 0 1.42 0l4-4a1 1 0 0 0-1.42-1.42L9 9.59V1a1 1 0 0 0-2 0z"/><path d="M1 12a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-2 0v1H2v-1a1 1 0 0 0-1-1z"/></svg>
+        Import
+      </button>
+      <input type="file" id="file-import" accept=".csv,.json" style="display:none">
+    </div>
+    <div class="toolbar-right">
+      <button id="btn-share" class="btn-secondary" title="Share program via URL">Share</button>
+      <div class="separator"></div>
+      <button id="btn-transpile-py" class="btn-secondary">Python</button>
+      <button id="btn-transpile-sql" class="btn-secondary">SQL</button>
+      <button id="btn-transpile-js" class="btn-secondary">JS</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       4-PANE LAYOUT (like RStudio)
+       ┌─────────────┬──────────────┐
+       │  Source      │  Environment │
+       │  (editor)    │  / History   │
+       ├─────────────┼──────────────┤
+       │  Console     │  Output /    │
+       │  (REPL)      │  Plots /     │
+       │              │  Help / Data │
+       └─────────────┴──────────────┘
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="pane-grid">
+    <!-- ─── TOP LEFT: Source Editor ───────────────────────────────── -->
+    <div id="pane-source" class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Source</span>
+        <span id="source-file" class="pane-subtitle">untitled.tt</span>
+      </div>
+      <div id="editor"></div>
+    </div>
+
+    <!-- ─── Vertical resize handle ───────────────────────────────── -->
+    <div id="v-resize" class="resize-handle resize-v"></div>
+
+    <!-- ─── TOP RIGHT: Environment / History ─────────────────────── -->
+    <div id="pane-env" class="pane">
+      <div class="pane-tabs">
+        <button class="ptab active" data-pane="env" data-target="env-vars">Environment</button>
+        <button class="ptab" data-pane="env" data-target="env-history">History</button>
+      </div>
+      <div id="env-vars" class="pane-body active">
+        <div class="env-toolbar">
+          <input type="text" id="env-filter" placeholder="Filter variables..." class="env-search">
+          <button id="env-refresh" class="btn-icon" title="Refresh">&#x21bb;</button>
+          <button id="env-clear" class="btn-icon" title="Clear environment">&#x2715;</button>
+        </div>
+        <div id="env-list" class="env-list">
+          <div class="env-empty">Run some code to see variables here.</div>
+        </div>
+      </div>
+      <div id="env-history" class="pane-body">
+        <div id="history-list" class="history-list">
+          <div class="env-empty">Command history will appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Horizontal resize handle ─────────────────────────────── -->
+    <div id="h-resize-left" class="resize-handle resize-h" style="grid-column: 1;"></div>
+    <div id="h-resize-right" class="resize-handle resize-h" style="grid-column: 3;"></div>
+
+    <!-- ─── BOTTOM LEFT: Console (REPL) ──────────────────────────── -->
+    <div id="pane-console" class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Console</span>
+        <button id="console-clear" class="btn-icon" title="Clear console">&#x2715;</button>
+      </div>
+      <div id="console-output" class="console-output"></div>
+      <div id="console-input-row">
+        <span class="console-prompt">&gt;&gt;</span>
+        <input type="text" id="console-input" placeholder="Type TinyTalk code here..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- ─── Vertical resize handle (bottom) ──────────────────────── -->
+    <div id="v-resize-bottom" class="resize-handle resize-v"></div>
+
+    <!-- ─── BOTTOM RIGHT: Output / Plots / Help / Data Viewer ────── -->
+    <div id="pane-output" class="pane">
+      <div class="pane-tabs">
+        <button class="ptab active" data-pane="output" data-target="out-output">Output</button>
+        <button class="ptab" data-pane="output" data-target="out-plots">Plots</button>
+        <button class="ptab" data-pane="output" data-target="out-data">Data</button>
+        <button class="ptab" data-pane="output" data-target="out-help">Help</button>
+        <button class="ptab" data-pane="output" data-target="out-debug">Debug</button>
+        <button class="ptab" data-pane="output" data-target="out-transpiled">Transpiled</button>
+      </div>
+      <div id="out-output" class="pane-body active">
+        <pre id="output-text"></pre>
+      </div>
+      <div id="out-plots" class="pane-body">
+        <div id="plots-container"></div>
+      </div>
+      <div id="out-data" class="pane-body">
+        <div id="data-viewer">
+          <div class="data-toolbar">
+            <select id="data-var-select"><option value="">Select variable...</option></select>
+            <span id="data-info" class="data-info"></span>
+            <div class="data-pagination">
+              <button id="data-prev" class="btn-icon" disabled>&laquo;</button>
+              <span id="data-page-info">Page 1</span>
+              <button id="data-next" class="btn-icon" disabled>&raquo;</button>
+            </div>
+          </div>
+          <div id="data-table-wrap" class="data-table-wrap">
+            <div class="env-empty">Select a data variable to view it as a table.</div>
+          </div>
+        </div>
+      </div>
+      <div id="out-help" class="pane-body">
+        <div id="help-content">
+          <div class="help-search-wrap">
+            <input type="text" id="help-search" placeholder="Search functions..." class="env-search">
+          </div>
+          <div id="help-results"></div>
+          <div id="help-categories"></div>
+        </div>
+      </div>
+      <div id="out-debug" class="pane-body">
+        <div id="debug-traces"></div>
+      </div>
+      <div id="out-transpiled" class="pane-body">
+        <div class="transpile-tabs">
+          <button class="ttab active" data-lang="python">Python</button>
+          <button class="ttab" data-lang="sql">SQL</button>
+          <button class="ttab" data-lang="js">JavaScript</button>
+        </div>
+        <pre id="transpiled-code"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <footer id="statusbar">
+    <span id="status-msg">Ready</span>
+    <span id="status-cursor"></span>
+    <span id="status-stats"></span>
+  </footer>
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Monaco -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <script src="/static/js/tinytalk.monarch.js"></script>
+  <script src="/static/js/tinytalk.completion.js"></script>
+  <script src="/static/js/rstudio.js"></script>
+</body>
+</html>

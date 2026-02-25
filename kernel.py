@@ -15,7 +15,80 @@ import contextlib
 from .lexer import Lexer
 from .parser import Parser
 from .runtime import Runtime, ExecutionBounds, TinyTalkError
-from .stdlib import set_output_buffer, clear_output_buffer
+from .stdlib import set_output_buffer, clear_output_buffer, format_value
+from .tt_types import ValueType
+
+
+def _describe_value(name: str, val, is_const: bool) -> dict:
+    """Create a description dict for the environment inspector."""
+    type_name = val.type.value
+    preview = ""
+    size = ""
+    is_data = False
+
+    if val.type == ValueType.LIST:
+        n = len(val.data)
+        size = f"{n} items"
+        is_data = n > 0 and val.data[0].type == ValueType.MAP
+        if is_data:
+            # It's tabular data — show column names
+            cols = list(val.data[0].data.keys()) if val.data[0].type == ValueType.MAP else []
+            type_name = "data"
+            preview = f"{n} rows x {len(cols)} cols"
+            if cols:
+                preview += f" [{', '.join(cols[:5])}{'...' if len(cols) > 5 else ''}]"
+        else:
+            # Regular list — show first few elements
+            preview_items = [format_value(v) for v in val.data[:6]]
+            preview = "[" + ", ".join(preview_items)
+            if n > 6:
+                preview += ", ..."
+            preview += "]"
+    elif val.type == ValueType.MAP:
+        n = len(val.data)
+        size = f"{n} entries"
+        keys = list(val.data.keys())[:5]
+        preview = "{" + ", ".join(f"{k}: ..." for k in keys)
+        if n > 5:
+            preview += ", ..."
+        preview += "}"
+    elif val.type == ValueType.FUNCTION:
+        fn = val.data
+        if hasattr(fn, 'params'):
+            params = ", ".join(p.name if hasattr(p, 'name') else str(p) for p in fn.params)
+            preview = f"fn({params})"
+        else:
+            preview = "fn(...)"
+        type_name = "function"
+    elif val.type == ValueType.STRING:
+        s = val.data
+        size = f"{len(s)} chars"
+        preview = f'"{s[:60]}{"..." if len(s) > 60 else ""}"'
+    elif val.type in (ValueType.INT, ValueType.FLOAT):
+        preview = str(val.data)
+    elif val.type == ValueType.BOOLEAN:
+        preview = "true" if val.data else "false"
+    elif val.type == ValueType.NULL:
+        preview = "null"
+    elif val.type == ValueType.STRUCT_INSTANCE:
+        type_name = "struct"
+        if hasattr(val.data, 'struct_name'):
+            type_name = val.data.struct_name
+        preview = format_value(val)
+    elif val.type == ValueType.ENUM_VARIANT:
+        type_name = "enum"
+        preview = format_value(val)
+    else:
+        preview = format_value(val)
+
+    return {
+        "name": name,
+        "type": type_name,
+        "size": size,
+        "preview": preview,
+        "is_const": is_const,
+        "is_data": is_data,
+    }
 
 
 @dataclass
@@ -131,6 +204,28 @@ class TinyTalkKernel:
         if self._runtime:
             return self._runtime.get_debug_traces()
         return []
+
+    def get_environment(self) -> list:
+        """Return all user-defined variables with types, sizes, and preview values.
+
+        This powers the RStudio-style Environment pane.
+        Returns a list of dicts: [{name, type, size, preview, is_data}, ...]
+        """
+        if not self._runtime:
+            return []
+        from .stdlib import format_value, BUILTIN_FUNCTIONS, STDLIB_CONSTANTS
+        builtin_names = set(BUILTIN_FUNCTIONS.keys()) | set(STDLIB_CONSTANTS.keys())
+
+        env = []
+        scope = self._runtime.global_scope
+        for name, val in scope.variables.items():
+            if name in builtin_names:
+                continue
+            if name in scope.constants and name in STDLIB_CONSTANTS:
+                continue
+            entry = _describe_value(name, val, name in scope.constants)
+            env.append(entry)
+        return env
 
     def eval(self, source: str) -> Any:
         """Execute and return the raw Python value, raising on error."""

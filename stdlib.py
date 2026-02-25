@@ -1279,6 +1279,19 @@ def builtin_chart_multi(args: List[Value]) -> Value:
 # Registry
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Statistics (imported from stats module)
+# ---------------------------------------------------------------------------
+
+def _load_stats():
+    """Lazily load statistics functions."""
+    try:
+        from .stats import STATS_FUNCTIONS
+        return STATS_FUNCTIONS
+    except ImportError:
+        return {}
+
+
 BUILTIN_FUNCTIONS = {
     # Output
     "print": builtin_print,
@@ -1385,6 +1398,8 @@ BUILTIN_FUNCTIONS = {
     "chart_scatter": builtin_chart_scatter,
     "chart_histogram": builtin_chart_histogram,
     "chart_multi": builtin_chart_multi,
+    # Statistics (from stats.py)
+    **_load_stats(),
 }
 
 STDLIB_CONSTANTS = {
