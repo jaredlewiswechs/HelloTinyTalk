@@ -2669,17 +2669,28 @@ parameter. Programs of any size work.
 
 ---
 
-## 42. Package Manager
+## 42. Package Manager — Sharing Code Between Projects
 
-TinyTalk has a package system so every project isn't a single-file island.
+Eventually your project outgrows a single file. You want to reuse that nice
+CSV-cleaning module you wrote last week. You want to grab someone else's charting
+helpers from GitHub. That's what the package manager is for.
 
-### Initialize a project
+### Start a project
 
 ```bash
 tinytalk init
 ```
 
-Creates `tiny.toml` and `main.tt`:
+This creates three things:
+
+```
+my-project/
+├── tiny.toml            # Project manifest
+├── main.tt              # Your entry point
+└── .tinytalk/packages/  # Where dependencies live
+```
+
+Your `tiny.toml` is the single source of truth for the project:
 
 ```toml
 [project]
@@ -2688,138 +2699,249 @@ version = "0.1.0"
 entry = "main.tt"
 
 [dependencies]
+utils = { path = "./libs/utils" }
+charts = { git = "github:tinytalk-lang/charts", tag = "v1.2" }
+csv-tools = { git = "github:someuser/csv-tools", tag = ">=0.3" }
 ```
 
-### Install packages
+### Install dependencies
 
 ```bash
-tinytalk install utils --source ./path/to/utils
-tinytalk install http --source github:tinytalk-lang/http
+tinytalk install                                     # install everything in tiny.toml
+tinytalk install charts --source github:tinytalk-lang/charts  # add a new dependency
+tinytalk install utils --source ./libs/utils          # local path dependency
 ```
 
-Packages are stored in `.tinytalk/packages/` and resolved automatically by `import`:
+### Where do packages come from?
+
+TinyTalk uses a **GitHub-backed registry**. Every package is a GitHub repo
+with a `tiny.toml` at its root. Version tags follow [semver](https://semver.org):
+
+| Constraint | Meaning |
+|------------|---------|
+| `"1.2"` | Exactly version 1.2 |
+| `">=1.0"` | Version 1.0 or newer |
+| `{ git = "github:user/repo", tag = "v2.0" }` | Specific Git tag |
+| `{ path = "./local/dir" }` | Local directory (for development) |
+
+### Use your dependencies
+
+Once installed, import them like any other module:
 
 ```tinytalk
-import "utils"          // finds .tinytalk/packages/utils/main.tt
-from "http" use { get } // selective import from package
+import "charts"                   // whole module
+from "csv-tools" use { clean }    // selective import
+
+let data = read_csv("messy.csv")
+let cleaned = clean(data)
+charts.bar(cleaned, "category", "total")
 ```
+
+> **How it resolves**: `import "charts"` looks for `main.tt` in
+> `.tinytalk/packages/charts/`, then in the current directory, then parent
+> directories. The first match wins.
 
 ---
 
-## 43. Extended Standard Library
+## 43. Extended Standard Library — Batteries Included
 
-Beyond the core builtins, TinyTalk now includes everything you need for scripting:
+TinyTalk started with `show()` and `read_csv()`. That's enough for learning, but
+once you're writing real scripts you need regex, file operations, hashing, and
+HTTP POST. Here's everything that's now built in.
 
-### Regex
+### Regex — Pattern Matching
+
+Four functions, each does one thing:
 
 ```tinytalk
-regex_match("hello123", "[a-z]+\\d+")         // true
-regex_find("2024-01-15 and 2024-02-20", "\\d{4}-\\d{2}-\\d{2}")  // ["2024-01-15", "2024-02-20"]
-regex_replace("Hello World", "World", "TinyTalk")  // "Hello TinyTalk"
-regex_split("a,b,,c", ",+")                    // ["a", "b", "c"]
+// Does this string match this pattern?
+regex_match("hello123", "[a-z]+\\d+")    // true
+regex_match("hello", "\\d+")             // false
+
+// Find all occurrences
+regex_find("2024-01-15 and 2024-02-20", "\\d{4}-\\d{2}-\\d{2}")
+// ["2024-01-15", "2024-02-20"]
+
+// Replace by pattern
+regex_replace("Hello World", "World", "TinyTalk")   // "Hello TinyTalk"
+
+// Split by pattern
+regex_split("a,b,,c", ",+")              // ["a", "b", "c"]
 ```
 
-### File System
+> **Design note**: Four separate functions instead of a `regex(pattern)` object —
+> because each call is self-contained and readable in a pipeline. In TinyTalk,
+> `regex_find(text, "\\d+")` is clearer than `regex("\\d+").find(text)`.
+
+### File System — The Full Set
+
+You can read, write, append, delete, list, and create directories:
 
 ```tinytalk
-let content = file_read("data.txt")        // Read entire file
-file_write("output.txt", "Hello!")         // Write to file
-file_exists("config.json")                 // true/false
-let files = file_list("./data")            // List directory contents
+// Read and write
+let content = file_read("data.txt")
+file_write("output.txt", "Hello!")
+
+// Append to an existing file (or create it)
+file_append("log.txt", "New entry\n")
+
+// Check, list, create, delete
+file_exists("config.json")           // true or false
+let files = file_list("./data")      // ["file1.csv", "file2.csv"]
+file_mkdir("output/reports")         // creates parent dirs too
+file_delete("temp.txt")              // returns true if deleted, false if not found
 ```
 
 ### Environment Variables & CLI Arguments
 
 ```tinytalk
-let home = env("HOME")                     // Read env var
-let port = env("PORT", "3000")             // With default value
-let cli_args = args()                      // ["arg1", "arg2", ...]
+let home = env("HOME")               // read an env var
+let port = env("PORT", "3000")        // with a default if not set
+
+let cli_args = args()                 // ["arg1", "arg2", ...]
 ```
+
+This is how you make TinyTalk scripts configurable without hardcoding paths.
 
 ### String Formatting
 
 ```tinytalk
-format("{0} is {1} years old", "Alice", 30)           // "Alice is 30 years old"
-format("{name} scored {score}", {"name": "Bob", "score": 95})  // "Bob scored 95"
+// Positional — {0}, {1}, etc.
+format("{0} is {1} years old", "Alice", 30)
+// "Alice is 30 years old"
+
+// Named — pass a map
+format("{name} scored {score}", {"name": "Bob", "score": 95})
+// "Bob scored 95"
 ```
 
 ### HTTP POST
 
+`http_get` fetches data. `http_post` sends it:
+
 ```tinytalk
-let response = http_post("https://api.example.com/data", {"key": "value"})
-show(response)
+let response = http_post(
+    "https://api.example.com/data",
+    {"key": "value"}
+)
+show(response)   // parsed JSON response
+```
+
+You can pass custom headers as a third argument:
+
+```tinytalk
+http_post(url, body, {"Authorization": "Bearer token123"})
 ```
 
 ### Hashing
 
 ```tinytalk
-hash("hello")                // Short hash (16 chars)
-md5("hello")                 // Full MD5
-sha256("hello")              // Full SHA-256
+hash("hello")       // short hash (16 chars) — good for IDs
+md5("hello")         // "5d41402abc4b2a76b9719d911017c592"
+sha256("hello")      // full SHA-256 hex string
 ```
 
 ---
 
-## 44. LSP Server — IDE Integration
+## 44. LSP Server & Editor Support — Write TinyTalk Anywhere
 
-TinyTalk has a Language Server Protocol (LSP) implementation for editor integration.
+You've been using the browser playground, but what about VS Code? Neovim? Zed?
+TinyTalk ships an LSP server and editor grammars so your editor of choice can
+understand `.tt` files.
 
-### Start the LSP
+### The LSP Server
+
+Start it with one command:
 
 ```bash
 tinytalk lsp
 ```
 
-### Features
+This launches a **stdio-based** Language Server Protocol server — the same
+protocol used by TypeScript, Rust Analyzer, and Python's Pylance. Your editor
+connects to it over stdin/stdout (no TCP port, no configuration).
 
-- **Autocomplete**: Context-aware suggestions for step chains, properties, keywords
-- **Go-to-definition**: Jump to where a function or variable was defined
-- **Inline errors**: Red squiggles on syntax errors (multiple errors at once)
-- **Hover info**: See function signatures and step chain documentation
-- **Document symbols**: Outline view of functions, variables, structs
+What you get:
+
+- **Autocomplete**: Type `_` and see all step chains. Type a variable name and
+  see its properties. Keywords, builtins, and your own functions all appear.
+- **Go-to-definition**: Ctrl-click on a function call to jump to where it's defined.
+- **Inline errors**: Red squiggles on syntax errors — and thanks to error
+  recovery (Section 45), you see **all** errors at once, not just the first.
+- **Hover info**: Hover over `_filter` to see its signature and what it does.
+- **Document symbols**: See an outline of all functions, variables, and structs
+  in the sidebar.
 
 ### VS Code Extension
 
-The `editors/vscode/` directory contains a ready-to-use VS Code extension with:
-- TextMate grammar for syntax highlighting
-- Language configuration (brackets, comments, indentation)
-- LSP client configuration
+The `editors/vscode/` directory is a ready-to-install extension:
 
-### Other Editors
+```bash
+cd editors/vscode
+code --install-extension .
+```
 
-- **TextMate grammar**: `editors/vscode/syntaxes/tinytalk.tmLanguage.json`
-- **tree-sitter grammar**: `editors/tree-sitter-tinytalk/grammar.js`
-- **GitHub highlighting**: Use the tree-sitter grammar for `.tt` file rendering
+It includes the TextMate grammar for syntax highlighting, bracket matching,
+auto-indent, and comment toggling — plus the LSP client wired to `tinytalk lsp`.
+
+### tree-sitter Grammar — The Big Multiplier
+
+The `editors/tree-sitter-tinytalk/grammar.js` file is arguably the single most
+impactful thing for ecosystem presence. One grammar file powers:
+
+- **GitHub** — syntax-highlighted `.tt` files in repos, PRs, and diffs
+- **Neovim** — via nvim-treesitter, the most popular Neovim plugin
+- **Helix** — built-in tree-sitter support
+- **Zed** — uses tree-sitter for all language support
+- **GitLab, Codeberg** — any platform using tree-sitter for rendering
+
+That's five+ editors and every major code host from one 200-line JavaScript file.
+
+### TextMate Grammar
+
+If your editor uses TextMate grammars (Sublime Text, VS Code, TextMate, BBEdit):
+
+```
+editors/vscode/syntaxes/tinytalk.tmLanguage.json
+```
+
+Copy this file into your editor's grammar directory and associate it with `.tt` files.
 
 ---
 
-## 45. Error Recovery
+## 45. Error Recovery — See All Your Mistakes at Once
 
-The parser now continues after encountering a syntax error, collecting multiple errors
-at once. This means:
+Most parsers give up after the first error. You fix it, re-run, and find a second
+error. Fix that, re-run, find a third. It's tedious.
 
-- **In the IDE**: You see red squiggles on all errors, not just the first one
-- **In the REPL**: More helpful diagnostics
-- **For the LSP**: Complete error reporting for the entire document
+TinyTalk's parser keeps going. It collects **every** error in one pass:
 
 ```tinytalk
 let x = 42
-let y =            // Error: unexpected token
-let z = "hello"    // This line still gets parsed
-fn broken( {       // Error: expected )
+let y =            // Error 1: unexpected token on line 2
+let z = "hello"    // this line still parses fine
+fn broken( {       // Error 2: expected ')' on line 4
     return 1
 }
-fn working() {     // This function still gets parsed
+fn working() {     // this function still parses fine
     return 2
 }
 ```
 
+You see both errors at once — two red squiggles in the IDE, two items in the
+error panel — instead of playing whack-a-mole one error at a time.
+
+> **How it works**: When the parser hits an unexpected token, it records the
+> error and then "synchronizes" — it skips tokens until it finds a safe restart
+> point (a `let`, `fn`, `struct`, `for`, etc.) and resumes parsing from there.
+
 ---
 
-## 46. REPL in the Playground
+## 46. REPL in the Playground — Try Things Interactively
 
-The browser playground now has a **REPL mode**. Switch the dropdown from "Program" to
-"REPL" and each execution preserves state:
+Switch the mode dropdown from **Program** to **REPL** and the playground becomes
+an interactive notebook. Each time you hit Run, your code executes in a session
+that **remembers everything from before**:
 
 ```
 >> let x = 42
@@ -2830,37 +2952,58 @@ The browser playground now has a **REPL mode**. Switch the dropdown from "Progra
 12
 ```
 
-State persists across executions — variables, functions, and structs defined in one
-evaluation are available in the next. This is the interactive notebook experience
-(like Jupyter) but with TinyTalk's readability and the transpiler tabs always visible.
+Define a variable in one cell, use it in the next. Build up a dataset
+incrementally. Experiment with step chains without rewriting the setup code
+every time.
+
+This is the Jupyter notebook experience — persistent state across evaluations —
+but with TinyTalk's readable syntax and all the transpiler tabs (Python, SQL, JS)
+still visible on every run.
+
+> **Tip**: Click **Reset** to clear the REPL session and start fresh.
 
 ---
 
-## 47. Performance Floor
+## 47. Performance Floor — Fast Without Trying
 
-For large datasets, TinyTalk automatically uses optimized execution paths. When a
-list exceeds 1,000 items and pandas is available, step chain operations like `_sort`,
-`_filter`, `_take`, `_count`, `_sum`, `_avg`, `_unique`, and `_select` delegate to
-pandas under the hood.
+Here's the problem: tree-walking interpreters are fine for 100 rows but painful
+for 100,000. You shouldn't have to rewrite your code just because the dataset
+got bigger.
 
-You don't need to change your code — the same syntax works on 10 rows or 100,000 rows.
-The interpreter detects the data size and chooses the fastest execution strategy.
+TinyTalk solves this with a **transparent fast path**. When your data exceeds
+1,000 rows and pandas is installed, step chain operations automatically delegate
+to pandas behind the scenes:
 
 ```tinytalk
-let big_data = read_csv("sales_100k.csv")
+let big_data = read_csv("sales_100k.csv")   // 100,000 rows
+
 let result = big_data
-    _filter((r) => r["region"] == "West")
-    _sort((r) => r["revenue"])
-    _reverse
-    _take(100)
-// Automatically uses pandas for the heavy lifting
+    _filter((r) => r["region"] == "West")    // pandas .loc[...]
+    _sort((r) => r["revenue"])               // pandas .sort_values()
+    _reverse                                  // pandas .iloc[::-1]
+    _take(100)                                // pandas .head(100)
+
+show(result _count)   // fast
 ```
+
+Your code doesn't change. The same `_filter`, `_sort`, `_take` syntax works on
+10 rows (tree-walking) or 100,000 rows (pandas). The interpreter checks the data
+size before each step and picks the fastest path.
+
+> **No pandas?** Everything still works — it just uses the normal tree-walking
+> interpreter. The fast path is a bonus, not a requirement.
 
 ---
 
-## 48. Typed Step Chains
+## 48. Typed Step Chains — Catch Mistakes Before You Run
 
-The optional type system now understands step chain pipelines:
+Step chains are powerful, but they can go wrong in subtle ways. You `_sort` a
+list, then call `_mapValues` — which only works on maps. You `_group` your data
+(turning it into a map), then call `_take` (which expects a list). Without types,
+you get a confusing runtime error three steps later.
+
+The type checker follows your data through each step and catches these mistakes
+at check time:
 
 ```tinytalk
 let data: list[map[str, int]] = [
@@ -2868,35 +3011,106 @@ let data: list[map[str, int]] = [
     {"name": "Bob", "score": 82},
 ]
 
-// Type inference tracks through each step:
-// data              -> list[map[str, int]]
-// _filter(...)      -> list[map[str, int]]   (filter preserves type)
-// _count            -> int                    (aggregation changes type)
-// _first            -> map[str, int]          (element extraction)
-// _group(...)       -> map[str, list[...]]    (grouping changes structure)
+// The type checker infers the type at every step:
+data                    // list[map[str, int]]
+    _filter(...)        // list[map[str, int]]   — filter preserves type
+    _sort(...)          // list[map[str, int]]   — sort preserves type
+    _count              // int                    — aggregation collapses to scalar
+    _first              // map[str, int]          — extracts one element
+    _group(...)         // map[str, list[...]]    — changes structure entirely
 ```
 
-The type checker catches mismatches like applying list operations to maps, or using
-`_mapValues` on a list instead of a map.
+### What it catches
+
+Here's the selling point — concrete errors the type checker prevents:
+
+```tinytalk
+// ERROR: _mapValues expects map, got list[map[str, int]]
+data _sort((r) => r["score"]) _mapValues((v) => v + 1)
+// "Type error: _mapValues expects a map, but _sort returns list[map[str, int]].
+//  Did you mean _map?"
+
+// ERROR: _take expects list, got int
+data _count _take(5)
+// "Type error: _take expects a list, but _count returns int."
+
+// ERROR: _filter after _group produces wrong structure
+data _group((r) => r["name"]) _filter((r) => r["score"] > 80)
+// "Type error: _filter expects a list, but _group returns map[str, list[...]]."
+```
+
+Without the type checker, each of these would be a runtime error that says
+something unhelpful like "cannot subscript int." With it, you get a message that
+tells you *which step* went wrong and *what type it actually produced*.
+
+> **Tip**: Type annotations are optional. The checker infers types from your data
+> and tracks them through the chain even without explicit annotations.
 
 ---
 
-## 49. DataFrame as a First-Class Type
+## 49. DataFrame — Columnar Storage That Feels Like TinyTalk
 
-For serious data work, TinyTalk has a native DataFrame type backed by columnar storage:
+Lists-of-maps are great for readability. Every row is `{"name": "Alice", "age": 32}` —
+you can see exactly what each field is. But under the hood, that means every column
+is scattered across hundreds of separate map objects. For serious number-crunching,
+that's slow.
+
+DataFrames flip the storage: instead of rows-of-columns, they store columns-of-rows.
+Same data, different layout, much faster column operations.
+
+### Creating a DataFrame
 
 ```tinytalk
-let df = DataFrame(data)     // Convert list-of-maps to DataFrame
+let data = [
+    {"name": "Alice", "age": 32, "salary": 75000},
+    {"name": "Bob", "age": 25, "salary": 52000},
+    {"name": "Carol", "age": 41, "salary": 91000},
+]
+
+let df = DataFrame(data)     // convert list-of-maps to columnar
 df.columns                    // ["name", "age", "salary"]
-df.shape                      // [100, 3]
+df.shape                      // [3, 3] — rows, columns
 ```
 
-DataFrames use the same step chain syntax as lists-of-maps, but internally they use
-columnar storage for efficient column operations. When pandas is available, large
-DataFrames automatically delegate to pandas.
+### Same step chains, same syntax
 
-The API is transparent — whether your data is a list of maps or a DataFrame, the same
-`_filter`, `_sort`, `_select`, `_group` chains work identically.
+The whole point is that **you don't change your code**. Everything you already know
+about step chains works:
+
+```tinytalk
+df _filter((r) => r["salary"] > 60000)
+   _sort((r) => r["age"])
+   _select("name", "salary")
+// Works identically to the list-of-maps version
+```
+
+### Immutability — every operation returns a new DataFrame
+
+DataFrames in TinyTalk are **immutable**. `_filter` doesn't modify `df` — it
+returns a new DataFrame. `_mutate` doesn't add a column in place — it returns
+a new DataFrame with the extra column. This matches TinyTalk's functional style:
+
+```tinytalk
+let df2 = df _mutate("bonus", (r) => r["salary"] * 0.1)
+show(df.columns)    // ["name", "age", "salary"]        — unchanged
+show(df2.columns)   // ["name", "age", "salary", "bonus"] — new copy
+```
+
+### The escape hatch: `.to_list()`
+
+Need to go back to a plain list-of-maps? Maybe you want to serialize to JSON,
+or use a function that expects a list:
+
+```tinytalk
+let rows = df.to_list()    // back to [{"name": "Alice", ...}, ...]
+write_json(rows, "output.json")
+```
+
+### When pandas kicks in
+
+DataFrames under 1,000 rows use TinyTalk's own columnar engine. Above that
+threshold, if pandas is installed, operations automatically delegate to pandas —
+same API, faster execution. You never call `import pandas`. It just happens.
 
 ---
 

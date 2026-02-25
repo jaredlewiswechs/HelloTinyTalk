@@ -999,6 +999,46 @@ def builtin_file_list(args: List[Value]) -> Value:
         raise ValueError(f"file_list error: {e}")
 
 
+def builtin_file_append(args: List[Value]) -> Value:
+    """file_append(path, content) -> null.  Append string to file."""
+    if len(args) < 2:
+        raise ValueError("file_append requires (path, content)")
+    path = args[0].data if args[0].type == ValueType.STRING else str(args[0].data)
+    content = format_value(args[1])
+    try:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(content)
+        return Value.null_val()
+    except Exception as e:
+        raise ValueError(f"file_append error: {e}")
+
+
+def builtin_file_delete(args: List[Value]) -> Value:
+    """file_delete(path) -> bool.  Delete a file.  Returns true if deleted."""
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("file_delete requires a file path string")
+    path = args[0].data
+    try:
+        _os.remove(path)
+        return Value.bool_val(True)
+    except FileNotFoundError:
+        return Value.bool_val(False)
+    except Exception as e:
+        raise ValueError(f"file_delete error: {e}")
+
+
+def builtin_file_mkdir(args: List[Value]) -> Value:
+    """file_mkdir(path) -> null.  Create a directory (and parents)."""
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("file_mkdir requires a directory path string")
+    path = args[0].data
+    try:
+        _os.makedirs(path, exist_ok=True)
+        return Value.null_val()
+    except Exception as e:
+        raise ValueError(f"file_mkdir error: {e}")
+
+
 # ---------------------------------------------------------------------------
 # Environment & CLI Arguments
 # ---------------------------------------------------------------------------
@@ -1169,8 +1209,11 @@ BUILTIN_FUNCTIONS = {
     # File System
     "file_read": builtin_file_read,
     "file_write": builtin_file_write,
+    "file_append": builtin_file_append,
     "file_exists": builtin_file_exists,
+    "file_delete": builtin_file_delete,
     "file_list": builtin_file_list,
+    "file_mkdir": builtin_file_mkdir,
     # Environment & CLI
     "env": builtin_env,
     "args": builtin_args,

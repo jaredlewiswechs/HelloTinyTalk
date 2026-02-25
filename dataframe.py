@@ -157,6 +157,10 @@ class TinyDataFrame:
             new_order.append(name)
         return TinyDataFrame(new_cols, new_order)
 
+    def to_list(self) -> Value:
+        """Convert back to a TinyTalk list-of-maps. The escape hatch."""
+        return Value.list_val(self.to_value_rows())
+
 
 def _sort_key(val):
     """Extract a sortable key from a TinyTalk Value."""

@@ -45,7 +45,8 @@ window.tinytalkLanguageDef = {
     'date_add', 'date_diff',
     // Extended stdlib
     'regex_match', 'regex_find', 'regex_replace', 'regex_split',
-    'file_read', 'file_write', 'file_exists', 'file_list',
+    'file_read', 'file_write', 'file_append', 'file_exists',
+    'file_delete', 'file_list', 'file_mkdir',
     'env', 'args', 'format', 'hash', 'md5', 'sha256',
     'DataFrame',
   ],
