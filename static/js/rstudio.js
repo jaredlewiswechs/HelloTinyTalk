@@ -169,78 +169,57 @@
   });
 
   // ══════════════════════════════════════════════════════════════════
-  // RESIZE HANDLES
+  // RESIZE (drag the gap borders between panes)
   // ══════════════════════════════════════════════════════════════════
 
   (function () {
     var grid = document.getElementById('pane-grid');
+    var dragging = null; // 'col' or 'row'
 
-    function setupVerticalResize(handleId) {
-      var handle = document.getElementById(handleId);
-      if (!handle) return;
-      var dragging = false;
+    grid.addEventListener('mousedown', function (e) {
+      // Detect clicks near the gap borders (within 6px)
+      var rect = grid.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var midX = rect.width / 2;
+      var midY = rect.height / 2;
 
-      handle.addEventListener('mousedown', function (e) {
-        dragging = true;
+      if (Math.abs(x - midX) < 6) {
+        dragging = 'col';
         e.preventDefault();
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
-      });
-
-      document.addEventListener('mousemove', function (e) {
-        if (!dragging) return;
-        var rect = grid.getBoundingClientRect();
-        var pct = ((e.clientX - rect.left) / rect.width) * 100;
-        pct = Math.max(20, Math.min(80, pct));
-        grid.style.gridTemplateColumns = pct + '% 4px ' + (100 - pct) + '%';
-        if (editor) editor.layout();
-      });
-
-      document.addEventListener('mouseup', function () {
-        if (dragging) {
-          dragging = false;
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
-          if (editor) editor.layout();
-        }
-      });
-    }
-
-    function setupHorizontalResize(handleId) {
-      var handle = document.getElementById(handleId);
-      if (!handle) return;
-      var dragging = false;
-
-      handle.addEventListener('mousedown', function (e) {
-        dragging = true;
+      } else if (Math.abs(y - midY) < 6) {
+        dragging = 'row';
         e.preventDefault();
         document.body.style.cursor = 'row-resize';
         document.body.style.userSelect = 'none';
-      });
+      }
+    });
 
-      document.addEventListener('mousemove', function (e) {
-        if (!dragging) return;
-        var rect = grid.getBoundingClientRect();
-        var pct = ((e.clientY - rect.top) / rect.height) * 100;
-        pct = Math.max(15, Math.min(85, pct));
-        grid.style.gridTemplateRows = pct + '% 4px ' + (100 - pct) + '%';
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var rect = grid.getBoundingClientRect();
+      if (dragging === 'col') {
+        var pct = ((e.clientX - rect.left) / rect.width) * 100;
+        pct = Math.max(20, Math.min(80, pct));
+        grid.style.gridTemplateColumns = pct + '% ' + (100 - pct) + '%';
+      } else if (dragging === 'row') {
+        var pct2 = ((e.clientY - rect.top) / rect.height) * 100;
+        pct2 = Math.max(15, Math.min(85, pct2));
+        grid.style.gridTemplateRows = pct2 + '% ' + (100 - pct2) + '%';
+      }
+      if (editor) editor.layout();
+    });
+
+    document.addEventListener('mouseup', function () {
+      if (dragging) {
+        dragging = null;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
         if (editor) editor.layout();
-      });
-
-      document.addEventListener('mouseup', function () {
-        if (dragging) {
-          dragging = false;
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
-          if (editor) editor.layout();
-        }
-      });
-    }
-
-    setupVerticalResize('v-resize');
-    setupVerticalResize('v-resize-bottom');
-    setupHorizontalResize('h-resize-left');
-    setupHorizontalResize('h-resize-right');
+      }
+    });
   })();
 
   // ══════════════════════════════════════════════════════════════════
