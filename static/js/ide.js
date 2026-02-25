@@ -168,10 +168,15 @@
     transpileCode('sql');
   });
 
+  document.getElementById('btn-transpile-js').addEventListener('click', function () {
+    transpileCode('js');
+  });
+
   document.getElementById('btn-clear').addEventListener('click', function () {
     document.getElementById('panel-output').textContent = '';
     document.getElementById('panel-python').textContent = '';
     document.getElementById('panel-sql').textContent = '';
+    document.getElementById('panel-js').textContent = '';
     setStatus('Cleared', '');
   });
 
@@ -260,9 +265,9 @@
     var code = editor.getValue();
     if (!code.trim()) return;
 
-    var endpoint = target === 'sql' ? '/api/transpile-sql' : '/api/transpile';
-    var panelId = target === 'sql' ? 'panel-sql' : 'panel-python';
-    var tabName = target === 'sql' ? 'sql' : 'python';
+    var endpoint = target === 'sql' ? '/api/transpile-sql' : target === 'js' ? '/api/transpile-js' : '/api/transpile';
+    var panelId = target === 'sql' ? 'panel-sql' : target === 'js' ? 'panel-js' : 'panel-python';
+    var tabName = target === 'sql' ? 'sql' : target === 'js' ? 'js' : 'python';
 
     setStatus('Transpiling to ' + target + '...', '');
 
