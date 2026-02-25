@@ -5,16 +5,20 @@ Flask-based HTTP API for running TinyTalk code, plus a Monaco-based web IDE.
 Endpoints:
     GET  /                   Web IDE (Monaco editor)
     POST /api/run            Execute TinyTalk code
+    POST /api/run-debug      Execute with step chain debugging
     POST /api/check          Parse-only syntax check (returns errors)
     POST /api/transpile      Transpile to Python
     POST /api/transpile-sql  Transpile to SQL
     POST /api/transpile-js   Transpile to JavaScript
+    POST /api/repl           REPL: execute a line with persistent state
+    POST /api/repl/reset     REPL: reset session
     GET  /api/health         Health check
     GET  /api/examples       List example programs
 """
 
 import os
 import re
+import uuid
 from flask import Flask, request, jsonify, send_from_directory
 
 from .kernel import TinyTalkKernel
@@ -48,6 +52,10 @@ def health():
     return jsonify({"status": "ok", "version": "2.0.0", "language": "TinyTalk"})
 
 
+# REPL session storage (in-memory, per-session)
+_repl_sessions = {}
+
+
 @app.route("/api/run", methods=["POST"])
 def run_code():
     data = request.get_json(force=True, silent=True) or {}
@@ -68,9 +76,67 @@ def run_code():
     })
 
 
+@app.route("/api/run-debug", methods=["POST"])
+def run_debug():
+    """Execute with step chain debugging — returns intermediate results at each step."""
+    data = request.get_json(force=True, silent=True) or {}
+    source = data.get("code", data.get("source", ""))
+
+    if not source:
+        return jsonify({"success": False, "error": "No code provided"}), 400
+
+    kernel = TinyTalkKernel(bounds=API_BOUNDS, debug_chains=True)
+    result = kernel.run(source)
+
+    return jsonify({
+        "success": result.success,
+        "output": result.output,
+        "error": result.error or None,
+        "elapsed_ms": result.elapsed_ms,
+        "op_count": result.op_count,
+        "chain_traces": kernel.get_debug_traces(),
+    })
+
+
+@app.route("/api/repl", methods=["POST"])
+def repl_eval():
+    """REPL endpoint: execute a line with persistent state across requests."""
+    data = request.get_json(force=True, silent=True) or {}
+    source = data.get("code", data.get("source", ""))
+    session_id = data.get("session", "")
+
+    if not session_id:
+        session_id = str(uuid.uuid4())
+
+    # Get or create kernel for this session
+    if session_id not in _repl_sessions:
+        _repl_sessions[session_id] = TinyTalkKernel(bounds=API_BOUNDS, repl_mode=True)
+
+    kernel = _repl_sessions[session_id]
+    result = kernel.run(source)
+
+    return jsonify({
+        "success": result.success,
+        "output": result.output,
+        "error": result.error or None,
+        "elapsed_ms": result.elapsed_ms,
+        "session": session_id,
+    })
+
+
+@app.route("/api/repl/reset", methods=["POST"])
+def repl_reset():
+    """Reset a REPL session."""
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get("session", "")
+    if session_id in _repl_sessions:
+        del _repl_sessions[session_id]
+    return jsonify({"success": True, "message": "Session reset"})
+
+
 @app.route("/api/check", methods=["POST"])
 def check_code():
-    """Parse-only syntax check — returns errors with line/column info."""
+    """Parse-only syntax check with error recovery — returns multiple errors."""
     data = request.get_json(force=True, silent=True) or {}
     source = data.get("code", data.get("source", ""))
 
@@ -79,8 +145,15 @@ def check_code():
 
     try:
         tokens = Lexer(source).tokenize()
-        Parser(tokens).parse()
-        return jsonify({"errors": []})
+        # Use error-recovery mode to collect multiple errors
+        parser = Parser(tokens, recover=True)
+        parser.parse()
+        errors = []
+        for err in parser.errors:
+            errors.append({
+                "line": err.line, "column": err.column, "message": err.message,
+            })
+        return jsonify({"errors": errors})
     except SyntaxError as e:
         line, col, msg = _parse_error_location(str(e))
         return jsonify({"errors": [{"line": line, "column": col, "message": msg}]})

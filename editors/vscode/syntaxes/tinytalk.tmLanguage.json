@@ -1,0 +1,92 @@
+{
+  "scopeName": "source.tinytalk",
+  "name": "TinyTalk",
+  "fileTypes": ["tt"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#step-chains" },
+    { "include": "#keywords" },
+    { "include": "#operators" },
+    { "include": "#builtins" },
+    { "include": "#constants" },
+    { "include": "#types" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "match": "//.*$", "name": "comment.line.double-slash.tinytalk" },
+        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.tinytalk" },
+        { "match": "#.*$", "name": "comment.line.hash.tinytalk" }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.tinytalk",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "match": "\\\\[ntr\\\\\"{}]", "name": "constant.character.escape.tinytalk" },
+            {
+              "begin": "\\{",
+              "end": "\\}",
+              "name": "meta.interpolation.tinytalk",
+              "beginCaptures": { "0": { "name": "punctuation.section.interpolation.begin.tinytalk" } },
+              "endCaptures": { "0": { "name": "punctuation.section.interpolation.end.tinytalk" } },
+              "patterns": [{ "include": "source.tinytalk" }]
+            }
+          ]
+        },
+        { "match": "'[^']*'", "name": "string.quoted.single.tinytalk" }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        { "match": "\\b0[xX][0-9a-fA-F_]+\\b", "name": "constant.numeric.hex.tinytalk" },
+        { "match": "\\b0[oO][0-7_]+\\b", "name": "constant.numeric.octal.tinytalk" },
+        { "match": "\\b0[bB][01_]+\\b", "name": "constant.numeric.binary.tinytalk" },
+        { "match": "\\b\\d+\\.\\d*([eE][-+]?\\d+)?\\b", "name": "constant.numeric.float.tinytalk" },
+        { "match": "\\b\\d+([eE][-+]?\\d+)?\\b", "name": "constant.numeric.integer.tinytalk" }
+      ]
+    },
+    "step-chains": {
+      "match": "\\b_(filter|sort|map|take|drop|first|last|reverse|unique|count|sum|avg|min|max|group|flatten|zip|chunk|reduce|sortBy|join|mapValues|each|select|mutate|summarize|summarise|rename|arrange|distinct|slice|pull|groupBy|group_by|leftJoin|left_join|pivot|unpivot|window)\\b",
+      "name": "entity.name.function.step-chain.tinytalk"
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(let|const|fn|return|if|else|elif|for|while|in|break|continue|match|struct|enum|import|from|use|as|try|catch|throw)\\b",
+          "name": "keyword.control.tinytalk"
+        },
+        {
+          "match": "\\b(when|fin|blueprint|law|field|forge|reply|do|end|self)\\b",
+          "name": "keyword.other.classic.tinytalk"
+        }
+      ]
+    },
+    "operators": {
+      "match": "\\b(and|or|not|is|isnt|has|hasnt|isin|islike)\\b",
+      "name": "keyword.operator.tinytalk"
+    },
+    "builtins": {
+      "match": "\\b(show|print|println|len|range|abs|round|floor|ceil|sqrt|pow|min|max|sum|sin|cos|tan|log|exp|append|push|pop|sort|reverse|contains|slice|keys|values|zip|enumerate|split|join|replace|trim|upcase|downcase|startswith|endswith|type|typeof|str|int|float|bool|list|map|assert|assert_equal|assert_true|assert_false|hash|read_csv|write_csv|read_json|write_json|parse_json|to_json|http_get|http_post|date_now|date_parse|date_format|date_floor|date_add|date_diff|regex_match|regex_find|regex_replace|regex_split|file_read|file_write|file_exists|file_list|env|args|format|DataFrame)\\b(?=\\s*\\()",
+      "name": "support.function.tinytalk"
+    },
+    "constants": {
+      "match": "\\b(true|false|null|nil|PI|E|TAU|INF)\\b",
+      "name": "constant.language.tinytalk"
+    },
+    "types": {
+      "match": "\\b(int|float|str|string|bool|boolean|list|map|any|void|num|number)\\b",
+      "name": "support.type.tinytalk"
+    },
+    "identifiers": {
+      "match": "\\b[a-zA-Z_]\\w*\\b",
+      "name": "variable.other.tinytalk"
+    }
+  }
+}

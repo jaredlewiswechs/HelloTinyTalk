@@ -1,0 +1,23 @@
+{
+  "name": "tinytalk",
+  "displayName": "TinyTalk",
+  "description": "Syntax highlighting, snippets, and LSP support for the TinyTalk language",
+  "version": "1.0.0",
+  "publisher": "tinytalk-lang",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Programming Languages"],
+  "repository": { "type": "git", "url": "https://github.com/tinytalk-lang/vscode-tinytalk" },
+  "contributes": {
+    "languages": [{
+      "id": "tinytalk",
+      "aliases": ["TinyTalk", "tinytalk"],
+      "extensions": [".tt"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "tinytalk",
+      "scopeName": "source.tinytalk",
+      "path": "./syntaxes/tinytalk.tmLanguage.json"
+    }]
+  }
+}

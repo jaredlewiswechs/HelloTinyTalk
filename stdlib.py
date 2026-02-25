@@ -727,6 +727,37 @@ def _python_to_value(obj) -> Value:
 # HTTP
 # ---------------------------------------------------------------------------
 
+def builtin_http_post(args: List[Value]) -> Value:
+    """http_post(url, body[, headers]) -> value.  POST to a URL and return response."""
+    if len(args) < 2:
+        raise ValueError("http_post requires (url, body[, headers_map])")
+    url = args[0].data if args[0].type == ValueType.STRING else str(args[0].data)
+    body_val = args[1]
+    # Serialize body
+    if body_val.type == ValueType.STRING:
+        body_bytes = body_val.data.encode("utf-8")
+        content_type = "text/plain"
+    else:
+        body_bytes = json.dumps(body_val.to_python(), default=str).encode("utf-8")
+        content_type = "application/json"
+    headers = {"Content-Type": content_type, "User-Agent": "TinyTalk/2.0"}
+    if len(args) > 2 and args[2].type == ValueType.MAP:
+        for k, v in args[2].data.items():
+            headers[str(k)] = format_value(v)
+    try:
+        req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp_body = resp.read().decode("utf-8")
+        try:
+            return _python_to_value(json.loads(resp_body))
+        except json.JSONDecodeError:
+            return Value.string_val(resp_body)
+    except urllib.error.HTTPError as e:
+        raise ValueError(f"HTTP {e.code}: {e.reason}")
+    except Exception as e:
+        raise ValueError(f"http_post failed: {e}")
+
+
 def builtin_http_get(args: List[Value]) -> Value:
     """http_get(url) -> value.  GET a URL and parse the response as JSON."""
     if not args or args[0].type != ValueType.STRING:
@@ -856,6 +887,191 @@ def builtin_date_diff(args: List[Value]) -> Value:
     raise ValueError(f"Unknown date unit: '{unit}'")
 
 
+# ---------------------------------------------------------------------------
+# Regex
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+def builtin_regex_match(args: List[Value]) -> Value:
+    """regex_match(string, pattern) -> bool.  Test if pattern matches the full string."""
+    if len(args) < 2:
+        raise ValueError("regex_match requires (string, pattern)")
+    s = format_value(args[0])
+    pattern = args[1].data if args[1].type == ValueType.STRING else str(args[1].data)
+    try:
+        return Value.bool_val(bool(_re.fullmatch(pattern, s)))
+    except _re.error as e:
+        raise ValueError(f"Invalid regex: {e}")
+
+
+def builtin_regex_find(args: List[Value]) -> Value:
+    """regex_find(string, pattern) -> list of matches."""
+    if len(args) < 2:
+        raise ValueError("regex_find requires (string, pattern)")
+    s = format_value(args[0])
+    pattern = args[1].data if args[1].type == ValueType.STRING else str(args[1].data)
+    try:
+        matches = _re.findall(pattern, s)
+        return Value.list_val([Value.string_val(m) for m in matches])
+    except _re.error as e:
+        raise ValueError(f"Invalid regex: {e}")
+
+
+def builtin_regex_replace(args: List[Value]) -> Value:
+    """regex_replace(string, pattern, replacement) -> string."""
+    if len(args) < 3:
+        raise ValueError("regex_replace requires (string, pattern, replacement)")
+    s = format_value(args[0])
+    pattern = args[1].data if args[1].type == ValueType.STRING else str(args[1].data)
+    replacement = format_value(args[2])
+    try:
+        return Value.string_val(_re.sub(pattern, replacement, s))
+    except _re.error as e:
+        raise ValueError(f"Invalid regex: {e}")
+
+
+def builtin_regex_split(args: List[Value]) -> Value:
+    """regex_split(string, pattern) -> list of parts."""
+    if len(args) < 2:
+        raise ValueError("regex_split requires (string, pattern)")
+    s = format_value(args[0])
+    pattern = args[1].data if args[1].type == ValueType.STRING else str(args[1].data)
+    try:
+        parts = _re.split(pattern, s)
+        return Value.list_val([Value.string_val(p) for p in parts])
+    except _re.error as e:
+        raise ValueError(f"Invalid regex: {e}")
+
+
+# ---------------------------------------------------------------------------
+# File System
+# ---------------------------------------------------------------------------
+
+import os as _os
+
+def builtin_file_read(args: List[Value]) -> Value:
+    """file_read(path) -> string.  Read entire file contents."""
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("file_read requires a file path string")
+    path = args[0].data
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return Value.string_val(f.read())
+    except FileNotFoundError:
+        raise ValueError(f"File not found: {path}")
+    except Exception as e:
+        raise ValueError(f"file_read error: {e}")
+
+
+def builtin_file_write(args: List[Value]) -> Value:
+    """file_write(path, content) -> null.  Write string to file."""
+    if len(args) < 2:
+        raise ValueError("file_write requires (path, content)")
+    path = args[0].data if args[0].type == ValueType.STRING else str(args[0].data)
+    content = format_value(args[1])
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return Value.null_val()
+    except Exception as e:
+        raise ValueError(f"file_write error: {e}")
+
+
+def builtin_file_exists(args: List[Value]) -> Value:
+    """file_exists(path) -> bool.  Check if a file exists."""
+    if not args or args[0].type != ValueType.STRING:
+        return Value.bool_val(False)
+    return Value.bool_val(_os.path.exists(args[0].data))
+
+
+def builtin_file_list(args: List[Value]) -> Value:
+    """file_list(directory) -> list of filenames."""
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("file_list requires a directory path string")
+    path = args[0].data
+    try:
+        entries = _os.listdir(path)
+        return Value.list_val([Value.string_val(e) for e in sorted(entries)])
+    except FileNotFoundError:
+        raise ValueError(f"Directory not found: {path}")
+    except Exception as e:
+        raise ValueError(f"file_list error: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Environment & CLI Arguments
+# ---------------------------------------------------------------------------
+
+import sys as _sys
+
+def builtin_env(args: List[Value]) -> Value:
+    """env(name[, default]) -> string.  Read an environment variable."""
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("env requires an environment variable name")
+    name = args[0].data
+    default = args[1].data if len(args) > 1 and args[1].type == ValueType.STRING else None
+    result = _os.environ.get(name, default)
+    if result is None:
+        return Value.null_val()
+    return Value.string_val(result)
+
+
+def builtin_args(args: List[Value]) -> Value:
+    """args() -> list of strings.  Command-line arguments (after the script name)."""
+    # Return sys.argv[2:] (skip 'tinytalk' and 'run')
+    cli_args = _sys.argv[2:] if len(_sys.argv) > 2 else []
+    return Value.list_val([Value.string_val(a) for a in cli_args])
+
+
+# ---------------------------------------------------------------------------
+# String Formatting
+# ---------------------------------------------------------------------------
+
+def builtin_format(args: List[Value]) -> Value:
+    """format(template, ...values) -> string.
+    Positional: format("{0} is {1}", name, age)
+    Named (with map): format("{name} is {age}", {"name": "Alice", "age": 30})
+    """
+    if not args or args[0].type != ValueType.STRING:
+        raise ValueError("format requires a template string")
+    template = args[0].data
+    if len(args) == 2 and args[1].type == ValueType.MAP:
+        # Named formatting
+        values = {k: format_value(v) for k, v in args[1].data.items()}
+        try:
+            return Value.string_val(template.format(**values))
+        except (KeyError, IndexError) as e:
+            raise ValueError(f"Format error: {e}")
+    else:
+        # Positional formatting
+        values = [format_value(a) for a in args[1:]]
+        try:
+            return Value.string_val(template.format(*values))
+        except (KeyError, IndexError) as e:
+            raise ValueError(f"Format error: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Hashing (extended)
+# ---------------------------------------------------------------------------
+
+def builtin_md5(args: List[Value]) -> Value:
+    """md5(string) -> string.  MD5 hash."""
+    if not args:
+        return Value.string_val("")
+    data = format_value(args[0]).encode("utf-8")
+    return Value.string_val(hashlib.md5(data).hexdigest())
+
+
+def builtin_sha256(args: List[Value]) -> Value:
+    """sha256(string) -> string.  SHA-256 hash."""
+    if not args:
+        return Value.string_val("")
+    data = format_value(args[0]).encode("utf-8")
+    return Value.string_val(hashlib.sha256(data).hexdigest())
+
+
 def _parse_date(s: str) -> datetime:
     """Parse a date string trying multiple formats."""
     s = s.strip()
@@ -944,6 +1160,25 @@ BUILTIN_FUNCTIONS = {
     "to_json": builtin_to_json,
     # HTTP
     "http_get": builtin_http_get,
+    "http_post": builtin_http_post,
+    # Regex
+    "regex_match": builtin_regex_match,
+    "regex_find": builtin_regex_find,
+    "regex_replace": builtin_regex_replace,
+    "regex_split": builtin_regex_split,
+    # File System
+    "file_read": builtin_file_read,
+    "file_write": builtin_file_write,
+    "file_exists": builtin_file_exists,
+    "file_list": builtin_file_list,
+    # Environment & CLI
+    "env": builtin_env,
+    "args": builtin_args,
+    # String Formatting
+    "format": builtin_format,
+    # Hashing (extended)
+    "md5": builtin_md5,
+    "sha256": builtin_sha256,
     # Date/Time
     "date_now": builtin_date_now,
     "date_parse": builtin_date_parse,

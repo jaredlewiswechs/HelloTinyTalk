@@ -49,6 +49,19 @@
 37. [Error Messages — TinyTalk Teaches You](#37-error-messages--tinytalk-teaches-you)
 38. [Quick Reference Cheat Sheet](#38-quick-reference-cheat-sheet)
 
+**Adoption Roadmap (New)**
+39. [Python Interop — Use Any Python Library](#39-python-interop--use-any-python-library)
+40. [Step-Through Chain Debugger](#40-step-through-chain-debugger)
+41. [Shareable Playground Links](#41-shareable-playground-links)
+42. [Package Manager](#42-package-manager)
+43. [Extended Standard Library](#43-extended-standard-library)
+44. [LSP Server — IDE Integration](#44-lsp-server--ide-integration)
+45. [Error Recovery](#45-error-recovery)
+46. [REPL in the Playground](#46-repl-in-the-playground)
+47. [Performance Floor](#47-performance-floor)
+48. [Typed Step Chains](#48-typed-step-chains)
+49. [DataFrame as a First-Class Type](#49-dataframe-as-a-first-class-type)
+
 ---
 
 ## 1. Your First Program
@@ -2569,5 +2582,348 @@ enough to write real programs. The key things that make it unique:
 17. **Data I/O** — `read_csv`, `read_json`, `http_get` — ingest real data
 18. **Date handling** — Parse, format, diff, floor — time-series ready
 19. **Joins** — `_join`, `_leftJoin`, `_sortBy`, `_mapValues` — real data wrangling
+
+---
+
+## 39. Python Interop — Use Any Python Library
+
+TinyTalk runs on Python, so it can call any Python library directly. This is the bridge
+that turns TinyTalk from a teaching tool into a production language.
+
+```tinytalk
+// Import a Python module
+from python use math
+show(math.sqrt(144))      // 12.0
+show(math.sin(math.pi))   // ~0.0
+
+// Import requests for HTTP
+from python use json
+let data = json.loads('{"name": "Alice", "age": 30}')
+show(data["name"])         // Alice
+```
+
+**How it works**: `from python use <module>` wraps the Python module and exposes its
+functions as a TinyTalk map of callable functions. Arguments are automatically converted
+between TinyTalk values and Python objects. Return values are converted back.
+
+**Blocked modules**: For safety in the web playground, some modules are blocked
+(`subprocess`, `shutil`, `ctypes`, etc.). In CLI mode, everything is available.
+
+---
+
+## 40. Step-Through Chain Debugger
+
+The killer feature nobody else has. Click **Debug** in the playground to see the
+intermediate result at **every step** of a pipeline.
+
+```tinytalk
+let people = [
+    {"name": "Alice", "age": 32, "salary": 75000},
+    {"name": "Bob", "age": 25, "salary": 52000},
+    {"name": "Carol", "age": 41, "salary": 91000},
+    {"name": "Dave", "age": 28, "salary": 63000},
+]
+
+let top_earners = people
+    _filter((r) => r["salary"] > 60000)
+    _sort((r) => r["salary"])
+    _reverse
+    _take(2)
+    _select("name", "salary")
+```
+
+The debugger shows you:
+
+```
+Chain #1
+  source    [{name: Alice, age: 32, salary: 75000}, ...] (4 items)
+    ↓ _filter(<fn>)
+              [{name: Alice, ...}, {name: Carol, ...}, {name: Dave, ...}] (3 items)
+    ↓ _sort(<fn>)
+              [{name: Dave, ...}, {name: Alice, ...}, {name: Carol, ...}] (3 items)
+    ↓ _reverse
+              [{name: Carol, ...}, {name: Alice, ...}, {name: Dave, ...}] (3 items)
+    ↓ _take(2)
+              [{name: Carol, ...}, {name: Alice, ...}] (2 items)
+    ↓ _select("name", "salary")
+              [{name: Carol, salary: 91000}, {name: Alice, salary: 75000}] (2 items)
+```
+
+**No other language does this.** Python debuggers show you the final result of a
+chained expression. TinyTalk shows you every stage. This is visual, inline, per-step
+inspection of a pipeline.
+
+---
+
+## 41. Shareable Playground Links
+
+Every program can be shared with one click. Click **Share** in the toolbar to encode
+your program in the URL and copy it to your clipboard.
+
+Anyone who opens the link sees your exact program, ready to run. This is how Rust
+Playground, Go Playground, and TypeScript Playground drove adoption. Every shared
+link is free marketing.
+
+The encoding is simple: Base64-encoded, URI-safe, embedded in the `?code=` query
+parameter. Programs of any size work.
+
+---
+
+## 42. Package Manager
+
+TinyTalk has a package system so every project isn't a single-file island.
+
+### Initialize a project
+
+```bash
+tinytalk init
+```
+
+Creates `tiny.toml` and `main.tt`:
+
+```toml
+[project]
+name = "my-project"
+version = "0.1.0"
+entry = "main.tt"
+
+[dependencies]
+```
+
+### Install packages
+
+```bash
+tinytalk install utils --source ./path/to/utils
+tinytalk install http --source github:tinytalk-lang/http
+```
+
+Packages are stored in `.tinytalk/packages/` and resolved automatically by `import`:
+
+```tinytalk
+import "utils"          // finds .tinytalk/packages/utils/main.tt
+from "http" use { get } // selective import from package
+```
+
+---
+
+## 43. Extended Standard Library
+
+Beyond the core builtins, TinyTalk now includes everything you need for scripting:
+
+### Regex
+
+```tinytalk
+regex_match("hello123", "[a-z]+\\d+")         // true
+regex_find("2024-01-15 and 2024-02-20", "\\d{4}-\\d{2}-\\d{2}")  // ["2024-01-15", "2024-02-20"]
+regex_replace("Hello World", "World", "TinyTalk")  // "Hello TinyTalk"
+regex_split("a,b,,c", ",+")                    // ["a", "b", "c"]
+```
+
+### File System
+
+```tinytalk
+let content = file_read("data.txt")        // Read entire file
+file_write("output.txt", "Hello!")         // Write to file
+file_exists("config.json")                 // true/false
+let files = file_list("./data")            // List directory contents
+```
+
+### Environment Variables & CLI Arguments
+
+```tinytalk
+let home = env("HOME")                     // Read env var
+let port = env("PORT", "3000")             // With default value
+let cli_args = args()                      // ["arg1", "arg2", ...]
+```
+
+### String Formatting
+
+```tinytalk
+format("{0} is {1} years old", "Alice", 30)           // "Alice is 30 years old"
+format("{name} scored {score}", {"name": "Bob", "score": 95})  // "Bob scored 95"
+```
+
+### HTTP POST
+
+```tinytalk
+let response = http_post("https://api.example.com/data", {"key": "value"})
+show(response)
+```
+
+### Hashing
+
+```tinytalk
+hash("hello")                // Short hash (16 chars)
+md5("hello")                 // Full MD5
+sha256("hello")              // Full SHA-256
+```
+
+---
+
+## 44. LSP Server — IDE Integration
+
+TinyTalk has a Language Server Protocol (LSP) implementation for editor integration.
+
+### Start the LSP
+
+```bash
+tinytalk lsp
+```
+
+### Features
+
+- **Autocomplete**: Context-aware suggestions for step chains, properties, keywords
+- **Go-to-definition**: Jump to where a function or variable was defined
+- **Inline errors**: Red squiggles on syntax errors (multiple errors at once)
+- **Hover info**: See function signatures and step chain documentation
+- **Document symbols**: Outline view of functions, variables, structs
+
+### VS Code Extension
+
+The `editors/vscode/` directory contains a ready-to-use VS Code extension with:
+- TextMate grammar for syntax highlighting
+- Language configuration (brackets, comments, indentation)
+- LSP client configuration
+
+### Other Editors
+
+- **TextMate grammar**: `editors/vscode/syntaxes/tinytalk.tmLanguage.json`
+- **tree-sitter grammar**: `editors/tree-sitter-tinytalk/grammar.js`
+- **GitHub highlighting**: Use the tree-sitter grammar for `.tt` file rendering
+
+---
+
+## 45. Error Recovery
+
+The parser now continues after encountering a syntax error, collecting multiple errors
+at once. This means:
+
+- **In the IDE**: You see red squiggles on all errors, not just the first one
+- **In the REPL**: More helpful diagnostics
+- **For the LSP**: Complete error reporting for the entire document
+
+```tinytalk
+let x = 42
+let y =            // Error: unexpected token
+let z = "hello"    // This line still gets parsed
+fn broken( {       // Error: expected )
+    return 1
+}
+fn working() {     // This function still gets parsed
+    return 2
+}
+```
+
+---
+
+## 46. REPL in the Playground
+
+The browser playground now has a **REPL mode**. Switch the dropdown from "Program" to
+"REPL" and each execution preserves state:
+
+```
+>> let x = 42
+>> show(x * 2)
+84
+>> let data = [1, 2, 3, 4, 5]
+>> data _filter((n) => n > 2) _sum
+12
+```
+
+State persists across executions — variables, functions, and structs defined in one
+evaluation are available in the next. This is the interactive notebook experience
+(like Jupyter) but with TinyTalk's readability and the transpiler tabs always visible.
+
+---
+
+## 47. Performance Floor
+
+For large datasets, TinyTalk automatically uses optimized execution paths. When a
+list exceeds 1,000 items and pandas is available, step chain operations like `_sort`,
+`_filter`, `_take`, `_count`, `_sum`, `_avg`, `_unique`, and `_select` delegate to
+pandas under the hood.
+
+You don't need to change your code — the same syntax works on 10 rows or 100,000 rows.
+The interpreter detects the data size and chooses the fastest execution strategy.
+
+```tinytalk
+let big_data = read_csv("sales_100k.csv")
+let result = big_data
+    _filter((r) => r["region"] == "West")
+    _sort((r) => r["revenue"])
+    _reverse
+    _take(100)
+// Automatically uses pandas for the heavy lifting
+```
+
+---
+
+## 48. Typed Step Chains
+
+The optional type system now understands step chain pipelines:
+
+```tinytalk
+let data: list[map[str, int]] = [
+    {"name": "Alice", "score": 95},
+    {"name": "Bob", "score": 82},
+]
+
+// Type inference tracks through each step:
+// data              -> list[map[str, int]]
+// _filter(...)      -> list[map[str, int]]   (filter preserves type)
+// _count            -> int                    (aggregation changes type)
+// _first            -> map[str, int]          (element extraction)
+// _group(...)       -> map[str, list[...]]    (grouping changes structure)
+```
+
+The type checker catches mismatches like applying list operations to maps, or using
+`_mapValues` on a list instead of a map.
+
+---
+
+## 49. DataFrame as a First-Class Type
+
+For serious data work, TinyTalk has a native DataFrame type backed by columnar storage:
+
+```tinytalk
+let df = DataFrame(data)     // Convert list-of-maps to DataFrame
+df.columns                    // ["name", "age", "salary"]
+df.shape                      // [100, 3]
+```
+
+DataFrames use the same step chain syntax as lists-of-maps, but internally they use
+columnar storage for efficient column operations. When pandas is available, large
+DataFrames automatically delegate to pandas.
+
+The API is transparent — whether your data is a list of maps or a DataFrame, the same
+`_filter`, `_sort`, `_select`, `_group` chains work identically.
+
+---
+
+## Adoption Roadmap: What Makes TinyTalk Production-Ready
+
+The three features that move the needle most:
+
+1. **Python interop** (Section 39) removes the "but I can't use my libraries" objection
+2. **The step-through chain debugger** (Section 40) gives TinyTalk something no other language has
+3. **Shareable playground links** (Section 41) give it viral distribution mechanics
+
+Everything else is important but those three turn it from "impressive teaching tool"
+to "I actually want to use this."
+
+| Feature | Section | Status |
+|---------|---------|--------|
+| Python interop | 39 | `from python use requests` |
+| Chain debugger | 40 | Visual per-step inspection |
+| Shareable links | 41 | One-click URL sharing |
+| Package manager | 42 | `tinytalk install`, `tiny.toml` |
+| Extended stdlib | 43 | regex, fs, env, HTTP POST, hashing |
+| LSP server | 44 | autocomplete, go-to-def, inline errors |
+| Error recovery | 45 | Multiple errors reported at once |
+| Playground REPL | 46 | Persistent state in browser |
+| Performance floor | 47 | Auto-pandas for large datasets |
+| Typed step chains | 48 | Static type inference through pipelines |
+| DataFrame type | 49 | Columnar storage, same syntax |
+| Editor support | 44 | VS Code, TextMate, tree-sitter grammars |
 
 Now go build something cool. Happy coding!

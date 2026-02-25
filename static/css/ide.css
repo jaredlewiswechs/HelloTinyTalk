@@ -255,6 +255,83 @@ select:hover {
   background: var(--text-muted);
 }
 
+/* ── Debug panel ─────────────────────────────────────────────────── */
+
+#panel-debug {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  overflow: auto;
+}
+
+.debug-chain {
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--bg-secondary);
+}
+
+.debug-header {
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.debug-step {
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.debug-source {
+  background: rgba(137, 180, 250, 0.1);
+  border-left: 3px solid var(--accent);
+}
+
+.debug-arrow {
+  color: var(--accent-teal);
+  font-weight: bold;
+  display: block;
+  padding: 2px 0;
+}
+
+.debug-step-name {
+  color: var(--accent-teal);
+  font-weight: 600;
+}
+
+.debug-args {
+  color: var(--text-secondary);
+  margin-left: 2px;
+}
+
+.debug-label {
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.debug-result {
+  margin-top: 4px;
+  padding-left: 16px;
+}
+
+.debug-preview {
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.debug-count {
+  color: var(--text-muted);
+  margin-left: 8px;
+  font-size: 11px;
+}
+
 /* ── Responsive: stack vertically on narrow screens ──────────────── */
 
 @media (max-width: 768px) {

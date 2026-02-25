@@ -15,12 +15,19 @@
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
         Run
       </button>
+      <button id="btn-debug" class="btn-secondary" title="Run with step-through chain debugger">Debug</button>
       <div class="separator"></div>
+      <select id="sel-mode">
+        <option value="program">Program</option>
+        <option value="repl">REPL</option>
+      </select>
       <select id="sel-examples">
         <option value="">Examples...</option>
       </select>
     </div>
     <div class="toolbar-right">
+      <button id="btn-share" class="btn-secondary" title="Share — encode program in URL">Share</button>
+      <div class="separator"></div>
       <button id="btn-transpile-py" class="btn-secondary" title="Transpile to Python">Python</button>
       <button id="btn-transpile-sql" class="btn-secondary" title="Transpile to SQL">SQL</button>
       <button id="btn-transpile-js" class="btn-secondary" title="Transpile to JavaScript">JS</button>
@@ -42,12 +49,14 @@
     <div id="output-pane">
       <div id="output-tabs">
         <button class="tab active" data-tab="output">Output</button>
+        <button class="tab" data-tab="debug">Debug</button>
         <button class="tab" data-tab="python">Python</button>
         <button class="tab" data-tab="sql">SQL</button>
         <button class="tab" data-tab="js">JS</button>
       </div>
       <div id="output-panels">
         <pre id="panel-output" class="panel active"></pre>
+        <div id="panel-debug" class="panel"></div>
         <pre id="panel-python" class="panel"></pre>
         <pre id="panel-sql" class="panel"></pre>
         <pre id="panel-js" class="panel"></pre>

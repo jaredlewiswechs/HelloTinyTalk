@@ -45,10 +45,20 @@ class TinyTalkKernel:
         bounds: Optional[ExecutionBounds] = None,
         capture_output: bool = True,
         source_dir: str = "",
+        debug_chains: bool = False,
+        repl_mode: bool = False,
     ):
         self.bounds = bounds or ExecutionBounds()
         self.capture_output = capture_output
         self.source_dir = source_dir
+        self.debug_chains = debug_chains
+        self.repl_mode = repl_mode
+
+        # Persistent runtime for REPL mode
+        self._runtime = None
+        if repl_mode:
+            self._runtime = Runtime(self.bounds, source_dir=self.source_dir,
+                                    debug_chains=debug_chains)
 
     def run(self, source: str) -> RunResult:
         """Execute TinyTalk source code and return a RunResult."""
@@ -62,7 +72,12 @@ class TinyTalkKernel:
             ast = Parser(tokens).parse()
 
             # 3. Execute
-            runtime = Runtime(self.bounds, source_dir=self.source_dir)
+            if self.repl_mode and self._runtime:
+                runtime = self._runtime
+            else:
+                runtime = Runtime(self.bounds, source_dir=self.source_dir,
+                                  debug_chains=self.debug_chains)
+                self._runtime = runtime
 
             if self.capture_output:
                 buf: list = []
@@ -110,6 +125,12 @@ class TinyTalkKernel:
                 error=f"Internal error: {e}",
                 elapsed_ms=round((time.time() - start) * 1000, 2),
             )
+
+    def get_debug_traces(self) -> list:
+        """Return step chain debug traces (if debug mode is enabled)."""
+        if self._runtime:
+            return self._runtime.get_debug_traces()
+        return []
 
     def eval(self, source: str) -> Any:
         """Execute and return the raw Python value, raising on error."""

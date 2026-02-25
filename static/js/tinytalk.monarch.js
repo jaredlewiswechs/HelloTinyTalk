@@ -40,9 +40,14 @@ window.tinytalkLanguageDef = {
     'startswith', 'endswith',
     'type', 'assert', 'assert_equal', 'assert_true', 'assert_false',
     'read_csv', 'write_csv', 'read_json', 'write_json',
-    'parse_json', 'to_json', 'http_get',
+    'parse_json', 'to_json', 'http_get', 'http_post',
     'date_now', 'date_parse', 'date_format', 'date_floor',
     'date_add', 'date_diff',
+    // Extended stdlib
+    'regex_match', 'regex_find', 'regex_replace', 'regex_split',
+    'file_read', 'file_write', 'file_exists', 'file_list',
+    'env', 'args', 'format', 'hash', 'md5', 'sha256',
+    'DataFrame',
   ],
 
   constants: ['true', 'false', 'null', 'nil', 'PI', 'E', 'TAU', 'INF'],
