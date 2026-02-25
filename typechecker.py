@@ -16,7 +16,7 @@ Optional: ?int (allows null)
 
 from typing import Optional
 
-from .types import Value, ValueType
+from .tt_types import Value, ValueType
 
 
 # Map from annotation strings to ValueType(s)

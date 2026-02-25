@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
 
-from .types import Value, ValueType
+from .tt_types import Value, ValueType
 
 
 # ---------------------------------------------------------------------------
