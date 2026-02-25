@@ -1,0 +1,23 @@
+// Charts & Visualizations — Introduction
+// TinyTalk can render charts directly in the IDE!
+
+// === Bar Chart from a map ===
+let languages = {
+    "Python": 35,
+    "JavaScript": 25,
+    "TinyTalk": 20,
+    "Rust": 12,
+    "Go": 8
+}
+chart_bar(languages, "Language Popularity (%)")
+
+// === Pie Chart — same data, different view ===
+chart_pie(languages, "Language Share")
+
+// === Line Chart — monthly growth ===
+let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+let users = [120, 350, 580, 920, 1400, 2100]
+chart_line(months, users, "User Growth")
+
+// The output tab still shows text output
+show("Charts rendered! Check the Charts tab.")

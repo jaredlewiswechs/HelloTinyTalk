@@ -1103,6 +1103,179 @@ def _parse_date(s: str) -> datetime:
 
 
 # ---------------------------------------------------------------------------
+# Charts & Visualization
+# ---------------------------------------------------------------------------
+
+_CHART_MARKER = "__TINYTALK_CHART__"
+
+
+def _chart_emit(chart_data: dict) -> Value:
+    """Emit a chart directive as a special marker in the output stream."""
+    _emit(_CHART_MARKER + json.dumps(chart_data) + "\n")
+    return Value.null_val()
+
+
+def _extract_labels_values(args: List[Value]):
+    """Extract labels and values from chart arguments.
+
+    Accepts either:
+      chart_bar(labels, values)              — two lists
+      chart_bar(labels, values, title)       — two lists + title string
+      chart_bar(map_data)                    — a map (keys=labels, values=values)
+      chart_bar(map_data, title)             — a map + title string
+    """
+    title = ""
+    labels = []
+    values = []
+
+    if len(args) >= 2 and args[0].type == ValueType.LIST and args[1].type == ValueType.LIST:
+        labels = [format_value(v) for v in args[0].data]
+        values = [(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0)
+                  for v in args[1].data]
+        if len(args) >= 3 and args[2].type == ValueType.STRING:
+            title = args[2].data
+    elif len(args) >= 1 and args[0].type == ValueType.MAP:
+        for k, v in args[0].data.items():
+            labels.append(str(k))
+            values.append(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0)
+        if len(args) >= 2 and args[1].type == ValueType.STRING:
+            title = args[1].data
+    else:
+        raise ValueError("chart functions expect (labels, values) or a map")
+
+    return labels, values, title
+
+
+def _extract_xy(args: List[Value]):
+    """Extract x and y arrays for scatter/line charts.
+
+    Accepts either:
+      chart(x_list, y_list)             — two numeric lists
+      chart(x_list, y_list, title)      — two lists + title
+      chart(list_of_maps)               — [{x: 1, y: 2}, ...] or [{name: ..., value: ...}]
+    """
+    title = ""
+    x_vals = []
+    y_vals = []
+
+    if len(args) >= 2 and args[0].type == ValueType.LIST and args[1].type == ValueType.LIST:
+        x_vals = [(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0) for v in args[0].data]
+        y_vals = [(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0) for v in args[1].data]
+        if len(args) >= 3 and args[2].type == ValueType.STRING:
+            title = args[2].data
+    elif len(args) >= 1 and args[0].type == ValueType.LIST and len(args[0].data) > 0:
+        first = args[0].data[0]
+        if first.type == ValueType.MAP:
+            for item in args[0].data:
+                if item.type == ValueType.MAP:
+                    d = item.data
+                    xv = d.get("x", d.get("name", Value.int_val(0)))
+                    yv = d.get("y", d.get("value", Value.int_val(0)))
+                    x_vals.append(xv.data if xv.type in (ValueType.INT, ValueType.FLOAT) else 0)
+                    y_vals.append(yv.data if yv.type in (ValueType.INT, ValueType.FLOAT) else 0)
+        if len(args) >= 2 and args[1].type == ValueType.STRING:
+            title = args[1].data
+    else:
+        raise ValueError("chart expects (x_list, y_list) or a list of {x, y} maps")
+
+    return x_vals, y_vals, title
+
+
+def builtin_chart_bar(args: List[Value]) -> Value:
+    """chart_bar(labels, values [, title]) or chart_bar(map [, title]) — render a bar chart."""
+    labels, values, title = _extract_labels_values(args)
+    return _chart_emit({"type": "bar", "labels": labels, "values": values, "title": title})
+
+
+def builtin_chart_line(args: List[Value]) -> Value:
+    """chart_line(labels, values [, title]) or chart_line(map [, title]) — render a line chart."""
+    labels, values, title = _extract_labels_values(args)
+    return _chart_emit({"type": "line", "labels": labels, "values": values, "title": title})
+
+
+def builtin_chart_pie(args: List[Value]) -> Value:
+    """chart_pie(labels, values [, title]) or chart_pie(map [, title]) — render a pie chart."""
+    labels, values, title = _extract_labels_values(args)
+    return _chart_emit({"type": "pie", "labels": labels, "values": values, "title": title})
+
+
+def builtin_chart_scatter(args: List[Value]) -> Value:
+    """chart_scatter(x_list, y_list [, title]) — render a scatter plot."""
+    x_vals, y_vals, title = _extract_xy(args)
+    return _chart_emit({"type": "scatter", "x": x_vals, "y": y_vals, "title": title})
+
+
+def builtin_chart_histogram(args: List[Value]) -> Value:
+    """chart_histogram(data [, bins] [, title]) — render a histogram."""
+    if not args or args[0].type != ValueType.LIST:
+        raise ValueError("chart_histogram expects a list of numbers")
+
+    data = [(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0)
+            for v in args[0].data]
+
+    bins = 10
+    title = ""
+    if len(args) >= 2:
+        if args[1].type in (ValueType.INT, ValueType.FLOAT):
+            bins = int(args[1].data)
+        elif args[1].type == ValueType.STRING:
+            title = args[1].data
+    if len(args) >= 3 and args[2].type == ValueType.STRING:
+        title = args[2].data
+
+    # Compute histogram buckets
+    if not data:
+        return _chart_emit({"type": "bar", "labels": [], "values": [], "title": title})
+
+    lo, hi = min(data), max(data)
+    if lo == hi:
+        return _chart_emit({"type": "bar", "labels": [str(lo)], "values": [len(data)], "title": title})
+
+    step = (hi - lo) / bins
+    labels = []
+    counts = [0] * bins
+    for i in range(bins):
+        edge = lo + i * step
+        labels.append(f"{edge:.1f}")
+    for v in data:
+        idx = int((v - lo) / step)
+        if idx >= bins:
+            idx = bins - 1
+        counts[idx] += 1
+
+    return _chart_emit({"type": "bar", "labels": labels, "values": counts, "title": title or "Histogram"})
+
+
+def builtin_chart_multi(args: List[Value]) -> Value:
+    """chart_multi(labels, series_map [, title]) — multi-series line/bar chart.
+
+    series_map is a map of { "series_name": [values...], ... }
+    """
+    if len(args) < 2:
+        raise ValueError("chart_multi expects (labels, series_map [, title])")
+
+    if args[0].type != ValueType.LIST:
+        raise ValueError("First argument must be a list of labels")
+    if args[1].type != ValueType.MAP:
+        raise ValueError("Second argument must be a map of series")
+
+    labels = [format_value(v) for v in args[0].data]
+    series = {}
+    for name, val in args[1].data.items():
+        if val.type == ValueType.LIST:
+            series[name] = [(v.data if v.type in (ValueType.INT, ValueType.FLOAT) else 0)
+                            for v in val.data]
+        else:
+            series[name] = []
+
+    title = ""
+    if len(args) >= 3 and args[2].type == ValueType.STRING:
+        title = args[2].data
+
+    return _chart_emit({"type": "multi", "labels": labels, "series": series, "title": title})
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -1205,6 +1378,13 @@ BUILTIN_FUNCTIONS = {
     "date_floor": builtin_date_floor,
     "date_add": builtin_date_add,
     "date_diff": builtin_date_diff,
+    # Charts & Visualization
+    "chart_bar": builtin_chart_bar,
+    "chart_line": builtin_chart_line,
+    "chart_pie": builtin_chart_pie,
+    "chart_scatter": builtin_chart_scatter,
+    "chart_histogram": builtin_chart_histogram,
+    "chart_multi": builtin_chart_multi,
 }
 
 STDLIB_CONSTANTS = {

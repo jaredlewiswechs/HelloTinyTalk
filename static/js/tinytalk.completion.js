@@ -208,6 +208,13 @@ function builtinSuggestions(range) {
     ['date_format("${1:date}", "${2:%Y-%m-%d}")', 'Format date'],
     ['assert(${1:cond}, "${2:message}")', 'Assert condition'],
     ['assert_equal(${1:a}, ${2:b}, "${3:message}")', 'Assert equality'],
+    // Charts & Visualization
+    ['chart_bar(${1:labels}, ${2:values}, "${3:Title}")', 'Render a bar chart'],
+    ['chart_line(${1:labels}, ${2:values}, "${3:Title}")', 'Render a line chart'],
+    ['chart_pie(${1:labels}, ${2:values}, "${3:Title}")', 'Render a pie chart'],
+    ['chart_scatter(${1:x_vals}, ${2:y_vals}, "${3:Title}")', 'Render a scatter plot'],
+    ['chart_histogram(${1:data}, ${2:bins}, "${3:Title}")', 'Render a histogram'],
+    ['chart_multi(${1:labels}, ${2:series_map}, "${3:Title}")', 'Render multi-series chart'],
   ];
 
   return fns.map(function (f) {

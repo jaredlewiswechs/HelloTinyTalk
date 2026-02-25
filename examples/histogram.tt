@@ -1,0 +1,32 @@
+// Histogram — Distribution of Data
+// Visualize how values are distributed.
+
+// === Simulate exam scores ===
+let scores = []
+for i in range(50) {
+    // Generate scores between 40 and 100
+    let score = 40 + (i * 7 + 13) % 61
+    append(scores, score)
+}
+
+chart_histogram(scores, 8, "Exam Score Distribution")
+
+show("=== Score Statistics ===")
+show("Students:  {len(scores)}")
+show("Average:   {round(scores _avg, 1)}")
+show("Minimum:   {scores _min}")
+show("Maximum:   {scores _max}")
+show("Std Range: {scores _max - scores _min}")
+
+// === Passing vs failing ===
+let passing = scores _filter((s) => s >= 60) _count
+let failing = scores _filter((s) => s < 60) _count
+
+chart_pie(
+    ["Passing (>=60)", "Failing (<60)"],
+    [passing, failing],
+    "Pass/Fail Breakdown"
+)
+
+show("Passing: {passing} students ({round(passing / len(scores) * 100)}%)")
+show("Failing: {failing} students ({round(failing / len(scores) * 100)}%)")
