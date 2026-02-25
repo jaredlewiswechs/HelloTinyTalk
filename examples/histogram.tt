@@ -22,11 +22,9 @@ show("Std Range: {scores _max - scores _min}")
 let passing = scores _filter((s) => s >= 60) _count
 let failing = scores _filter((s) => s < 60) _count
 
-chart_pie(
-    ["Passing (>=60)", "Failing (<60)"],
-    [passing, failing],
-    "Pass/Fail Breakdown"
-)
+let pass_labels = ["Passing (>=60)", "Failing (<60)"]
+let pass_values = [passing, failing]
+chart_pie(pass_labels, pass_values, "Pass/Fail Breakdown")
 
 show("Passing: {passing} students ({round(passing / len(scores) * 100)}%)")
 show("Failing: {failing} students ({round(failing / len(scores) * 100)}%)")

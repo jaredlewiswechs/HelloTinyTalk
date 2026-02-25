@@ -2,48 +2,34 @@
 // Process data with chains, then visualize results.
 
 // === Product inventory ===
-let products = [
-    {"name": "Laptop",     "category": "Electronics", "price": 999,  "stock": 45},
-    {"name": "Phone",      "category": "Electronics", "price": 699,  "stock": 120},
-    {"name": "Tablet",     "category": "Electronics", "price": 449,  "stock": 80},
-    {"name": "Desk",       "category": "Furniture",   "price": 299,  "stock": 30},
-    {"name": "Chair",      "category": "Furniture",   "price": 199,  "stock": 55},
-    {"name": "Lamp",       "category": "Furniture",   "price": 49,   "stock": 200},
-    {"name": "Notebook",   "category": "Stationery",  "price": 12,   "stock": 500},
-    {"name": "Pen Set",    "category": "Stationery",  "price": 8,    "stock": 800},
-    {"name": "Backpack",   "category": "Accessories", "price": 79,   "stock": 150},
-    {"name": "Headphones", "category": "Electronics", "price": 249,  "stock": 95}
-]
+let products = [{"name": "Laptop", "category": "Electronics", "price": 999, "stock": 45}, {"name": "Phone", "category": "Electronics", "price": 699, "stock": 120}, {"name": "Tablet", "category": "Electronics", "price": 449, "stock": 80}, {"name": "Desk", "category": "Furniture", "price": 299, "stock": 30}, {"name": "Chair", "category": "Furniture", "price": 199, "stock": 55}, {"name": "Lamp", "category": "Furniture", "price": 49, "stock": 200}, {"name": "Notebook", "category": "Stationery", "price": 12, "stock": 500}, {"name": "Pen Set", "category": "Stationery", "price": 8, "stock": 800}, {"name": "Backpack", "category": "Accessories", "price": 79, "stock": 150}, {"name": "Headphones", "category": "Electronics", "price": 249, "stock": 95}]
 
 // --- Pipeline 1: Revenue by product (price * stock) ---
 let names = products _map((p) => p.name)
 let revenue = products _map((p) => p.price * p.stock)
 
-chart_bar(names, revenue, "Inventory Value by Product ($)")
+chart_bar(names, revenue, "Inventory Value by Product")
 
 // --- Pipeline 2: Category breakdown ---
-let categories = ["Electronics", "Furniture", "Stationery", "Accessories"]
-let cat_totals = categories _map((cat) => {
-    return products
-        _filter((p) => p.category == cat)
-        _map((p) => p.price * p.stock)
-        _sum
-})
+let electronics = products _filter((p) => p.category == "Electronics") _map((p) => p.price * p.stock) _sum
+let furniture = products _filter((p) => p.category == "Furniture") _map((p) => p.price * p.stock) _sum
+let stationery = products _filter((p) => p.category == "Stationery") _map((p) => p.price * p.stock) _sum
+let accessories = products _filter((p) => p.category == "Accessories") _map((p) => p.price * p.stock) _sum
 
+let categories = ["Electronics", "Furniture", "Stationery", "Accessories"]
+let cat_totals = [electronics, furniture, stationery, accessories]
 chart_pie(categories, cat_totals, "Inventory Value by Category")
 
 // --- Pipeline 3: Top 5 most expensive items ---
-let top5 = products _sort((a b) => b.price - a.price) _take(5)
-chart_bar(
-    top5 _map((p) => p.name),
-    top5 _map((p) => p.price),
-    "Top 5 Most Expensive Products"
-)
+let top5 = products _sortBy((p) => p.price) _reverse _take(5)
+let top5_names = top5 _map((p) => p.name)
+let top5_prices = top5 _map((p) => p.price)
+chart_bar(top5_names, top5_prices, "Top 5 Most Expensive Products")
 
 // --- Summary ---
 show("=== Inventory Summary ===")
 show("Products:       {len(products)}")
-show("Total Value:    ${revenue _sum}")
-show("Avg Price:      ${round(products _map((p) => p.price) _avg)}")
+show("Total Value:    {revenue _sum}")
+show("Avg Price:      {round(products _map((p) => p.price) _avg)}")
 show("Total Stock:    {products _map((p) => p.stock) _sum} units")
-show("Most Expensive: {top5[0].name} (${top5[0].price})")
+show("Most Expensive: {top5[0].name} ({top5[0].price})")

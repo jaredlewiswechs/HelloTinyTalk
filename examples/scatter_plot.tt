@@ -18,10 +18,8 @@ for i in range(0, 25) {
     append(y_cos, round(cos(x) * 100) / 100)
 }
 
-chart_multi(
-    x_vals _map((x) => str(round(x, 1))),
-    {"sin(x)": y_sin, "cos(x)": y_cos},
-    "Trigonometric Functions"
-)
+let x_labels = x_vals _map((x) => str(round(x, 1)))
+let series = {"sin(x)": y_sin, "cos(x)": y_cos}
+chart_multi(x_labels, series, "Trigonometric Functions")
 
 show("Plotted {len(x_vals)} points for sin(x) and cos(x)")
