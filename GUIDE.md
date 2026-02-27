@@ -61,6 +61,10 @@
 47. [Performance Floor](#47-performance-floor)
 48. [Typed Step Chains](#48-typed-step-chains)
 49. [DataFrame as a First-Class Type](#49-dataframe-as-a-first-class-type)
+50. [Charts & Visualizations — Built-in Plotting](#50-charts--visualizations--built-in-plotting)
+51. [Statistics Library — R-Style Statistical Computing](#51-statistics-library--r-style-statistical-computing)
+52. [CSV/JSON Import — One-Click Data Upload](#52-csvjson-import--one-click-data-upload)
+53. [TinyTalk Studio — RStudio-Style IDE](#53-tinytalk-studio--rstudio-style-ide)
 
 ---
 
@@ -2900,6 +2904,341 @@ The API is transparent — whether your data is a list of maps or a DataFrame, t
 
 ---
 
+## 50. Charts & Visualizations — Built-in Plotting
+
+TinyTalk can render charts directly in the IDE. Six built-in chart functions produce
+interactive visualizations in the **Charts** tab — no imports, no libraries, just call
+a function and see a chart.
+
+### Bar Charts
+
+Pass a map or separate labels + values lists:
+
+```tinytalk
+let languages = {
+    "Python": 35,
+    "JavaScript": 25,
+    "TinyTalk": 20,
+    "Rust": 12,
+    "Go": 8
+}
+chart_bar(languages, "Language Popularity (%)")
+```
+
+Or with two lists:
+
+```tinytalk
+let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+let revenue = [4200, 5800, 6100, 7500, 8200, 9800]
+chart_bar(months, revenue, "Monthly Revenue")
+```
+
+### Line Charts
+
+```tinytalk
+let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+let users = [120, 350, 580, 920, 1400, 2100]
+chart_line(months, users, "User Growth")
+```
+
+### Pie Charts
+
+```tinytalk
+chart_pie(["Passing", "Failing"], [82, 18], "Pass/Fail Breakdown")
+```
+
+### Scatter Plots
+
+```tinytalk
+let heights = [152, 160, 165, 170, 175, 180, 185, 190]
+let weights = [50, 58, 62, 68, 74, 82, 88, 95]
+chart_scatter(heights, weights, "Height vs Weight")
+```
+
+### Histograms
+
+```tinytalk
+let scores = [72, 85, 91, 67, 78, 95, 82, 73, 88, 90]
+chart_histogram(scores, 5, "Score Distribution")
+```
+
+The second argument is the number of bins (defaults to 10).
+
+### Multi-Series Charts
+
+Compare multiple data series on one chart:
+
+```tinytalk
+let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+let series = {
+    "Revenue": [4200, 5800, 6100, 7500, 8200, 9800],
+    "Expenses": [3100, 3400, 3800, 4200, 4600, 5100],
+    "Profit":   [1100, 2400, 2300, 3300, 3600, 4700]
+}
+chart_multi(months, series, "Monthly Financials")
+```
+
+### Chart Function Reference
+
+| Function | Arguments | What it does |
+|----------|-----------|--------------|
+| `chart_bar` | `(map [, title])` or `(labels, values [, title])` | Bar chart |
+| `chart_line` | `(labels, values [, title])` | Line chart |
+| `chart_pie` | `(labels, values [, title])` | Pie chart |
+| `chart_scatter` | `(x_list, y_list [, title])` | Scatter plot |
+| `chart_histogram` | `(data [, bins] [, title])` | Histogram |
+| `chart_multi` | `(labels, series_map [, title])` | Multi-series line/bar |
+
+> **Tip:** Charts combine beautifully with step chains. Process your data with
+> `_filter`, `_group`, `_map`, then pipe the results into a chart function.
+
+---
+
+## 51. Statistics Library — R-Style Statistical Computing
+
+TinyTalk now ships with a full statistics library inspired by R. All 31 functions are
+available as built-ins — no imports needed.
+
+### Descriptive Statistics
+
+```tinytalk
+let scores = [85, 92, 78, 95, 88, 76, 91, 83, 79, 94]
+
+show(mean(scores))       // 86.1
+show(median(scores))     // 86.5
+show(sd(scores))         // 6.96  (sample std dev, n-1)
+show(variance(scores))   // 48.54
+show(quantile(scores, 0.25))  // 79.0
+show(iqr(scores))        // 12.0
+```
+
+The `summary()` function gives R's classic 6-number summary:
+
+```tinytalk
+show(summary(scores))
+// {min: 76, q1: 79, median: 86.5, mean: 86.1, q3: 91, max: 95}
+```
+
+### Correlation & Regression
+
+```tinytalk
+let x = seq(1, 20, 1)
+let y = x _map((v) => v * 2.5 + 10)
+
+show(cor(x, y))    // Pearson correlation coefficient
+show(cov(x, y))    // Sample covariance
+
+let model = lm(y, x)
+show(model["slope"])       // 2.5
+show(model["intercept"])   // 10.0
+show(model["r_squared"])   // 1.0
+```
+
+`lm(y, x)` returns a map with `slope`, `intercept`, `r_squared`, `se` (standard error),
+and `residuals`.
+
+### Hypothesis Testing
+
+```tinytalk
+let group_a = [23, 25, 28, 24, 26, 27, 25, 29, 24, 26]
+let group_b = [19, 21, 22, 20, 23, 18, 20, 21, 22, 19]
+
+let test = t_test(group_a, group_b)
+show(test["t"])          // t-statistic
+show(test["p"])          // p-value
+show(test["ci_lower"])   // 95% confidence interval lower bound
+show(test["ci_upper"])   // 95% confidence interval upper bound
+```
+
+### Probability Distributions
+
+```tinytalk
+// Normal distribution
+show(dnorm(0))            // density at 0
+show(pnorm(1.96))         // P(Z < 1.96) ≈ 0.975
+show(qnorm(0.975))        // inverse CDF ≈ 1.96
+
+// Random generation
+set_seed(42)              // reproducible results
+let data = rnorm(100, 0, 1)     // 100 standard normal values
+let uniform = runif(50, 0, 10)  // 50 uniform values in [0, 10]
+let flips = rbinom(100, 1, 0.5) // 100 coin flips
+```
+
+### Sampling & Sequences
+
+```tinytalk
+let items = ["a", "b", "c", "d", "e"]
+show(sample(items, 3))           // random 3 items (no replacement)
+show(sample(items, 8, true))     // 8 items with replacement
+show(shuffle(items))             // random permutation
+
+show(seq(1, 10, 2))     // [1, 3, 5, 7, 9]
+show(rep("x", 5))       // ["x", "x", "x", "x", "x"]
+```
+
+### Transformations
+
+```tinytalk
+show(cumsum([1, 2, 3, 4, 5]))      // [1, 3, 6, 10, 15]
+show(diff([1, 3, 6, 10, 15]))      // [2, 3, 4, 5]
+show(scale([10, 20, 30]))          // z-scores: [-1.0, 0.0, 1.0]
+show(which_min([5, 2, 8, 1, 9]))   // 3  (index of minimum)
+show(which_max([5, 2, 8, 1, 9]))   // 4  (index of maximum)
+```
+
+### NA Handling
+
+```tinytalk
+show(is_na(null))                   // true
+show(is_na(42))                     // false
+show(na_rm([1, null, 3, null, 5]))  // [1, 3, 5]
+
+let data = [
+    {"name": "Alice", "score": 85},
+    {"name": "Bob", "score": null},
+    {"name": "Carol", "score": 92}
+]
+show(complete_cases(data))  // only Alice and Carol
+```
+
+### Frequency Tables
+
+```tinytalk
+let grades = ["A", "B", "A", "C", "B", "A", "B", "A"]
+show(table(grades))   // {"A": 4, "B": 3, "C": 1}
+```
+
+### Full Statistics Reference
+
+| Category | Functions |
+|----------|-----------|
+| Descriptive | `mean`, `median`, `sd`, `variance`, `quantile`, `iqr`, `summary` |
+| Correlation | `cor`, `cov` |
+| Regression | `lm` (returns slope, intercept, r_squared, se, residuals) |
+| Testing | `t_test` (Welch's two-sample t-test) |
+| Distributions | `dnorm`, `pnorm`, `qnorm`, `rnorm`, `runif`, `rbinom` |
+| Sampling | `sample`, `set_seed`, `shuffle` |
+| Sequences | `seq`, `rep` |
+| Transforms | `cumsum`, `diff`, `scale`, `which_min`, `which_max` |
+| NA handling | `is_na`, `na_rm`, `complete_cases` |
+| Tables | `table` |
+
+---
+
+## 52. CSV/JSON Import — One-Click Data Upload
+
+The web playground now has an **Import** button in the toolbar. Click it to upload a
+`.csv` or `.json` file from your machine. The file is uploaded to the server and a
+ready-to-use line is inserted at the top of your editor:
+
+```tinytalk
+let data = read_csv("my_file.csv")
+```
+
+or for JSON files:
+
+```tinytalk
+let data = read_json("my_data.json")
+```
+
+From there, use step chains and chart functions to explore the data immediately:
+
+```tinytalk
+let data = read_csv("sales.csv")
+
+// Quick summary
+show("Rows: {len(data)}")
+show("Columns: {keys(data[0])}")
+
+// Analyze
+let by_region = data _group((r) => r["region"]) _mapValues((rows) => rows _count)
+chart_bar(by_region, "Sales by Region")
+```
+
+> **Tip:** Uploaded files are available for the duration of your session. You can
+> upload multiple files and join them with step chains.
+
+---
+
+## 53. TinyTalk Studio — RStudio-Style IDE
+
+TinyTalk Studio is a full-featured 4-pane IDE available at `/studio`. It mirrors
+the RStudio layout that data analysts and statisticians already know.
+
+### The Four Panes
+
+| Pane | Position | What it does |
+|------|----------|--------------|
+| **Source Editor** | Top-left | Write and edit TinyTalk programs with syntax highlighting, autocomplete, and Run All / Run Selection buttons |
+| **Console** | Bottom-left | Interactive REPL with persistent state and command history (arrow keys to recall) |
+| **Environment** | Top-right | Live variable inspector — see every variable's type, size, and a preview. Click to inspect, or hit "View" to open data in the data viewer |
+| **Output** | Bottom-right | Tabbed panel with Output, Plots, Data Viewer, Help, Debug, and Transpiled views |
+
+### Console (REPL)
+
+The console keeps state across evaluations — define a variable, and it stays available
+for your next command:
+
+```
+>> let scores = [85, 92, 78, 95, 88]
+>> mean(scores)
+87.6
+>> chart_bar(["Mean", "Median"], [mean(scores), median(scores)], "Scores")
+// Chart appears in the Plots tab
+```
+
+### Environment Inspector
+
+The Environment pane automatically updates after every execution. It shows:
+
+- **Variable name** and **type** (int, string, list, map, etc.)
+- **Size** (list length, map key count)
+- **Preview** of the value (first few elements for lists/maps)
+- A **View** badge on data variables that opens the Data Viewer
+
+### Data Viewer
+
+Click "View" on any list-of-maps or DataFrame variable to open a spreadsheet-style
+data viewer with:
+- Paginated rows (no lag on large datasets)
+- Column headers from your data's keys
+- Sortable columns
+
+### Built-in Help System
+
+The Help tab provides searchable documentation for 80+ functions across 15 categories,
+25+ step chain operations (with their dplyr equivalents), and language features like
+`let`, `fn`, `if`, `for`, `match`, and step chains. Use the search bar or browse by
+category.
+
+### Combining Statistics + Charts in Studio
+
+Studio is where statistics and visualization come together:
+
+```tinytalk
+set_seed(42)
+let x = seq(1, 20, 1)
+let noise = rnorm(20, 0, 3)
+let y = x _zip(noise) _map((pair) => pair[0] * 2.5 + 10 + pair[1])
+
+let model = lm(y, x)
+show("Slope: {model["slope"]}")
+show("R²: {model["r_squared"]}")
+
+chart_scatter(x, y, "Linear Regression: y = 2.5x + 10 + noise")
+chart_bar(
+    ["Mean", "Median", "SD"],
+    [mean(y), median(y), sd(y)],
+    "Response Variable Summary"
+)
+```
+
+The Environment pane shows `x`, `y`, `model`, and `noise` with their types and
+previews. The Plots tab renders both charts. The Output tab shows the printed results.
+
+---
+
 ## Adoption Roadmap: What Makes TinyTalk Production-Ready
 
 The three features that move the needle most:
@@ -2925,5 +3264,9 @@ to "I actually want to use this."
 | Typed step chains | 48 | Static type inference through pipelines |
 | DataFrame type | 49 | Columnar storage, same syntax |
 | Editor support | 44 | VS Code, TextMate, tree-sitter grammars |
+| Charts & viz | 50 | bar, line, pie, scatter, histogram, multi-series |
+| Statistics lib | 51 | 31 R-compatible functions (mean, lm, t_test, etc.) |
+| CSV/JSON import | 52 | One-click file upload in playground |
+| TinyTalk Studio | 53 | RStudio-style 4-pane IDE with environment inspector |
 
 Now go build something cool. Happy coding!
