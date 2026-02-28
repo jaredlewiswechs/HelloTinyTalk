@@ -24,6 +24,7 @@ class TypeKind(Enum):
     FUNCTION = auto()
     STRUCT = auto()
     ENUM = auto()
+    DATAFRAME = auto()
     ANY = auto()
     VOID = auto()
     NEVER = auto()
@@ -158,6 +159,7 @@ class ValueType(Enum):
     FUNCTION = "function"
     STRUCT_INSTANCE = "struct_instance"
     ENUM_VARIANT = "enum_variant"
+    DATAFRAME = "dataframe"
 
 
 @dataclass
@@ -199,6 +201,11 @@ class Value:
     def function_val(cls, fn) -> "Value":
         return cls(ValueType.FUNCTION, fn)
 
+    @classmethod
+    def dataframe_val(cls, df) -> "Value":
+        """Wrap a TinyDataFrame in a Value."""
+        return cls(ValueType.DATAFRAME, df)
+
     # -- utilities ----------------------------------------------------------
 
     def is_truthy(self) -> bool:
@@ -214,6 +221,8 @@ class Value:
             return len(self.data) > 0
         if self.type == ValueType.MAP:
             return len(self.data) > 0
+        if self.type == ValueType.DATAFRAME:
+            return self.data.nrows > 0
         return True
 
     def to_python(self) -> Any:
@@ -223,6 +232,8 @@ class Value:
             return [v.to_python() for v in self.data]
         if self.type == ValueType.MAP:
             return {k: v.to_python() for k, v in self.data.items()}
+        if self.type == ValueType.DATAFRAME:
+            return self.data.to_rows()
         return self.data
 
     def __repr__(self) -> str:
@@ -240,4 +251,7 @@ class Value:
             return f"{{{pairs}}}"
         if self.type == ValueType.FUNCTION:
             return "<function>"
+        if self.type == ValueType.DATAFRAME:
+            df = self.data
+            return f"DataFrame({df.nrows}x{df.ncols} [{', '.join(df.column_order)}])"
         return str(self.data)

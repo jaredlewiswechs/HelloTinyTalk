@@ -719,6 +719,23 @@ class Runtime:
             if i < 0 or i >= len(obj.data):
                 raise TinyTalkError(f"Index {i} out of bounds", node.line)
             return Value.string_val(obj.data[i])
+        if obj.type == ValueType.DATAFRAME:
+            df = obj.data
+            if idx.type == ValueType.STRING:
+                # df["column"] -> list of values
+                col = df.get_column(idx.data)
+                if col:
+                    return Value.list_val(list(col))
+                return Value.null_val()
+            if idx.type in (ValueType.INT, ValueType.FLOAT):
+                # df[0] -> row as a map
+                i = int(idx.data)
+                if i < 0:
+                    i += df.nrows
+                if i < 0 or i >= df.nrows:
+                    raise TinyTalkError(f"Index {i} out of bounds", node.line)
+                row = df.get_row(i)
+                return Value.map_val(row)
         raise TinyTalkError(f"Cannot index {obj.type.value}", node.line)
 
     def _eval_member(self, node: Member, scope: Scope) -> Value:
@@ -754,6 +771,8 @@ class Runtime:
                 return Value.int_val(len(obj.data))
             if obj.type == ValueType.MAP:
                 return Value.int_val(len(obj.data))
+            if obj.type == ValueType.DATAFRAME:
+                return Value.int_val(obj.data.nrows)
             return Value.int_val(0)
         if f == "num":
             if obj.type == ValueType.STRING:
@@ -796,6 +815,22 @@ class Runtime:
                 return Value.bool_val(len(obj.data) == 0)
             if f == "reversed":
                 return Value.list_val(list(reversed(obj.data)))
+
+        # DataFrame properties
+        if obj.type == ValueType.DATAFRAME:
+            df = obj.data
+            if f == "columns":
+                return Value.list_val([Value.string_val(c) for c in df.column_order])
+            if f == "shape":
+                return Value.list_val([Value.int_val(df.nrows), Value.int_val(df.ncols)])
+            if f == "nrows":
+                return Value.int_val(df.nrows)
+            if f == "ncols":
+                return Value.int_val(df.ncols)
+            if f in ("length", "size", "len"):
+                return Value.int_val(df.nrows)
+            if f == "empty":
+                return Value.bool_val(df.nrows == 0)
 
         raise TinyTalkError(f"Cannot access '.{f}' on {obj.type.value}", node.line)
 
@@ -1172,6 +1207,18 @@ class Runtime:
                         row[col_name] = fn_val
                 result.append(Value.map_val(row))
             return Value.list_val(result)
+
+        # DataFrame: delegate to list-of-maps, then re-wrap result as DataFrame
+        if data.type == ValueType.DATAFRAME:
+            from .dataframe import TinyDataFrame
+            list_val = data.data.to_value()
+            result = self._apply_step(list_val, step, args, scope, line)
+            # Re-wrap list results as DataFrame to preserve the type
+            if result.type == ValueType.LIST and result.data and all(
+                v.type == ValueType.MAP for v in result.data
+            ):
+                return Value.dataframe_val(TinyDataFrame.from_value_rows(result.data))
+            return result
 
         if data.type != ValueType.LIST:
             if data.type == ValueType.STRING:

@@ -78,6 +78,15 @@ def _describe_value(name: str, val, is_const: bool) -> dict:
     elif val.type == ValueType.ENUM_VARIANT:
         type_name = "enum"
         preview = format_value(val)
+    elif val.type == ValueType.DATAFRAME:
+        df = val.data
+        type_name = "data"
+        is_data = True
+        size = f"{df.nrows} items"
+        cols = df.column_order
+        preview = f"{df.nrows} rows x {df.ncols} cols"
+        if cols:
+            preview += f" [{', '.join(cols[:5])}{'...' if len(cols) > 5 else ''}]"
     else:
         preview = format_value(val)
 

@@ -1369,3 +1369,106 @@ show(totals)
 show(totals _sum)
 '''
         assert output(code) == "[11, 22, 33]\n66"
+
+
+class TestDataFrame:
+    def test_constructor(self):
+        code = '''
+let data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+let df = DataFrame(data)
+show(type(df))
+'''
+        assert output(code) == "dataframe"
+
+    def test_columns(self):
+        code = '''
+let df = DataFrame([{"x": 1, "y": 2}])
+show(df.columns)
+'''
+        assert output(code) == "[x, y]"
+
+    def test_shape(self):
+        code = '''
+let df = DataFrame([{"a": 1}, {"a": 2}, {"a": 3}])
+show(df.shape)
+'''
+        assert output(code) == "[3, 1]"
+
+    def test_nrows(self):
+        code = '''
+let df = DataFrame([{"x": 1}, {"x": 2}])
+show(df.nrows)
+'''
+        assert output(code) == "2"
+
+    def test_len_builtin(self):
+        code = '''
+let df = DataFrame([{"x": 1}, {"x": 2}, {"x": 3}])
+show(len(df))
+'''
+        assert output(code) == "3"
+
+    def test_index_row(self):
+        code = '''
+let df = DataFrame([{"x": 10}, {"x": 20}])
+show(df[1]["x"])
+'''
+        assert output(code) == "20"
+
+    def test_index_column(self):
+        code = '''
+let df = DataFrame([{"x": 1, "y": "a"}, {"x": 2, "y": "b"}])
+show(df["x"])
+'''
+        assert output(code) == "[1, 2]"
+
+    def test_filter_returns_dataframe(self):
+        code = '''
+let df = DataFrame([{"x": 10}, {"x": 20}, {"x": 30}])
+let filtered = df _filter((r) => r["x"] > 15)
+show(type(filtered))
+show(filtered.nrows)
+'''
+        assert output(code) == "dataframe\n2"
+
+    def test_step_chain(self):
+        code = '''
+let df = DataFrame([{"v": 3}, {"v": 1}, {"v": 2}])
+let result = df _sortBy((r) => r["v"]) _map((r) => r["v"]) _sum
+show(result)
+'''
+        assert output(code) == "6"
+
+    def test_to_list(self):
+        code = '''
+let df = DataFrame([{"x": 1}])
+let rows = list(df)
+show(type(rows))
+'''
+        assert output(code) == "list"
+
+    def test_empty_dataframe(self):
+        code = '''
+let df = DataFrame([])
+show(df.nrows)
+show(df.empty)
+'''
+        assert output(code) == "0\ntrue"
+
+    def test_select_returns_dataframe(self):
+        code = '''
+let df = DataFrame([{"a": 1, "b": 2, "c": 3}])
+let sub = df _select("a", "c")
+show(type(sub))
+show(sub.columns)
+'''
+        assert output(code) == "dataframe\n[a, c]"
+
+    def test_mutate_returns_dataframe(self):
+        code = '''
+let df = DataFrame([{"x": 10}, {"x": 20}])
+let enriched = df _mutate((r) => {"doubled": r["x"] * 2})
+show(type(enriched))
+show(enriched.ncols)
+'''
+        assert output(code) == "dataframe\n2"

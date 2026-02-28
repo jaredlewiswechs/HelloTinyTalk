@@ -311,6 +311,17 @@ FUNCTION_DOCS: Dict[str, dict] = {
     "float": {"signature": "float(value)", "description": "Convert to float.", "category": "Types", "examples": ['float("3.14")  // 3.14']},
     "bool": {"signature": "bool(value)", "description": "Convert to boolean.", "category": "Types", "examples": ["bool(0)  // false"]},
     "type": {"signature": "type(value)", "description": "Get the type name as a string.", "category": "Types", "examples": ['type(42)  // "int"']},
+    "DataFrame": {
+        "signature": "DataFrame(list_of_maps)",
+        "description": "Create a columnar DataFrame from a list of maps. Supports the same step chain syntax as lists. Access .columns, .shape, .nrows properties.",
+        "category": "Types",
+        "examples": [
+            'let df = DataFrame(data)',
+            'df.columns  // ["name", "age"]',
+            'df.shape    // [100, 3]',
+            'df _filter((r) => r["age"] > 30)  // returns DataFrame',
+        ],
+    },
 
     # --- I/O ---
     "read_csv": {"signature": 'read_csv("file.csv")', "description": "Read a CSV file into a list of maps (one map per row).", "category": "Data I/O", "examples": ['let data = read_csv("sales.csv")']},
@@ -367,9 +378,12 @@ STEP_DOCS: Dict[str, dict] = {
         "examples": ['[1, 2, 3] _map((x) => x * 2)  // [2, 4, 6]'],
     },
     "_sort": {
-        "signature": "data _sort",
-        "description": "Sort in ascending order.",
-        "examples": ["[3, 1, 2] _sort  // [1, 2, 3]"],
+        "signature": "data _sort or data _sort(fn)",
+        "description": "Sort in ascending order. Optionally accepts a key function.",
+        "examples": [
+            "[3, 1, 2] _sort  // [1, 2, 3]",
+            'people _sort((r) => r["age"])  // sort by key',
+        ],
     },
     "_sortBy": {
         "signature": "data _sortBy(fn)",
