@@ -12,6 +12,7 @@ Usage:
     tinytalk transpile-js <file.tt>   Transpile to JavaScript
     tinytalk init                     Initialize a new project (tiny.toml)
     tinytalk install <pkg> [--source] Install a package
+    tinytalk deps                     Install all dependencies from tiny.toml
     tinytalk lsp                      Start the Language Server (stdio)
 """
 
@@ -44,6 +45,8 @@ def main():
         init_project()
     elif cmd == "install" and len(args) >= 2:
         install_package(args[1:])
+    elif cmd == "deps":
+        install_deps()
     elif cmd == "lsp":
         start_lsp()
     else:
@@ -171,6 +174,24 @@ def install_package(args):
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(1)
+
+
+def install_deps():
+    from .package_manager import load_project_config, install_package as _install
+    config = load_project_config(".")
+    if not config:
+        print("No tiny.toml found. Run 'tinytalk init' first.")
+        sys.exit(1)
+    if not config.dependencies:
+        print("No dependencies in tiny.toml.")
+        return
+    for name, dep in config.dependencies.items():
+        source = dep.source if dep.source else name
+        try:
+            path = _install(name, source)
+            print(f"Installed '{name}' to {path}")
+        except ValueError as e:
+            print(f"Error installing '{name}': {e}")
 
 
 def start_lsp():

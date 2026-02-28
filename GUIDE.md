@@ -79,6 +79,8 @@ That's it. One line. `show()` prints things to the screen with a newline at the 
 > **No quotes needed!** In TinyTalk, bare words inside function calls are
 > automatically treated as strings. `show(Hello)` prints `Hello` — no `"` required.
 > If a variable with that name exists, TinyTalk uses its value instead.
+> The LSP will show a hint when a bare word matches a defined variable,
+> so you know which behavior you're getting.
 
 You can still use quotes when you want to — they work the same as in any other language:
 
@@ -1278,6 +1280,12 @@ let summary = data _summarize({
 show(summary)   // {total: 60, mean: 20.0, n: 3}
 ```
 
+> **Design note:** The map-of-functions syntax is intentionally more explicit than
+> dplyr's inline `summarize(mean_sal = mean(salary))`. TinyTalk's parser doesn't
+> support `name = expr` as a call argument, so the `{"name": fn}` map is the
+> aggregation mechanism. The tradeoff: more keystrokes, but each aggregation is
+> a standard lambda, composable with any step chain — no special macro system needed.
+
 ### `_group` + `_summarize` — The killer combo
 
 Group rows by a key, then summarize each group. This is TinyTalk's equivalent
@@ -1640,7 +1648,7 @@ print(transpile_pandas(tt_code))
 |----------|--------|--------|
 | `_filter((x) => x > 5)` | `[x for x in data if ...]` | `df[df.apply(...)]` |
 | `_map((x) => x * 2)` | `[fn(x) for x in data]` | `df.apply(fn, axis=1)` |
-| `_sort` | `sorted(data)` | `df.sort_values(...)` |
+| `_sort` or `_sort(fn)` | `sorted(data)` or `sorted(data, key=fn)` | `df.sort_values(...)` |
 | `_sortBy(fn)` | `sorted(data, key=fn)` | `df.sort_values(key=...)` |
 | `_reverse` | `list(reversed(data))` | `df.iloc[::-1]` |
 | `_take(n)` | `data[:n]` | `df.head(n)` |
@@ -1819,7 +1827,7 @@ tinytalk transpile-js analysis.tt
 | `not x` | `!x` |
 | `_filter(fn)` | `.filter(fn)` |
 | `_map(fn)` | `.map(fn)` |
-| `_sort` | `.slice().sort((a, b) => a - b)` |
+| `_sort` or `_sort(fn)` | `.slice().sort((a, b) => a - b)` or `.slice().sort(...)` |
 | `_sortBy(fn)` | `.slice().sort(...)` |
 | `_reverse` | `.slice().reverse()` |
 | `_take(n)` | `.slice(0, n)` |
@@ -2630,7 +2638,7 @@ let people = [
 
 let top_earners = people
     _filter((r) => r["salary"] > 60000)
-    _sort((r) => r["salary"])
+    _sortBy((r) => r["salary"])
     _reverse
     _take(2)
     _select("name", "salary")
@@ -2699,7 +2707,19 @@ entry = "main.tt"
 ```bash
 tinytalk install utils --source ./path/to/utils
 tinytalk install http --source github:tinytalk-lang/http
+tinytalk install charts --source github:user/repo@v1.0   # pin to a tag
 ```
+
+GitHub packages are cloned via `git clone --depth 1`. You can pin to a tag or branch
+with `@ref` syntax.
+
+### Install all dependencies
+
+```bash
+tinytalk deps
+```
+
+Reads `tiny.toml` and installs every package listed under `[dependencies]`.
 
 Packages are stored in `.tinytalk/packages/` and resolved automatically by `import`:
 
@@ -2781,6 +2801,8 @@ tinytalk lsp
 - **Inline errors**: Red squiggles on syntax errors (multiple errors at once)
 - **Hover info**: See function signatures and step chain documentation
 - **Document symbols**: Outline view of functions, variables, structs
+- **Bare-word hints**: When a bare word in a function call matches a defined variable,
+  the LSP shows a hint so you know the variable value will be used (not the string)
 
 ### VS Code Extension
 
@@ -2887,20 +2909,75 @@ The type checker catches mismatches like applying list operations to maps, or us
 
 ## 49. DataFrame as a First-Class Type
 
-For serious data work, TinyTalk has a native DataFrame type backed by columnar storage:
+For serious data work, TinyTalk has a native `DataFrame` type backed by columnar storage.
+DataFrames are a first-class value type — they live in variables, pass through step chains,
+and integrate with the type system.
+
+### Creating a DataFrame
 
 ```tinytalk
+let data = [
+    {"name": "Alice", "age": 30, "dept": "eng"},
+    {"name": "Bob",   "age": 25, "dept": "sales"},
+    {"name": "Carol", "age": 35, "dept": "eng"},
+]
+
 let df = DataFrame(data)     // Convert list-of-maps to DataFrame
-df.columns                    // ["name", "age", "salary"]
-df.shape                      // [100, 3]
+show(df)                      // DataFrame(3x3 [name, age, dept])
+show(type(df))                // "dataframe"
 ```
 
-DataFrames use the same step chain syntax as lists-of-maps, but internally they use
-columnar storage for efficient column operations. When pandas is available, large
-DataFrames automatically delegate to pandas.
+### Properties
 
-The API is transparent — whether your data is a list of maps or a DataFrame, the same
-`_filter`, `_sort`, `_select`, `_group` chains work identically.
+```tinytalk
+df.columns    // ["name", "age", "dept"]
+df.shape      // [3, 3]
+df.nrows      // 3
+df.ncols      // 3
+df.len        // 3  (alias for nrows)
+df.empty      // false
+```
+
+### Indexing
+
+```tinytalk
+df[0]          // {"name": "Alice", "age": 30, "dept": "eng"}  (row by index)
+df["name"]     // ["Alice", "Bob", "Carol"]  (column by name)
+```
+
+### Step Chains
+
+DataFrames use the same step chain syntax as lists — every step chain works identically:
+
+```tinytalk
+let seniors = df
+    _filter((r) => r["age"] > 28)
+    _sort((r) => r["age"])
+    _select("name", "age")
+
+show(type(seniors))   // "dataframe"  — result stays as DataFrame
+show(seniors.shape)   // [2, 2]
+```
+
+Aggregation steps that collapse to a single value return that value (not a DataFrame):
+
+```tinytalk
+df _count          // 3
+df _map((r) => r["age"]) _avg   // 30.0
+```
+
+### Converting Back to List
+
+```tinytalk
+let rows = list(df)        // Convert DataFrame back to list-of-maps
+show(type(rows))           // "list"
+```
+
+### Performance
+
+DataFrames use columnar storage internally (dict-of-lists). When pandas is available
+and datasets exceed 1,000 rows, step chains automatically delegate to pandas for
+performance — no code changes needed.
 
 ---
 

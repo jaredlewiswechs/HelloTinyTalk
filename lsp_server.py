@@ -120,6 +120,9 @@ class DocumentAnalyzer:
         # Extract symbols from AST
         self._extract_symbols(self.ast)
 
+        # Warn about bare words that shadow variables
+        self._check_bare_word_shadows()
+
     def _error_to_diagnostic(self, msg: str) -> Diagnostic:
         import re
         line, col = 1, 1
@@ -186,6 +189,61 @@ class DocumentAnalyzer:
                 detail=f"enum {node.name} {{{variants}}}",
             )
             self.symbols.append(sym)
+
+    def _check_bare_word_shadows(self):
+        """Warn when a bare-word argument in a function call matches a defined variable.
+
+        In TinyTalk, undefined identifiers inside function calls become bare-word
+        strings.  If a variable with the same name exists, the variable is used
+        instead — but this silent switch can surprise users.  We emit a hint so
+        they can add quotes if they really meant the string.
+        """
+        if not self.ast:
+            return
+        defined = {s.name for s in self.symbols}
+        # Also include builtins that would shadow
+        from .stdlib import BUILTIN_FUNCTIONS, STDLIB_CONSTANTS
+        defined |= set(BUILTIN_FUNCTIONS.keys()) | set(STDLIB_CONSTANTS.keys())
+
+        self._walk_for_bare_words(self.ast, defined)
+
+    def _walk_for_bare_words(self, node, defined: set):
+        """Recursively walk AST looking for Call nodes with Identifier args."""
+        if isinstance(node, Call):
+            for arg in node.args:
+                if isinstance(arg, Identifier) and arg.name in defined:
+                    # Only warn for names that look like they could be bare words
+                    # (lowercase, no underscores) — skip things that are obviously variables
+                    name = arg.name
+                    if name and name[0].islower() and name not in ("true", "false", "null"):
+                        self.diagnostics.append(Diagnostic(
+                            line=arg.line, column=arg.column,
+                            end_line=arg.line, end_column=arg.column + len(name),
+                            message=f"Bare word '{name}' matches a variable — "
+                                    f"using the variable value. Use \"{name}\" for the literal string.",
+                            severity=4,  # Hint
+                        ))
+        # Recurse into children
+        if isinstance(node, Program):
+            for stmt in node.statements:
+                self._walk_for_bare_words(stmt, defined)
+        elif hasattr(node, '__dataclass_fields__'):
+            for field_name in node.__dataclass_fields__:
+                child = getattr(node, field_name, None)
+                if isinstance(child, ASTNode):
+                    self._walk_for_bare_words(child, defined)
+                elif isinstance(child, list):
+                    for item in child:
+                        if isinstance(item, ASTNode):
+                            self._walk_for_bare_words(item, defined)
+                        elif isinstance(item, tuple):
+                            for sub in item:
+                                if isinstance(sub, ASTNode):
+                                    self._walk_for_bare_words(sub, defined)
+                                elif isinstance(sub, list):
+                                    for s in sub:
+                                        if isinstance(s, ASTNode):
+                                            self._walk_for_bare_words(s, defined)
 
     def get_diagnostics(self) -> List[dict]:
         """Return diagnostics as LSP-compatible dicts."""

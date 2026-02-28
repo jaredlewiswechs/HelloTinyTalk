@@ -282,12 +282,12 @@ class TestTeachingErrors:
     def test_runtime_undefined_suggests(self):
         """Runtime error for typo includes 'Did you mean?'."""
         code = """
-let score = 100
-let result = scroe + 1
+let total_score = 100
+let result = total_scroe + 1
 """
         r = run(code)
         assert not r.success
-        assert "Did you mean 'score'?" in r.error
+        assert "Did you mean 'total_score'?" in r.error
 
     # -- unknown step suggestions --
 

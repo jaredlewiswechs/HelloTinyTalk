@@ -258,28 +258,22 @@ def load_project_config(path: str = ".") -> Optional[TinyToml]:
 def install_package(name: str, source: str = "", project_root: str = ".") -> str:
     """Install a package into the project's .tinytalk/packages/ directory.
 
-    For now, supports:
+    Supports:
         - Local path: tinytalk install ./path/to/package
         - GitHub shorthand: tinytalk install github:user/repo
 
     Returns the install path.
     """
+    import shutil
     pkg_dir = get_packages_dir(project_root)
     target = os.path.join(pkg_dir, name)
 
     if source.startswith("github:"):
-        # GitHub-backed package
         repo = source[7:]  # strip "github:"
-        # In a real implementation, this would clone the repo
-        os.makedirs(target, exist_ok=True)
-        readme = os.path.join(target, "README.md")
-        with open(readme, "w") as f:
-            f.write(f"# {name}\nInstalled from github:{repo}\n")
-        return target
+        return _install_from_github(repo, name, target)
 
     if os.path.isdir(source):
         # Local directory — copy .tt files
-        import shutil
         if os.path.exists(target):
             shutil.rmtree(target)
         shutil.copytree(source, target, dirs_exist_ok=True)
@@ -288,7 +282,6 @@ def install_package(name: str, source: str = "", project_root: str = ".") -> str
     if os.path.isfile(source) and source.endswith(".tt"):
         # Single file package
         os.makedirs(target, exist_ok=True)
-        import shutil
         shutil.copy2(source, os.path.join(target, "main.tt"))
         return target
 
@@ -296,3 +289,57 @@ def install_package(name: str, source: str = "", project_root: str = ".") -> str
         f"Cannot install '{name}': source '{source}' not found.\n"
         f"Use: tinytalk install <name> --source <path-or-github:user/repo>"
     )
+
+
+def _install_from_github(repo: str, name: str, target: str) -> str:
+    """Clone a GitHub repository into the packages directory.
+
+    Args:
+        repo: GitHub repo path, e.g. "user/repo" or "user/repo@tag"
+        name: Package name for the local directory
+        target: Target directory path
+    """
+    import shutil
+    import subprocess
+    import tempfile
+
+    # Parse optional tag/branch: "user/repo@v1.0" -> repo="user/repo", ref="v1.0"
+    ref = None
+    if "@" in repo:
+        repo, ref = repo.rsplit("@", 1)
+
+    url = f"https://github.com/{repo}.git"
+
+    # Clone into a temp directory first, then move to target
+    tmp_dir = tempfile.mkdtemp(prefix="tinytalk_pkg_")
+    try:
+        cmd = ["git", "clone", "--depth", "1"]
+        if ref:
+            cmd += ["--branch", ref]
+        cmd += [url, tmp_dir]
+
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode != 0:
+            raise ValueError(
+                f"Failed to clone github:{repo}: {result.stderr.strip()}"
+            )
+
+        # Move to target
+        if os.path.exists(target):
+            shutil.rmtree(target)
+        shutil.move(tmp_dir, target)
+
+        # Remove .git directory to save space
+        git_dir = os.path.join(target, ".git")
+        if os.path.exists(git_dir):
+            shutil.rmtree(git_dir)
+
+        return target
+    except subprocess.TimeoutExpired:
+        raise ValueError(f"Timed out cloning github:{repo}")
+    finally:
+        # Clean up temp dir if it still exists (move failed)
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir, ignore_errors=True)

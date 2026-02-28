@@ -64,6 +64,9 @@ def format_value(val: Value, seen: set = None) -> str:
         inst = val.data
         fs = ", ".join(f"{k}: {format_value(v, seen)}" for k, v in inst.fields.items())
         return f"{inst.struct.name}{{{fs}}}"
+    if val.type == ValueType.DATAFRAME:
+        df = val.data
+        return f"DataFrame({df.nrows}x{df.ncols} [{', '.join(df.column_order)}])"
     return str(val.data)
 
 
@@ -124,6 +127,8 @@ def builtin_len(args: List[Value]) -> Value:
         return Value.int_val(len(v.data))
     if v.type == ValueType.MAP:
         return Value.int_val(len(v.data))
+    if v.type == ValueType.DATAFRAME:
+        return Value.int_val(v.data.nrows)
     return Value.int_val(0)
 
 
@@ -190,6 +195,8 @@ def builtin_list(args: List[Value]) -> Value:
         v = args[0]
         if v.type == ValueType.LIST:
             return v
+        if v.type == ValueType.DATAFRAME:
+            return v.data.to_value()
         if v.type == ValueType.STRING:
             return Value.list_val([Value.string_val(c) for c in v.data])
         if v.type == ValueType.MAP:
@@ -207,6 +214,19 @@ def builtin_map(args: List[Value]) -> Value:
                 result[item.data[0].to_python()] = item.data[1]
         return Value.map_val(result)
     return Value.map_val({})
+
+
+def builtin_DataFrame(args: List[Value]) -> Value:
+    """DataFrame(data) -> DataFrame.  Creates a columnar DataFrame from a list of maps."""
+    from .dataframe import TinyDataFrame
+    if not args:
+        return Value.dataframe_val(TinyDataFrame())
+    v = args[0]
+    if v.type == ValueType.DATAFRAME:
+        return v
+    if v.type == ValueType.LIST:
+        return Value.dataframe_val(TinyDataFrame.from_value_rows(v.data))
+    raise ValueError("DataFrame requires a list of maps")
 
 
 # ---------------------------------------------------------------------------
@@ -1309,6 +1329,7 @@ BUILTIN_FUNCTIONS = {
     "bool": builtin_bool,
     "list": builtin_list,
     "map": builtin_map,
+    "DataFrame": builtin_DataFrame,
     # Collections
     "range": builtin_range,
     "append": builtin_append,
