@@ -10,6 +10,7 @@ Usage:
     tinytalk transpile <file.tt>      Transpile to Python
     tinytalk transpile-sql <file.tt>  Transpile to SQL
     tinytalk transpile-js <file.tt>   Transpile to JavaScript
+    tinytalk transpile-wasm <file.tt> Transpile to WebAssembly (WAT)
     tinytalk init                     Initialize a new project (tiny.toml)
     tinytalk install <pkg> [--source] Install a package
     tinytalk deps                     Install all dependencies from tiny.toml
@@ -41,6 +42,8 @@ def main():
         transpile_sql_file(args[1])
     elif cmd in ("transpile-js", "js") and len(args) >= 2:
         transpile_js_file(args[1])
+    elif cmd in ("transpile-wasm", "wasm", "wat") and len(args) >= 2:
+        transpile_wasm_file(args[1])
     elif cmd == "init":
         init_project()
     elif cmd == "install" and len(args) >= 2:
@@ -131,6 +134,19 @@ def transpile_js_file(path: str):
         source = f.read()
 
     print(transpile_js(source))
+
+
+def transpile_wasm_file(path: str):
+    from .wasm_transpiler import transpile_wasm
+
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        sys.exit(1)
+
+    with open(path, "r") as f:
+        source = f.read()
+
+    print(transpile_wasm(source))
 
 
 def start_repl():

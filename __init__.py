@@ -28,6 +28,7 @@ from .tt_types import Value, ValueType
 from .transpiler import transpile, transpile_pandas
 from .sql_transpiler import transpile_sql
 from .js_transpiler import transpile_js
+from .wasm_transpiler import transpile_wasm
 
 __version__ = "2.1.0"
 __all__ = [
@@ -41,4 +42,5 @@ __all__ = [
     "transpile_pandas",
     "transpile_sql",
     "transpile_js",
+    "transpile_wasm",
 ]
