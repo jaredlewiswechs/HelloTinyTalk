@@ -1178,25 +1178,25 @@ class Runtime:
 
     def _apply_step(self, data: Value, step: str, args: List[Value], scope: Scope, line: int) -> Value:
         # Steps that work on maps directly (before list conversion)
-        if step == "_mapValues":
+        if step == "mapValues":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_mapValues requires a function", line)
+                raise TinyTalkError(".mapValues requires a function", line)
             fn = args[0].data
             if data.type == ValueType.MAP:
                 return Value.map_val({
                     k: self._call_function(fn, [v], scope, line)
                     for k, v in data.data.items()
                 })
-            raise TinyTalkError("_mapValues requires a map", line)
+            raise TinyTalkError(".mapValues requires a map", line)
 
-        # _summarize on a grouped map: aggregate each group into a summary row
-        if step == "_summarize" and data.type == ValueType.MAP:
+        # .summarize on a grouped map: aggregate each group into a summary row
+        if step == "summarize" and data.type == ValueType.MAP:
             if not args or args[0].type != ValueType.MAP:
-                raise TinyTalkError("_summarize requires a map of aggregation functions", line)
+                raise TinyTalkError(".summarize requires a map of aggregation functions", line)
             agg_map = args[0].data
             result = []
             for group_key, group_val in data.data.items():
-                row = {"_group": Value.string_val(str(group_key))}
+                row = {"group": Value.string_val(str(group_key))}
                 group_items = group_val if group_val.type == ValueType.LIST else Value.list_val([group_val])
                 for col_name, fn_val in agg_map.items():
                     if fn_val.type == ValueType.FUNCTION:
@@ -1227,43 +1227,43 @@ class Runtime:
                 raise TinyTalkError(step_type_mismatch_hint(step, data.type.value), line)
         items = data.data
 
-        if step == "_filter":
+        if step == "filter":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError(step_args_hint("_filter"), line)
+                raise TinyTalkError(step_args_hint("filter"), line)
             return Value.list_val([
                 item for item in items
                 if self._call_function(args[0].data, [item], scope, line).is_truthy()
             ])
 
-        if step == "_sort":
+        if step == "sort":
             if args and args[0].type == ValueType.FUNCTION:
                 key_fn = args[0]
                 return Value.list_val(sorted(items, key=lambda x: self._call_function(key_fn.data, [x], scope, line).to_python()))
             return Value.list_val(sorted(items, key=lambda x: x.to_python()))
 
-        if step == "_map":
+        if step == "map":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError(step_args_hint("_map"), line)
+                raise TinyTalkError(step_args_hint("map"), line)
             return Value.list_val([self._call_function(args[0].data, [item], scope, line) for item in items])
 
-        if step == "_take":
+        if step == "take":
             n = int(args[0].data) if args else 1
             return Value.list_val(items[:n])
 
-        if step == "_drop":
+        if step == "drop":
             n = int(args[0].data) if args else 1
             return Value.list_val(items[n:])
 
-        if step == "_first":
+        if step == "first":
             return items[0] if items else Value.null_val()
 
-        if step == "_last":
+        if step == "last":
             return items[-1] if items else Value.null_val()
 
-        if step == "_reverse":
+        if step == "reverse":
             return Value.list_val(list(reversed(items)))
 
-        if step == "_unique":
+        if step == "unique":
             seen = set()
             result = []
             for item in items:
@@ -1275,35 +1275,35 @@ class Runtime:
                     result.append(item)
             return Value.list_val(result)
 
-        if step == "_count":
+        if step == "count":
             if args and args[0].type == ValueType.FUNCTION:
                 return Value.int_val(sum(1 for item in items if self._call_function(args[0].data, [item], scope, line).is_truthy()))
             return Value.int_val(len(items))
 
-        if step == "_sum":
+        if step == "sum":
             total = sum(item.data for item in items if item.type in (ValueType.INT, ValueType.FLOAT))
             return Value.float_val(total) if any(item.type == ValueType.FLOAT for item in items) else Value.int_val(int(total))
 
-        if step == "_avg":
+        if step == "avg":
             nums = [item.data for item in items if item.type in (ValueType.INT, ValueType.FLOAT)]
             return Value.float_val(sum(nums) / len(nums)) if nums else Value.null_val()
 
-        if step == "_min":
+        if step == "min":
             return min(items, key=lambda x: x.to_python()) if items else Value.null_val()
 
-        if step == "_max":
+        if step == "max":
             return max(items, key=lambda x: x.to_python()) if items else Value.null_val()
 
-        if step == "_group":
+        if step == "group":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_group requires a function", line)
+                raise TinyTalkError(".group requires a function", line)
             groups: dict = {}
             for item in items:
                 k = self._call_function(args[0].data, [item], scope, line).to_python()
                 groups.setdefault(k, []).append(item)
             return Value.map_val({k: Value.list_val(v) for k, v in groups.items()})
 
-        if step == "_flatten":
+        if step == "flatten":
             result = []
             for item in items:
                 if item.type == ValueType.LIST:
@@ -1312,18 +1312,18 @@ class Runtime:
                     result.append(item)
             return Value.list_val(result)
 
-        if step == "_zip":
+        if step == "zip":
             if not args or args[0].type != ValueType.LIST:
-                raise TinyTalkError("_zip requires a list", line)
+                raise TinyTalkError(".zip requires a list", line)
             return Value.list_val([Value.list_val([a, b]) for a, b in zip(items, args[0].data)])
 
-        if step == "_chunk":
+        if step == "chunk":
             n = int(args[0].data) if args else 2
             return Value.list_val([Value.list_val(items[i:i + n]) for i in range(0, len(items), n)])
 
-        if step == "_reduce":
+        if step == "reduce":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_reduce requires a function", line)
+                raise TinyTalkError(".reduce requires a function", line)
             if len(args) < 2:
                 if not items:
                     return Value.null_val()
@@ -1336,20 +1336,20 @@ class Runtime:
                 acc = self._call_function(args[0].data, [acc, item], scope, line)
             return acc
 
-        if step == "_sortBy":
+        if step == "sortBy":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_sortBy requires a key function", line)
+                raise TinyTalkError(".sortBy requires a key function", line)
             key_fn = args[0].data
             decorated = [(self._call_function(key_fn, [item], scope, line), item) for item in items]
             decorated.sort(key=lambda pair: pair[0].data)
             return Value.list_val([pair[1] for pair in decorated])
 
-        if step == "_join":
+        if step == "join":
             if not args or args[0].type != ValueType.LIST:
-                raise TinyTalkError("_join requires a right-hand list", line)
+                raise TinyTalkError(".join requires a right-hand list", line)
             right = args[0].data
             if len(args) < 2 or args[1].type != ValueType.FUNCTION:
-                raise TinyTalkError("_join requires (right_list, key_fn)", line)
+                raise TinyTalkError(".join requires (right_list, key_fn)", line)
             key_fn = args[1].data
             right_idx: dict = {}
             for r in right:
@@ -1369,9 +1369,9 @@ class Runtime:
                     result.append(Value.map_val(merged))
             return Value.list_val(result)
 
-        if step == "_each":
+        if step == "each":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_each requires a function", line)
+                raise TinyTalkError(".each requires a function", line)
             fn = args[0].data
             for item in items:
                 self._call_function(fn, [item], scope, line)
@@ -1379,9 +1379,9 @@ class Runtime:
 
         # ---- dplyr-style verbs ------------------------------------------------
 
-        if step == "_select":
+        if step == "select":
             if not args:
-                raise TinyTalkError("_select requires column names", line)
+                raise TinyTalkError(".select requires column names", line)
             if args[0].type == ValueType.LIST:
                 cols = [v.data for v in args[0].data]
                 return Value.list_val([
@@ -1394,11 +1394,11 @@ class Runtime:
                     Value.map_val({c: row.data.get(c, Value.null_val()) for c in cols})
                     for row in items if row.type == ValueType.MAP
                 ])
-            raise TinyTalkError("_select requires a list of column names or string args", line)
+            raise TinyTalkError(".select requires a list of column names or string args", line)
 
-        if step == "_mutate":
+        if step == "mutate":
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_mutate requires a function", line)
+                raise TinyTalkError(".mutate requires a function", line)
             fn = args[0].data
             result = []
             for row in items:
@@ -1411,9 +1411,9 @@ class Runtime:
                     result.append(row)
             return Value.list_val(result)
 
-        if step == "_summarize":
+        if step == "summarize":
             if not args or args[0].type != ValueType.MAP:
-                raise TinyTalkError("_summarize requires a map of aggregation functions", line)
+                raise TinyTalkError(".summarize requires a map of aggregation functions", line)
             agg_map = args[0].data
             result_row = {}
             for col_name, fn_val in agg_map.items():
@@ -1425,9 +1425,9 @@ class Runtime:
                     result_row[col_name] = fn_val
             return Value.map_val(result_row)
 
-        if step == "_rename":
+        if step == "rename":
             if not args or args[0].type != ValueType.MAP:
-                raise TinyTalkError("_rename requires a map of {old: new}", line)
+                raise TinyTalkError(".rename requires a map of {old: new}", line)
             rename_map = {k: v.data for k, v in args[0].data.items()
                           if v.type == ValueType.STRING}
             result = []
@@ -1442,10 +1442,10 @@ class Runtime:
                     result.append(row)
             return Value.list_val(result)
 
-        if step == "_arrange":
-            # Alias for _sortBy with optional "desc" flag
+        if step == "arrange":
+            # Alias for .sortBy with optional "desc" flag
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_arrange requires a key function", line)
+                raise TinyTalkError(".arrange requires a key function", line)
             key_fn = args[0].data
             desc = (len(args) > 1 and args[1].type == ValueType.STRING
                     and args[1].data == "desc")
@@ -1454,7 +1454,7 @@ class Runtime:
             decorated.sort(key=lambda pair: pair[0].data, reverse=desc)
             return Value.list_val([pair[1] for pair in decorated])
 
-        if step == "_distinct":
+        if step == "distinct":
             if args and args[0].type == ValueType.FUNCTION:
                 key_fn = args[0].data
                 seen = set()
@@ -1483,7 +1483,7 @@ class Runtime:
                         seen.add(k)
                         result.append(item)
                 return Value.list_val(result)
-            # No args: unique on whole value (same as _unique)
+            # No args: unique on whole value (same as .unique)
             seen = set()
             result = []
             for item in items:
@@ -1495,14 +1495,14 @@ class Runtime:
                     result.append(item)
             return Value.list_val(result)
 
-        if step == "_slice":
+        if step == "slice":
             start = int(args[0].data) if args else 0
             count = int(args[1].data) if len(args) > 1 else len(items) - start
             return Value.list_val(items[start:start + count])
 
-        if step == "_pull":
+        if step == "pull":
             if not args or args[0].type != ValueType.STRING:
-                raise TinyTalkError("_pull requires a column name string", line)
+                raise TinyTalkError(".pull requires a column name string", line)
             col = args[0].data
             return Value.list_val([
                 row.data.get(col, Value.null_val()) if row.type == ValueType.MAP
@@ -1510,21 +1510,21 @@ class Runtime:
                 for row in items
             ])
 
-        if step in ("_groupBy", "_group_by"):
+        if step in ("groupBy", "group_by"):
             if not args or args[0].type != ValueType.FUNCTION:
-                raise TinyTalkError("_groupBy requires a function", line)
+                raise TinyTalkError(".groupBy requires a function", line)
             groups: dict = {}
             for item in items:
                 k = self._call_function(args[0].data, [item], scope, line).to_python()
                 groups.setdefault(k, []).append(item)
             return Value.map_val({k: Value.list_val(v) for k, v in groups.items()})
 
-        if step in ("_leftJoin", "_left_join"):
+        if step in ("leftJoin", "left_join"):
             if not args or args[0].type != ValueType.LIST:
-                raise TinyTalkError("_leftJoin requires a right-hand list", line)
+                raise TinyTalkError(".leftJoin requires a right-hand list", line)
             right = args[0].data
             if len(args) < 2 or args[1].type != ValueType.FUNCTION:
-                raise TinyTalkError("_leftJoin requires (right_list, key_fn)", line)
+                raise TinyTalkError(".leftJoin requires (right_list, key_fn)", line)
             key_fn = args[1].data
             right_idx: dict = {}
             for r in right:
@@ -1551,12 +1551,12 @@ class Runtime:
 
         # ---- reshape operations -----------------------------------------------
 
-        if step == "_pivot":
-            # _pivot(index_fn, column_fn, value_fn)
+        if step == "pivot":
+            # .pivot(index_fn, column_fn, value_fn)
             # Converts long-form data to wide-form.
             # Each unique (index, column) pair maps to a value.
             if len(args) < 3:
-                raise TinyTalkError("_pivot requires (index_fn, column_fn, value_fn)", line)
+                raise TinyTalkError(".pivot requires (index_fn, column_fn, value_fn)", line)
             idx_fn, col_fn, val_fn = args[0].data, args[1].data, args[2].data
             # Build: {index_key: {col_key: value, ...}, ...}
             pivot_data: dict = {}
@@ -1581,12 +1581,12 @@ class Runtime:
                 result.append(Value.map_val(row))
             return Value.list_val(result)
 
-        if step == "_unpivot":
-            # _unpivot(id_columns) — id_columns is a list of column name strings
+        if step == "unpivot":
+            # .unpivot(id_columns) — id_columns is a list of column name strings
             # Converts wide-form to long-form.
             # Columns not in id_columns become (variable, value) pairs.
             if not args or args[0].type != ValueType.LIST:
-                raise TinyTalkError("_unpivot requires a list of id column names", line)
+                raise TinyTalkError(".unpivot requires a list of id column names", line)
             id_cols = {v.data for v in args[0].data if v.type == ValueType.STRING}
             result = []
             for row in items:
@@ -1603,11 +1603,11 @@ class Runtime:
 
         # ---- window / rolling operations --------------------------------------
 
-        if step == "_window":
-            # _window(size, fn) — sliding window aggregate
+        if step == "window":
+            # .window(size, fn) — sliding window aggregate
             # Returns a list of fn(window) for each position.
             if len(args) < 2:
-                raise TinyTalkError("_window requires (window_size, function)", line)
+                raise TinyTalkError(".window requires (window_size, function)", line)
             window_size = int(args[0].data)
             fn = args[1].data
             result = []

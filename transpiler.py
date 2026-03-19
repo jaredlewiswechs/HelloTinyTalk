@@ -9,10 +9,10 @@ Usage:
     from newTinyTalk.transpiler import transpile, transpile_pandas
 
     # Plain Python output
-    python_code = transpile('let x = [1,2,3] _filter((n) => n > 1) _sum')
+    python_code = transpile('let x = [1,2,3].filter((n) => n > 1).sum')
 
     # Pandas-flavored output (DataFrames for list-of-maps)
-    pandas_code = transpile_pandas('data _filter((r) => r["age"] > 30) _sort')
+    pandas_code = transpile_pandas('data.filter((r) => r["age"] > 30).sort')
 """
 
 from .ast_nodes import (
@@ -484,61 +484,61 @@ class PythonTranspiler:
     def _apply_python_step(self, data: str, step: str, args: list[str]) -> str:
         """Convert a single step chain operation to Python."""
 
-        if step == "_filter":
+        if step == "filter":
             fn = args[0] if args else "None"
             return f"[x for x in {data} if ({fn})(x)]"
 
-        if step == "_map":
+        if step == "map":
             fn = args[0] if args else "None"
             return f"[({fn})(x) for x in {data}]"
 
-        if step == "_sort":
+        if step == "sort":
             if args:
                 return f"sorted({data}, key={args[0]})"
             return f"sorted({data})"
 
-        if step == "_sortBy":
+        if step == "sortBy":
             return f"sorted({data}, key={args[0]})"
 
-        if step == "_reverse":
+        if step == "reverse":
             return f"list(reversed({data}))"
 
-        if step == "_take":
+        if step == "take":
             return f"{data}[:{args[0]}]"
 
-        if step == "_drop":
+        if step == "drop":
             return f"{data}[{args[0]}:]"
 
-        if step == "_first":
+        if step == "first":
             return f"({data})[0]"
 
-        if step == "_last":
+        if step == "last":
             return f"({data})[-1]"
 
-        if step == "_unique":
+        if step == "unique":
             return f"list(dict.fromkeys({data}))"
 
-        if step == "_flatten":
+        if step == "flatten":
             return f"[item for sublist in {data} for item in (sublist if isinstance(sublist, list) else [sublist])]"
 
-        if step == "_count":
+        if step == "count":
             if args:
                 return f"sum(1 for x in {data} if ({args[0]})(x))"
             return f"len({data})"
 
-        if step == "_sum":
+        if step == "sum":
             return f"sum({data})"
 
-        if step == "_avg":
+        if step == "avg":
             return f"(sum({data}) / len({data}))"
 
-        if step == "_min":
+        if step == "min":
             return f"min({data})"
 
-        if step == "_max":
+        if step == "max":
             return f"max({data})"
 
-        if step == "_group":
+        if step == "group":
             self._imports.add("from itertools import groupby")
             self._imports.add("from collections import defaultdict")
             fn = args[0]
@@ -547,88 +547,88 @@ class PythonTranspiler:
                     f"((lambda: ((_dd := defaultdict(list)), "
                     f"[_dd[({fn})(x)].append(x) for x in _d], _dd)[-1])()))({data})}}")
 
-        if step == "_reduce":
+        if step == "reduce":
             self._imports.add("from functools import reduce")
             fn = args[0]
             if len(args) > 1:
                 return f"reduce({fn}, {data}, {args[1]})"
             return f"reduce({fn}, {data})"
 
-        if step == "_each":
+        if step == "each":
             return f"(lambda _l: [({args[0]})(x) for x in _l] and _l)({data})"
 
-        if step == "_zip":
+        if step == "zip":
             return f"list(zip({data}, {args[0]}))"
 
-        if step == "_chunk":
+        if step == "chunk":
             n = args[0] if args else "2"
             return f"[{data}[i:i+{n}] for i in range(0, len({data}), {n})]"
 
-        if step == "_join":
+        if step == "join":
             # SQL-style join
             right = args[0]
             fn = args[1]
             return (f"[{{**l, **r}} for l in {data} "
                     f"for r in {right} if ({fn})(l) == ({fn})(r)]")
 
-        if step in ("_leftJoin", "_left_join"):
+        if step in ("leftJoin", "left_join"):
             right = args[0]
             fn = args[1]
             return (f"[{{**l, **next((r for r in {right} if ({fn})(r) == ({fn})(l)), {{}})}} "
                     f"for l in {data}]")
 
         # dplyr-style verbs
-        if step == "_select":
+        if step == "select":
             if len(args) == 1:
                 cols = args[0]
                 return f"[{{k: row[k] for k in {cols}}} for row in {data}]"
             cols_str = ", ".join(args)
             return f"[{{k: row[k] for k in [{cols_str}]}} for row in {data}]"
 
-        if step == "_mutate":
+        if step == "mutate":
             fn = args[0]
             return f"[{{**row, **({fn})(row)}} for row in {data}]"
 
-        if step == "_summarize":
+        if step == "summarize":
             # args[0] is a map of {name: fn}
             return f"{{k: fn({data}) for k, fn in {args[0]}.items()}}"
 
-        if step == "_rename":
+        if step == "rename":
             rename_map = args[0]
             return (f"[{{({rename_map}).get(k, k): v for k, v in row.items()}} "
                     f"for row in {data}]")
 
-        if step == "_arrange":
+        if step == "arrange":
             fn = args[0]
             if len(args) > 1:
                 return f"sorted({data}, key={fn}, reverse=True)"
             return f"sorted({data}, key={fn})"
 
-        if step in ("_distinct", "_unique"):
+        if step in ("distinct", "unique"):
             if args:
                 fn = args[0]
                 return (f"list({{({fn})(x): x for x in {data}}}.values())")
             return f"list(dict.fromkeys({data}))"
 
-        if step == "_slice":
+        if step == "slice":
             start = args[0] if args else "0"
             if len(args) > 1:
                 return f"{data}[{start}:{start}+{args[1]}]"
             return f"{data}[{start}:]"
 
-        if step == "_pull":
+        if step == "pull":
             col = args[0]
             return f"[row[{col}] for row in {data}]"
 
-        if step in ("_groupBy", "_group_by"):
-            return self._apply_python_step(data, "_group", args)
+        if step in ("groupBy", "group_by"):
+            return self._apply_python_step(data, "group", args)
 
-        if step == "_mapValues":
+        if step == "mapValues":
             fn = args[0]
             return f"{{k: ({fn})(v) for k, v in {data}.items()}}"
 
-        if step == "_pivot":
-            # _pivot(index_fn, column_fn, value_fn)
+        if step == "pivot":
+            # .pivot(index_fn, column_fn, value_fn)
             idx_fn, col_fn, val_fn = args[0], args[1], args[2]
             return (f"(lambda _rows: (lambda _d: "
                     f"{{idx: {{col: val for _, col, val in grp}} "
@@ -638,14 +638,14 @@ class PythonTranspiler:
                     f"([(({idx_fn})(r), ({col_fn})(r), ({val_fn})(r)) for r in _rows]).items()}}"
                     f")(_rows))({data})")
 
-        if step == "_unpivot":
+        if step == "unpivot":
             id_cols = args[0]
             return (f"[{{**{{k: row[k] for k in {id_cols}}}, "
                     f"'variable': col, 'value': row[col]}} "
                     f"for row in {data} "
                     f"for col in row if col not in {id_cols}]")
 
-        if step == "_window":
+        if step == "window":
             n = args[0]
             fn = args[1]
             return (f"[({fn})({data}[max(0,i-{n}+1):i+1]) "
@@ -674,119 +674,119 @@ class PythonTranspiler:
     def _apply_pandas_step(self, df: str, step: str, args: list[str]) -> str:
         """Convert a step chain operation to a pandas method chain."""
 
-        if step == "_filter":
+        if step == "filter":
             fn = args[0] if args else "None"
             return f"{df}[{df}.apply({fn}, axis=1)]"
 
-        if step == "_map":
+        if step == "map":
             fn = args[0] if args else "None"
             return f"{df}.apply({fn}, axis=1)"
 
-        if step in ("_sort", "_sortBy", "_arrange"):
+        if step in ("sort", "sortBy", "arrange"):
             fn = args[0] if args else "None"
             desc = len(args) > 1 and "desc" in args[1]
             ascending = "False" if desc else "True"
             return f"{df}.sort_values(key=lambda s: s.map({fn}), ascending={ascending})"
 
-        if step == "_reverse":
+        if step == "reverse":
             return f"{df}.iloc[::-1].reset_index(drop=True)"
 
-        if step == "_take":
+        if step == "take":
             return f"{df}.head({args[0]})"
 
-        if step == "_drop":
+        if step == "drop":
             return f"{df}.tail(-{args[0]})"
 
-        if step == "_first":
+        if step == "first":
             return f"{df}.iloc[0]"
 
-        if step == "_last":
+        if step == "last":
             return f"{df}.iloc[-1]"
 
-        if step == "_unique":
+        if step == "unique":
             return f"{df}.drop_duplicates()"
 
-        if step == "_count":
+        if step == "count":
             if args:
                 fn = args[0]
                 return f"{df}[{df}.apply({fn}, axis=1)].shape[0]"
             return f"len({df})"
 
-        if step == "_sum":
+        if step == "sum":
             return f"{df}.sum()"
 
-        if step == "_avg":
+        if step == "avg":
             return f"{df}.mean()"
 
-        if step == "_min":
+        if step == "min":
             return f"{df}.min()"
 
-        if step == "_max":
+        if step == "max":
             return f"{df}.max()"
 
-        if step in ("_group", "_groupBy", "_group_by"):
+        if step in ("group", "groupBy", "group_by"):
             fn = args[0]
             return f"{df}.groupby({df}.apply({fn}, axis=1))"
 
-        if step == "_select":
+        if step == "select":
             if len(args) == 1:
                 return f"{df}[{args[0]}]"
             cols = ", ".join(args)
             return f"{df}[[{cols}]]"
 
-        if step == "_mutate":
+        if step == "mutate":
             fn = args[0]
             return f"{df}.assign(**{df}.apply({fn}, axis=1, result_type='expand'))"
 
-        if step == "_rename":
+        if step == "rename":
             return f"{df}.rename(columns={args[0]})"
 
-        if step in ("_distinct",):
+        if step in ("distinct",):
             return f"{df}.drop_duplicates()"
 
-        if step == "_pull":
+        if step == "pull":
             return f"{df}[{args[0]}].tolist()"
 
-        if step == "_flatten":
+        if step == "flatten":
             return f"{df}.explode().reset_index(drop=True)"
 
-        if step == "_pivot":
-            # _pivot(index_fn, column_fn, value_fn)
+        if step == "pivot":
+            # .pivot(index_fn, column_fn, value_fn)
             return f"{df}.pivot_table(index={df}.apply({args[0]}, axis=1), columns={df}.apply({args[1]}, axis=1), values={df}.apply({args[2]}, axis=1))"
 
-        if step == "_unpivot":
+        if step == "unpivot":
             return f"{df}.melt(id_vars={args[0]})"
 
-        if step == "_window":
+        if step == "window":
             n = args[0]
             fn = args[1]
             return f"{df}.rolling({n}).apply({fn})"
 
-        if step == "_join":
+        if step == "join":
             right = args[0]
             fn = args[1]
             return f"{df}.merge(pd.DataFrame({right}), on={fn})"
 
-        if step in ("_leftJoin", "_left_join"):
+        if step in ("leftJoin", "left_join"):
             right = args[0]
             fn = args[1]
             return f"{df}.merge(pd.DataFrame({right}), on={fn}, how='left')"
 
-        if step == "_slice":
+        if step == "slice":
             start = args[0] if args else "0"
             if len(args) > 1:
                 return f"{df}.iloc[{start}:{start}+{args[1]}]"
             return f"{df}.iloc[{start}:]"
 
-        if step == "_summarize":
+        if step == "summarize":
             return f"{df}.agg({args[0]})"
 
-        if step == "_chunk":
+        if step == "chunk":
             n = args[0] if args else "2"
             self._imports.add("import numpy as np")
             return f"np.array_split({df}, len({df}) // {n})"
 
-        if step == "_reduce":
+        if step == "reduce":
             fn = args[0]
             if len(args) > 1:
                 self._imports.add("from functools import reduce")

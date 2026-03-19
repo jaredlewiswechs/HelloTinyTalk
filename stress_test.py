@@ -400,8 +400,8 @@ show(classify(0))
 
 run_test("lambda with step chains", '''
 let nums = [1, 2, 3, 4, 5]
-show(nums _filter((x) => x > 3))
-show(nums _map((x) => x * 10))
+show(nums.filter((x) => x > 3))
+show(nums.map((x) => x * 10))
 ''', expect_contains=["4, 5", "10, 20, 30, 40, 50"])
 
 # ── 13. Step Chains ──────────────────────────────────────────────────
@@ -410,112 +410,112 @@ section("13. Step Chains — TinyTalk's Superpower")
 
 run_test("sort and reverse", '''
 let nums = [5, 3, 8, 1, 9]
-show(nums _sort)
-show(nums _reverse)
+show(nums.sort)
+show(nums.reverse)
 ''', expect_contains=["1, 3, 5, 8, 9"])
 
 run_test("filter", '''
 let data = [1, 2, 3, 4, 5, 6, 7, 8]
-show(data _filter((x) => x > 5))
-show(data _filter((x) => x % 2 == 0))
+show(data.filter((x) => x > 5))
+show(data.filter((x) => x % 2 == 0))
 ''', expect_contains=["6, 7, 8", "2, 4, 6, 8"])
 
 run_test("map (transform)", '''
 let prices = [10, 20, 30]
-show(prices _map((p) => p * 1.1))
+show(prices.map((p) => p * 1.1))
 ''', expect_contains=["11", "22", "33"])
 
 run_test("take and drop", '''
 let items = [1, 2, 3, 4, 5, 6, 7, 8]
-show(items _take(3))
-show(items _drop(5))
+show(items.take(3))
+show(items.drop(5))
 ''', expect_contains=["[1, 2, 3]", "[6, 7, 8]"])
 
 run_test("first and last", '''
 let items = [1, 2, 3, 4, 5, 6, 7, 8]
-show(items _first)
-show(items _last)
+show(items.first)
+show(items.last)
 ''', expect_output="1\n8")
 
 run_test("sum avg min max count", '''
 let scores = [85, 92, 78, 95, 88]
-show(scores _sum)
-show(scores _avg)
-show(scores _min)
-show(scores _max)
-show(scores _count)
+show(scores.sum)
+show(scores.avg)
+show(scores.min)
+show(scores.max)
+show(scores.count)
 ''', expect_output="438\n87.6\n78\n95\n5")
 
 run_test("reduce sum", '''
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc + x, 0))
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc + x, 0))
 ''', expect_output="15")
 
 run_test("reduce product", '''
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc * x, 1))
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc * x, 1))
 ''', expect_output="120")
 
 run_test("reduce without init", '''
-show([1, 2, 3, 4] _reduce((acc, x) => acc + x))
+show([1, 2, 3, 4].reduce((acc, x) => acc + x))
 ''', expect_output="10")
 
 run_test("reduce string concat", '''
-show(["a", "b", "c"] _reduce((acc, x) => acc + x, ""))
+show(["a", "b", "c"].reduce((acc, x) => acc + x, ""))
 ''', expect_output="abc")
 
 run_test("unique", '''
 let dupes = [1, 2, 2, 3, 3, 3, 4]
-show(dupes _unique)
+show(dupes.unique)
 ''', expect_contains=["1, 2, 3, 4"])
 
 run_test("group", '''
 let nums = [1, 2, 3, 4, 5, 6]
-let grouped = nums _group((x) => x % 2 == 0 ? "even" : "odd")
+let grouped = nums.group((x) => x % 2 == 0 ? "even" : "odd")
 show(grouped)
 ''', expect_contains=["even", "odd"])
 
 run_test("flatten", '''
-show([[1, 2], [3, 4], [5, 6]] _flatten)
+show([[1, 2], [3, 4], [5, 6]].flatten)
 ''', expect_contains=["1, 2, 3, 4, 5, 6"])
 
 run_test("chunk", '''
 let seq = [1, 2, 3, 4, 5, 6]
-show(seq _chunk(2))
+show(seq.chunk(2))
 ''', expect_contains=["[1, 2]", "[3, 4]", "[5, 6]"])
 
 run_test("zip", '''
 let names = ["Alice", "Bob", "Charlie"]
 let ages = [25, 30, 35]
-show(names _zip(ages))
+show(names.zip(ages))
 ''', expect_contains=["Alice", "25", "Bob", "30"])
 
 run_test("sortBy", '''
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}]
-let sorted = people _sortBy((p) => p["age"])
+let sorted = people.sortBy((p) => p["age"])
 show(sorted[0]["name"])
 ''', expect_output="Charlie")
 
 run_test("join datasets", '''
 let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
-let joined = users _join(scores, (r) => r["id"])
+let joined = users.join(scores, (r) => r["id"])
 show(joined[0]["name"])
 show(joined[0]["score"])
 ''', expect_output="Alice\n95")
 
 run_test("mapValues", '''
 let grouped = {"math": [90, 85, 92], "science": [88, 76, 95]}
-let avgs = grouped _mapValues((scores) => scores _avg)
+let avgs = grouped.mapValues((scores) => scores.avg)
 show(avgs)
 ''', expect_contains=["math", "science"])
 
 run_test("each (side effect)", '''
-let result = [1, 2, 3] _each((x) => show("item {x}"))
+let result = [1, 2, 3].each((x) => show("item {x}"))
 show(result)
 ''', expect_contains=["item 1", "item 2", "item 3"])
 
 run_test("complex chain", '''
 let data = [42, 17, 93, 5, 68, 31, 84, 12, 56, 29]
-let result = data _filter((x) => x > 20) _sort _reverse _take(3) _map((x) => x * 10)
+let result = data.filter((x) => x > 20).sort.reverse.take(3).map((x) => x * 10)
 show(result)
 ''', expect_contains=["930", "840", "680"])
 
@@ -781,7 +781,7 @@ show(parsed["y"])
 
 run_test("parse_json array", '''
 let arr = parse_json("[1, 2, 3]")
-show(arr _sum)
+show(arr.sum)
 ''', expect_output="6")
 
 run_test("to_json", '''
@@ -854,64 +854,64 @@ let people = [
     {"name": "Alice", "age": 30, "city": "NYC"},
     {"name": "Bob", "age": 25, "city": "LA"}
 ]
-show(people _select(["name", "age"]))
+show(people.select(["name", "age"]))
 ''', expect_contains=["Alice", "30", "Bob", "25"])
 
 run_test("_mutate add columns", '''
 let orders = [{"item": "Widget", "qty": 5, "price": 10}]
-let enriched = orders _mutate((r) => {"total": r["qty"] * r["price"]})
+let enriched = orders.mutate((r) => {"total": r["qty"] * r["price"]})
 show(enriched[0]["total"])
 show(enriched[0]["item"])
 ''', expect_output="50\nWidget")
 
 run_test("_summarize", '''
 let data = [{"val": 10}, {"val": 20}, {"val": 30}]
-let summary = data _summarize({
-    "total": (rows) => rows _map((r) => r["val"]) _sum,
-    "mean": (rows) => rows _map((r) => r["val"]) _avg,
-    "n": (rows) => rows _count
+let summary = data.summarize({
+    "total": (rows) => rows.map((r) => r["val"]).sum,
+    "mean": (rows) => rows.map((r) => r["val"]).avg,
+    "n": (rows) => rows.count
 })
 show(summary)
 ''', expect_contains=["60", "20", "3"])
 
 run_test("_rename columns", '''
 let data = [{"first_name": "Alice", "last_name": "Smith"}]
-let clean = data _rename({"first_name": "first", "last_name": "last"})
+let clean = data.rename({"first_name": "first", "last_name": "last"})
 show(clean[0]["first"])
 ''', expect_output="Alice")
 
 run_test("_arrange ascending", '''
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}]
-let asc = people _arrange((r) => r["age"])
+let asc = people.arrange((r) => r["age"])
 show(asc[0]["name"])
 ''', expect_output="Charlie")
 
 run_test("_arrange descending", '''
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}]
-let desc = people _arrange((r) => r["age"], "desc")
+let desc = people.arrange((r) => r["age"], "desc")
 show(desc[0]["name"])
 ''', expect_output="Alice")
 
 run_test("_distinct", '''
-show([1, 2, 2, 3, 3] _distinct)
+show([1, 2, 2, 3, 3].distinct)
 ''', expect_contains=["1, 2, 3"])
 
 run_test("_pull column", '''
 let people = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-show(people _pull("name"))
-show(people _pull("age") _avg)
+show(people.pull("name"))
+show(people.pull("age").avg)
 ''', expect_contains=["Alice", "Bob", "27.5"])
 
 run_test("_slice", '''
 let data = [10, 20, 30, 40, 50]
-show(data _slice(1, 3))
-show(data _slice(2))
+show(data.slice(1, 3))
+show(data.slice(2))
 ''', expect_contains=["20, 30, 40", "30, 40, 50"])
 
 run_test("_leftJoin", '''
 let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}, {"id": 3, "name": "Charlie"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
-let joined = users _leftJoin(scores, (r) => r["id"])
+let joined = users.leftJoin(scores, (r) => r["id"])
 show(joined[0]["name"])
 show(joined[2]["name"])
 ''', expect_output="Alice\nCharlie")
@@ -925,12 +925,12 @@ let employees = [
     {"name": "Eve",     "dept": "eng",   "salary": 130}
 ]
 let top = employees
-    _filter((r) => r["salary"] > 95)
-    _mutate((r) => {"bonus": r["salary"] * 0.1})
-    _arrange((r) => r["salary"], "desc")
-    _select(["name", "salary", "bonus"])
+   .filter((r) => r["salary"] > 95)
+   .mutate((r) => {"bonus": r["salary"] * 0.1})
+   .arrange((r) => r["salary"], "desc")
+   .select(["name", "salary", "bonus"])
 show(top[0]["name"])
-show(top _count)
+show(top.count)
 ''', expect_output="Eve\n4")
 
 # ── 27. Reshaping Data — Pivot & Unpivot ─────────────────────────────
@@ -939,8 +939,8 @@ section("27. Reshaping Data — Pivot & Unpivot")
 
 run_test("_pivot long to wide", '''
 let sales = [{"region": "East", "product": "A", "revenue": 100}, {"region": "East", "product": "B", "revenue": 200}, {"region": "West", "product": "A", "revenue": 150}, {"region": "West", "product": "B", "revenue": 300}]
-let wide = sales _pivot((r) => r["region"], (r) => r["product"], (r) => r["revenue"])
-show(wide _count)
+let wide = sales.pivot((r) => r["region"], (r) => r["product"], (r) => r["revenue"])
+show(wide.count)
 show(wide[0])
 ''', expect_contains=["2", "East", "100", "200"])
 
@@ -949,8 +949,8 @@ let quarterly = [
     {"region": "East", "Q1": 100, "Q2": 200, "Q3": 150},
     {"region": "West", "Q1": 300, "Q2": 250, "Q3": 400}
 ]
-let long = quarterly _unpivot(["region"])
-show(long _count)
+let long = quarterly.unpivot(["region"])
+show(long.count)
 ''', expect_output="6")
 
 # ── 28. Rolling Aggregates — Window Functions ─────────────────────────
@@ -959,26 +959,26 @@ section("28. Rolling Aggregates — Window Functions")
 
 run_test("_window moving average", '''
 let prices = [10, 12, 11, 15, 14, 16, 18, 17, 20, 19]
-let ma3 = prices _window(3, (w) => round(w _avg, 1))
+let ma3 = prices.window(3, (w) => round(w.avg, 1))
 show(ma3)
 ''', expect_contains=["10", "11", "12"])
 
 run_test("_window rolling sum", '''
 let data = [1, 2, 3, 4, 5]
-show(data _window(2, (w) => w _sum))
+show(data.window(2, (w) => w.sum))
 ''', expect_contains=["1", "3", "5", "7", "9"])
 
 run_test("_window rolling max", '''
 let temps = [3, 1, 4, 1, 5, 9, 2, 6]
-show(temps _window(3, (w) => w _max))
+show(temps.window(3, (w) => w.max))
 ''', expect_contains=["3", "4", "5", "9"])
 
 run_test("_window chained", '''
 let prices = [100, 102, 98, 105, 110, 108, 115, 120]
 let above_threshold = prices
-    _window(3, (w) => w _avg)
-    _filter((x) => x > 105)
-    _count
+   .window(3, (w) => w.avg)
+   .filter((x) => x > 105)
+   .count
 show(above_threshold)
 ''', expect_contains="3")
 
@@ -987,7 +987,7 @@ show(above_threshold)
 section("29. Python Transpiler")
 
 code_for_transpile = '''let data = [1, 2, 3, 4, 5]
-let result = data _filter((x) => x > 3) _sort _reverse _take(3)
+let result = data.filter((x) => x > 3).sort.reverse.take(3)
 show(result)'''
 
 try:
@@ -1022,7 +1022,7 @@ except Exception as e:
 
 section("30. SQL Transpiler")
 
-sql_code = 'employees _filter((r) => r["salary"] > 50000) _select("name", "dept", "salary") _arrange((r) => r["salary"], "desc") _take(10)'
+sql_code = 'employees.filter((r) => r["salary"] > 50000).select("name", "dept", "salary").arrange((r) => r["salary"], "desc").take(10)'
 
 try:
     sql_output = transpile_sql(sql_code)
@@ -1045,10 +1045,10 @@ except Exception as e:
 
 # SQL group + summarize
 sql_group_code = '''employees
-    _group((r) => r["dept"])
-    _summarize({
-        "avg_salary": (rows) => rows _map((r) => r["salary"]) _avg,
-        "headcount":  (rows) => rows _count
+   .group((r) => r["dept"])
+   .summarize({
+        "avg_salary": (rows) => rows.map((r) => r["salary"]).avg,
+        "headcount":  (rows) => rows.count
     })'''
 
 try:
@@ -1172,24 +1172,24 @@ section("Extra: Full Step Chain Example")
 
 run_test("step chains example file", '''
 let data = [42, 17, 93, 5, 68, 31, 84, 12, 56, 29]
-show("Top 5:" data _sort _reverse _take(5))
-show("Count > 30:" data _filter((x) => x > 30) _count)
-show("Doubled sum:" data _map((x) => x * 2) _sum)
+show("Top 5:" data.sort.reverse.take(5))
+show("Count > 30:" data.filter((x) => x > 30).count)
+show("Doubled sum:" data.map((x) => x * 2).sum)
 let dupes = [1, 2, 2, 3, 3, 3, 4]
-show("Unique:" dupes _unique)
-let result = data _filter((x) => x > 20) _sort _map((x) => x * 10) _take(3)
+show("Unique:" dupes.unique)
+let result = data.filter((x) => x > 20).sort.map((x) => x * 10).take(3)
 show("Filtered:" result)
 let nums = [1, 2, 3, 4, 5, 6, 7, 8]
-let grouped = nums _group((x) => x % 2 == 0 ? "even" : "odd")
+let grouped = nums.group((x) => x % 2 == 0 ? "even" : "odd")
 show("Grouped:" grouped)
 let nested = [[1, 2], [3, 4], [5, 6]]
-show("Flattened:" nested _flatten)
+show("Flattened:" nested.flatten)
 let seq = [1, 2, 3, 4, 5, 6]
-show("Chunked:" seq _chunk(2))
-show("Min:" data _min)
-show("Max:" data _max)
-show("Sum:" data _sum)
-show("Avg:" data _avg)
+show("Chunked:" seq.chunk(2))
+show("Min:" data.min)
+show("Max:" data.max)
+show("Sum:" data.sum)
+show("Avg:" data.avg)
 ''', expect_contains=["Top 5", "Count > 30", "Doubled sum", "Unique",
                        "Filtered", "Grouped", "Flattened", "Chunked",
                        "Min", "Max", "Sum", "Avg"])
@@ -1232,8 +1232,8 @@ section("Extra: Edge Cases & Stress")
 
 run_test("empty list operations", '''
 let empty = []
-show(empty _count)
-show(empty _sum)
+show(empty.count)
+show(empty.sum)
 show(len(empty))
 ''', expect_output="0\n0\n0")
 
@@ -1263,21 +1263,21 @@ let people = [
     {"name": "John", "score": 85}
 ]
 let top3 = people
-    _sortBy((p) => p["score"])
-    _reverse
-    _take(3)
-    _map((p) => p["name"])
+   .sortBy((p) => p["score"])
+   .reverse
+   .take(3)
+   .map((p) => p["name"])
 show(top3)
 ''', expect_contains=["Alex", "Lucy", "Zara"])
 
 run_test("many operations chained", '''
 let result = range(1, 21)
-    _filter((x) => x % 2 == 0)
-    _map((x) => x * x)
-    _filter((x) => x > 50)
-    _sort
-    _reverse
-    _take(3)
+   .filter((x) => x % 2 == 0)
+   .map((x) => x * x)
+   .filter((x) => x > 50)
+   .sort
+   .reverse
+   .take(3)
 show(result)
 ''', expect_contains=["400", "324", "256"])
 
@@ -1289,9 +1289,9 @@ show(add(double(3), double(4)))
 
 run_test("large list operations", '''
 let big = range(1000)
-show(big _count)
-show(big _sum)
-show(big _filter((x) => x > 990) _count)
+show(big.count)
+show(big.sum)
+show(big.filter((x) => x > 990).count)
 ''', expect_output="1000\n499500\n9")
 
 # ── 37. Quick Reference Cheat Sheet (spot checks) ────────────────────
@@ -1300,22 +1300,22 @@ section("Extra: Quick Reference Spot Checks")
 
 run_test("multiline list processing", '''
 let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-let evens = data _filter((x) => x % 2 == 0)
-let doubled = evens _map((x) => x * 2)
-let total = doubled _sum
+let evens = data.filter((x) => x % 2 == 0)
+let doubled = evens.map((x) => x * 2)
+let total = doubled.sum
 show(total)
 ''', expect_output="60")
 
 run_test("map iteration", '''
 let m = {"x": 1, "y": 2, "z": 3}
 let k = keys(m)
-show(k _count)
+show(k.count)
 ''', expect_output="3")
 
 run_test("string operations pipeline", '''
 let words = split("hello world foo bar", " ")
-show(words _count)
-show(words _filter((w) => len(w) > 3) _count)
+show(words.count)
+show(words.filter((w) => len(w) > 3).count)
 show(join(words, "-"))
 ''', expect_output="4\n2\nhello-world-foo-bar")
 

@@ -552,8 +552,8 @@ Lambdas really shine when combined with step chains and higher-order functions:
 
 ```
 let nums = [1, 2, 3, 4, 5]
-show(nums _filter((x) => x > 3))     // [4, 5]
-show(nums _map((x) => x * 10))       // [10, 20, 30, 40, 50]
+show(nums.filter((x) => x > 3))     // [4, 5]
+show(nums.map((x) => x * 10))       // [10, 20, 30, 40, 50]
 ```
 
 ---
@@ -561,7 +561,7 @@ show(nums _map((x) => x * 10))       // [10, 20, 30, 40, 50]
 ## 13. Step Chains — TinyTalk's Superpower
 
 This is the feature that makes TinyTalk special. Step chains let you transform
-data by chaining operations with an underscore `_` prefix — like a conveyor belt
+data by chaining operations with dot notation — like a conveyor belt
 in a factory.
 
 ### The idea
@@ -575,7 +575,7 @@ take(reverse(sort(data)), 3)
 You write it as a chain (reads left to right, like English):
 
 ```
-data _sort _reverse _take(3)
+data.sort.reverse.take(3)
 ```
 
 **Read it as:** "Take data, sort it, reverse it, take the first 3."
@@ -587,8 +587,8 @@ data _sort _reverse _take(3)
 ```
 let nums = [5, 3, 8, 1, 9]
 
-show(nums _sort)       // [1, 3, 5, 8, 9]    sort ascending
-show(nums _reverse)    // [9, 1, 8, 3, 5]     reverse the order
+show(nums.sort)       // [1, 3, 5, 8, 9]    sort ascending
+show(nums.reverse)    // [9, 1, 8, 3, 5]     reverse the order
 ```
 
 #### Filtering
@@ -596,8 +596,8 @@ show(nums _reverse)    // [9, 1, 8, 3, 5]     reverse the order
 ```
 let data = [1, 2, 3, 4, 5, 6, 7, 8]
 
-show(data _filter((x) => x > 5))            // [6, 7, 8]
-show(data _filter((x) => x % 2 == 0))       // [2, 4, 6, 8]   (evens only)
+show(data.filter((x) => x > 5))            // [6, 7, 8]
+show(data.filter((x) => x % 2 == 0))       // [2, 4, 6, 8]   (evens only)
 ```
 
 #### Transforming
@@ -605,7 +605,7 @@ show(data _filter((x) => x % 2 == 0))       // [2, 4, 6, 8]   (evens only)
 ```
 let prices = [10, 20, 30]
 
-show(prices _map((p) => p * 1.1))    // [11.0, 22.0, 33.0]  (add 10% tax)
+show(prices.map((p) => p * 1.1))    // [11.0, 22.0, 33.0]  (add 10% tax)
 ```
 
 #### Slicing
@@ -613,10 +613,10 @@ show(prices _map((p) => p * 1.1))    // [11.0, 22.0, 33.0]  (add 10% tax)
 ```
 let items = [1, 2, 3, 4, 5, 6, 7, 8]
 
-show(items _take(3))     // [1, 2, 3]      first 3
-show(items _drop(5))     // [6, 7, 8]      drop first 5
-show(items _first)       // 1               just the first one
-show(items _last)        // 8               just the last one
+show(items.take(3))     // [1, 2, 3]      first 3
+show(items.drop(5))     // [6, 7, 8]      drop first 5
+show(items.first)       // 1               just the first one
+show(items.last)        // 8               just the last one
 ```
 
 #### Aggregating (crunching a list down to one value)
@@ -624,30 +624,30 @@ show(items _last)        // 8               just the last one
 ```
 let scores = [85, 92, 78, 95, 88]
 
-show(scores _sum)     // 438
-show(scores _avg)     // 87.6
-show(scores _min)     // 78
-show(scores _max)     // 95
-show(scores _count)   // 5
+show(scores.sum)     // 438
+show(scores.avg)     // 87.6
+show(scores.min)     // 78
+show(scores.max)     // 95
+show(scores.count)   // 5
 ```
 
 #### Reducing (combining all items into one value)
 
 ```
 // Sum with explicit initial value
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc + x, 0))   // 15
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc + x, 0))   // 15
 
 // Product
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc * x, 1))   // 120
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc * x, 1))   // 120
 
 // Without an initial value, uses the first item as the starting point
-show([1, 2, 3, 4] _reduce((acc, x) => acc + x))          // 10
+show([1, 2, 3, 4].reduce((acc, x) => acc + x))          // 10
 
 // String concatenation
-show(["a", "b", "c"] _reduce((acc, x) => acc + x, ""))   // "abc"
+show(["a", "b", "c"].reduce((acc, x) => acc + x, ""))   // "abc"
 ```
 
-`_reduce` is the general-purpose aggregation — `_sum`, `_min`, `_max`, `_avg` are just
+`.reduce` is the general-purpose aggregation — `.sum`, `.min`, `.max`, `.avg` are just
 shortcuts for common cases.
 
 #### Deduplication
@@ -655,14 +655,14 @@ shortcuts for common cases.
 ```
 let dupes = [1, 2, 2, 3, 3, 3, 4]
 
-show(dupes _unique)   // [1, 2, 3, 4]
+show(dupes.unique)   // [1, 2, 3, 4]
 ```
 
 #### Grouping
 
 ```
 let nums = [1, 2, 3, 4, 5, 6]
-let grouped = nums _group((x) => x % 2 == 0 ? "even" : "odd")
+let grouped = nums.group((x) => x % 2 == 0 ? "even" : "odd")
 show(grouped)
 // {"even": [2, 4, 6], "odd": [1, 3, 5]}
 ```
@@ -670,8 +670,8 @@ show(grouped)
 #### Restructuring
 
 ```
-show([[1, 2], [3, 4], [5, 6]] _flatten)   // [1, 2, 3, 4, 5, 6]
-show([1, 2, 3, 4, 5, 6] _chunk(2))        // [[1, 2], [3, 4], [5, 6]]
+show([[1, 2], [3, 4], [5, 6]].flatten)   // [1, 2, 3, 4, 5, 6]
+show([1, 2, 3, 4, 5, 6].chunk(2))        // [[1, 2], [3, 4], [5, 6]]
 ```
 
 #### Zipping (pairing up two lists)
@@ -679,7 +679,7 @@ show([1, 2, 3, 4, 5, 6] _chunk(2))        // [[1, 2], [3, 4], [5, 6]]
 ```
 let names = ["Alice", "Bob", "Charlie"]
 let ages = [25, 30, 35]
-show(names _zip(ages))
+show(names.zip(ages))
 // [[Alice, 25], [Bob, 30], [Charlie, 35]]
 ```
 
@@ -687,7 +687,7 @@ show(names _zip(ages))
 
 ```
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}]
-let sorted = people _sortBy((p) => p["age"])
+let sorted = people.sortBy((p) => p["age"])
 show(sorted[0]["name"])   // "Charlie"  (youngest first)
 ```
 
@@ -698,7 +698,7 @@ let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
 
 // Join on a common key — like a SQL JOIN
-let joined = users _join(scores, (r) => r["id"])
+let joined = users.join(scores, (r) => r["id"])
 show(joined)
 // [{"id": 1, "name": "Alice", "score": 95}, {"id": 2, "name": "Bob", "score": 87}]
 ```
@@ -706,17 +706,17 @@ show(joined)
 #### Transforming map values
 
 ```
-// After _group, transform each group's values
+// After .group, transform each group's values
 let grouped = {"math": [90, 85, 92], "science": [88, 76, 95]}
-let avgs = grouped _mapValues((scores) => scores _avg)
+let avgs = grouped.mapValues((scores) => scores.avg)
 show(avgs)   // {"math": 89.0, "science": 86.33...}
 ```
 
-#### Side effects with _each
+#### Side effects with .each
 
 ```
-// _each runs a function on every item but returns the original list
-[1, 2, 3] _each((x) => show("Processing {x}"))
+// .each runs a function on every item but returns the original list
+[1, 2, 3].each((x) => show("Processing {x}"))
 // Prints: Processing 1, Processing 2, Processing 3
 // Returns: [1, 2, 3]
 ```
@@ -729,17 +729,17 @@ The real magic is chaining multiple steps:
 let data = [42, 17, 93, 5, 68, 31, 84, 12, 56, 29]
 
 // "Give me the top 3 numbers, each multiplied by 10"
-let result = data _filter((x) => x > 20) _sort _reverse _take(3) _map((x) => x * 10)
+let result = data.filter((x) => x > 20).sort.reverse.take(3).map((x) => x * 10)
 show(result)   // [930, 840, 680]
 ```
 
 Read it step by step:
 1. Start with `data`
-2. `_filter((x) => x > 20)` — keep only numbers above 20
-3. `_sort` — sort ascending
-4. `_reverse` — flip to descending
-5. `_take(3)` — grab the top 3
-6. `_map((x) => x * 10)` — multiply each by 10
+2. `.filter((x) => x > 20)` — keep only numbers above 20
+3. `.sort` — sort ascending
+4. `.reverse` — flip to descending
+5. `.take(3)` — grab the top 3
+6. `.map((x) => x * 10)` — multiply each by 10
 
 ---
 
@@ -997,7 +997,7 @@ This is equivalent to `add_one(double(5))` but reads left-to-right.
 
 **Pipe vs Step Chains — what's the difference?**
 - **Pipe `|>` / `%>%`** works with regular named functions
-- **Step chains `_sort`** are built-in list operations with the underscore prefix
+- **Step chains `.sort`** are built-in list operations with dot notation
 
 Use whichever feels right for the situation!
 
@@ -1098,9 +1098,9 @@ show(people[0]["age"])     // 25   (int, not string)
 
 // Process it with step chains
 let top = people
-    _filter((p) => p["score"] > 90)
-    _sortBy((p) => p["score"])
-    _reverse
+    .filter((p) => p["score"] > 90)
+    .sortBy((p) => p["score"])
+    .reverse
 show(top)
 
 // Write results back to CSV
@@ -1144,8 +1144,8 @@ for user in data {
 
 // Combine with step chains for instant analysis
 let active = http_get("https://api.example.com/users")
-    _filter((u) => u["active"] is true)
-    _sortBy((u) => u["name"])
+    .filter((u) => u["active"] is true)
+    .sortBy((u) => u["name"])
 show(active)
 ```
 
@@ -1196,12 +1196,12 @@ This is incredibly useful for time-series analysis:
 ```
 // Group sales by week
 let weekly = sales
-    _map((s) => {
+    .map((s) => {
         let week = date_floor(s["date"], "week")
         return {"week": week, "amount": s["amount"]}
     })
-    _group((s) => s["week"])
-    _mapValues((rows) => rows _map((r) => r["amount"]) _sum)
+    .group((s) => s["week"])
+    .mapValues((rows) => rows.map((r) => r["amount"]).sum)
 ```
 
 ### Formatting dates
@@ -1223,13 +1223,13 @@ Step chains work across line breaks, so you can write clean multi-line pipelines
 
 ```
 let result = employees
-    _filter((r) => r["salary"] > 50000)
-    _select(["name", "dept", "salary"])
-    _mutate((r) => {"bonus": r["salary"] * 0.1})
-    _arrange((r) => r["salary"], "desc")
+    .filter((r) => r["salary"] > 50000)
+    .select(["name", "dept", "salary"])
+    .mutate((r) => {"bonus": r["salary"] * 0.1})
+    .arrange((r) => r["salary"], "desc")
 ```
 
-### `_select` — Pick columns
+### `.select` — Pick columns
 
 Keep only the columns you need from each row:
 
@@ -1240,15 +1240,15 @@ let people = [
 ]
 
 // Pass a list of column names
-show(people _select(["name", "age"]))
+show(people.select(["name", "age"]))
 // [{name: Alice, age: 30}, {name: Bob, age: 25}]
 
 // Or pass column names as arguments
-show(people _select("name", "city"))
+show(people.select("name", "city"))
 // [{name: Alice, city: NYC}, {name: Bob, city: LA}]
 ```
 
-### `_mutate` — Add or modify columns
+### `.mutate` — Add or modify columns
 
 Create new columns or overwrite existing ones. The function receives each row and
 returns a map of new/updated fields, which gets merged into the original row:
@@ -1256,7 +1256,7 @@ returns a map of new/updated fields, which gets merged into the original row:
 ```
 let orders = [{"item": "Widget", "qty": 5, "price": 10}]
 
-let enriched = orders _mutate((r) => {
+let enriched = orders.mutate((r) => {
     "total": r["qty"] * r["price"],
     "taxed": r["qty"] * r["price"] * 1.08
 })
@@ -1265,17 +1265,17 @@ show(enriched[0]["taxed"])    // 54.0
 show(enriched[0]["item"])     // "Widget"  (original fields preserved)
 ```
 
-### `_summarize` — Aggregate a dataset
+### `.summarize` — Aggregate a dataset
 
 Crunch a list of rows down to a single summary:
 
 ```
 let data = [{"val": 10}, {"val": 20}, {"val": 30}]
 
-let summary = data _summarize({
-    "total": (rows) => rows _map((r) => r["val"]) _sum,
-    "mean": (rows) => rows _map((r) => r["val"]) _avg,
-    "n": (rows) => rows _count
+let summary = data.summarize({
+    "total": (rows) => rows.map((r) => r["val"]).sum,
+    "mean": (rows) => rows.map((r) => r["val"]).avg,
+    "n": (rows) => rows.count
 })
 show(summary)   // {total: 60, mean: 20.0, n: 3}
 ```
@@ -1286,7 +1286,7 @@ show(summary)   // {total: 60, mean: 20.0, n: 3}
 > aggregation mechanism. The tradeoff: more keystrokes, but each aggregation is
 > a standard lambda, composable with any step chain — no special macro system needed.
 
-### `_group` + `_summarize` — The killer combo
+### `.group` + `.summarize` — The killer combo
 
 Group rows by a key, then summarize each group. This is TinyTalk's equivalent
 of `group_by() %>% summarize()` in dplyr:
@@ -1300,10 +1300,10 @@ let sales = [
 ]
 
 let report = sales
-    _group((r) => r["product"])
-    _summarize({
-        "total": (rows) => rows _map((r) => r["qty"]) _sum,
-        "avg":   (rows) => rows _map((r) => r["qty"]) _avg
+    .group((r) => r["product"])
+    .summarize({
+        "total": (rows) => rows.map((r) => r["qty"]).sum,
+        "avg":   (rows) => rows.map((r) => r["qty"]).avg
     })
 show(report)
 // [{_group: "A", total: 25, avg: 12.5}, {_group: "B", total: 25, avg: 12.5}]
@@ -1312,76 +1312,76 @@ show(report)
 Each result row includes a `_group` field containing the group key, so you always
 know which group produced each summary.
 
-You can also use `_groupBy` as an alias for `_group`.
+You can also use `.groupBy` as an alias for `.group`.
 
-### `_rename` — Rename columns
+### `.rename` — Rename columns
 
 ```
 let data = [{"first_name": "Alice", "last_name": "Smith"}]
 
-let clean = data _rename({"first_name": "first", "last_name": "last"})
+let clean = data.rename({"first_name": "first", "last_name": "last"})
 show(clean[0]["first"])   // "Alice"
 ```
 
-### `_arrange` — Sort rows
+### `.arrange` — Sort rows
 
-Like `_sortBy` but with dplyr naming, plus optional descending:
+Like `.sortBy` but with dplyr naming, plus optional descending:
 
 ```
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}]
 
 // Ascending (default)
-let asc = people _arrange((r) => r["age"])
+let asc = people.arrange((r) => r["age"])
 show(asc[0]["name"])   // "Charlie"
 
 // Descending
-let desc = people _arrange((r) => r["age"], "desc")
+let desc = people.arrange((r) => r["age"], "desc")
 show(desc[0]["name"])   // "Alice"
 ```
 
-### `_distinct` — Remove duplicates
+### `.distinct` — Remove duplicates
 
 ```
-// No args: deduplicate by entire value (like _unique)
-show([1, 2, 2, 3, 3] _distinct)   // [1, 2, 3]
+// No args: deduplicate by entire value (like .unique)
+show([1, 2, 2, 3, 3].distinct)   // [1, 2, 3]
 
 // By key function
 let data = [{"dept": "eng", "n": 1}, {"dept": "eng", "n": 2}, {"dept": "sales", "n": 3}]
-show(data _distinct((r) => r["dept"]) _count)   // 2
+show(data.distinct((r) => r["dept"]).count)   // 2
 
 // By column list
-show(data _distinct(["dept"]) _count)   // 2
+show(data.distinct(["dept"]).count)   // 2
 ```
 
-### `_pull` — Extract a single column
+### `.pull` — Extract a single column
 
 Flatten a list of rows into a simple list of values:
 
 ```
 let people = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
-show(people _pull("name"))       // [Alice, Bob]
-show(people _pull("age") _avg)   // 27.5
+show(people.pull("name"))       // [Alice, Bob]
+show(people.pull("age").avg)   // 27.5
 ```
 
-### `_slice` — Pick rows by position
+### `.slice` — Pick rows by position
 
 ```
 let data = [10, 20, 30, 40, 50]
 
-show(data _slice(1, 3))   // [20, 30, 40]  (start at index 1, take 3)
-show(data _slice(2))       // [30, 40, 50]  (from index 2 to end)
+show(data.slice(1, 3))   // [20, 30, 40]  (start at index 1, take 3)
+show(data.slice(2))       // [30, 40, 50]  (from index 2 to end)
 ```
 
-### `_leftJoin` — Left join two datasets
+### `.leftJoin` — Left join two datasets
 
-Like `_join` but keeps unmatched left rows (SQL LEFT JOIN):
+Like `.join` but keeps unmatched left rows (SQL LEFT JOIN):
 
 ```
 let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}, {"id": 3, "name": "Charlie"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
 
-let joined = users _leftJoin(scores, (r) => r["id"])
+let joined = users.leftJoin(scores, (r) => r["id"])
 show(joined[0])   // {id: 1, name: Alice, score: 95}
 show(joined[2])   // {id: 3, name: Charlie}  (no score — still included)
 ```
@@ -1399,21 +1399,21 @@ let employees = [
 
 // Top earners with bonus
 let top = employees
-    _filter((r) => r["salary"] > 95)
-    _mutate((r) => {"bonus": r["salary"] * 0.1})
-    _arrange((r) => r["salary"], "desc")
-    _select(["name", "salary", "bonus"])
+    .filter((r) => r["salary"] > 95)
+    .mutate((r) => {"bonus": r["salary"] * 0.1})
+    .arrange((r) => r["salary"], "desc")
+    .select(["name", "salary", "bonus"])
 
 show(top)
 // [{name: Eve, salary: 130, bonus: 13.0}, ...]
 
 // Department report
 let report = employees
-    _group((r) => r["dept"])
-    _summarize({
-        "avg_salary": (rows) => rows _map((r) => r["salary"]) _avg,
-        "headcount":  (rows) => rows _count,
-        "top_earner": (rows) => rows _arrange((r) => r["salary"], "desc") _first
+    .group((r) => r["dept"])
+    .summarize({
+        "avg_salary": (rows) => rows.map((r) => r["salary"]).avg,
+        "headcount":  (rows) => rows.count,
+        "top_earner": (rows) => rows.arrange((r) => r["salary"], "desc").first
     })
 
 show(report)
@@ -1423,32 +1423,32 @@ show(report)
 
 | dplyr (R)             | TinyTalk                               |
 |----------------------|---------------------------------------|
-| `filter(df, ...)`    | `data _filter((r) => ...)`            |
-| `select(df, ...)`    | `data _select(["col1", "col2"])`      |
-| `mutate(df, ...)`    | `data _mutate((r) => {"new": ...})`   |
-| `summarize(df, ...)`  | `data _summarize({"col": fn})`        |
-| `group_by(df, ...)`  | `data _group((r) => r["col"])`        |
-| `arrange(df, col)`   | `data _arrange((r) => r["col"])`      |
-| `arrange(df, desc(col))` | `data _arrange((r) => r["col"], "desc")` |
-| `distinct(df, col)`  | `data _distinct((r) => r["col"])`     |
-| `pull(df, col)`      | `data _pull("col")`                   |
-| `rename(df, ...)`    | `data _rename({"old": "new"})`        |
-| `slice(df, 1:5)`     | `data _slice(0, 5)`                   |
-| `left_join(x, y, by)` | `data _leftJoin(y, key_fn)`           |
-| `inner_join(x, y, by)` | `data _join(y, key_fn)`              |
-| `pivot_wider(df, ...)`  | `data _pivot(row_fn, col_fn, val_fn)` |
-| `pivot_longer(df, ...)`  | `data _unpivot(["id_cols"])`          |
-| `zoo::rollmean(x, k)`  | `data _window(k, (w) => w _avg)`     |
+| `filter(df, ...)`    | `data.filter((r) => ...)`            |
+| `select(df, ...)`    | `data.select(["col1", "col2"])`      |
+| `mutate(df, ...)`    | `data.mutate((r) => {"new": ...})`   |
+| `summarize(df, ...)`  | `data.summarize({"col": fn})`        |
+| `group_by(df, ...)`  | `data.group((r) => r["col"])`        |
+| `arrange(df, col)`   | `data.arrange((r) => r["col"])`      |
+| `arrange(df, desc(col))` | `data.arrange((r) => r["col"], "desc")` |
+| `distinct(df, col)`  | `data.distinct((r) => r["col"])`     |
+| `pull(df, col)`      | `data.pull("col")`                   |
+| `rename(df, ...)`    | `data.rename({"old": "new"})`        |
+| `slice(df, 1:5)`     | `data.slice(0, 5)`                   |
+| `left_join(x, y, by)` | `data.leftJoin(y, key_fn)`           |
+| `inner_join(x, y, by)` | `data.join(y, key_fn)`              |
+| `pivot_wider(df, ...)`  | `data.pivot(row_fn, col_fn, val_fn)` |
+| `pivot_longer(df, ...)`  | `data.unpivot(["id_cols"])`          |
+| `zoo::rollmean(x, k)`  | `data.window(k, (w) => w.avg)`     |
 
 ---
 
 ## 27. Reshaping Data — Pivot & Unpivot
 
 Real data analysis often requires reshaping data between "long" and "wide" formats.
-TinyTalk has two step chain operators for this — `_pivot` and `_unpivot` — inspired
+TinyTalk has two step chain operators for this — `.pivot` and `.unpivot` — inspired
 by pandas `pivot_table()` and `melt()`.
 
-### `_pivot` — Long to wide (spread)
+### `.pivot` — Long to wide (spread)
 
 Convert rows into columns. Takes three functions: one for the row index, one for
 the column name, and one for the cell value.
@@ -1461,7 +1461,7 @@ let sales = [
     {"region": "West",  "product": "B", "revenue": 300}
 ]
 
-let wide = sales _pivot(
+let wide = sales.pivot(
     (r) => r["region"],    // rows
     (r) => r["product"],   // columns
     (r) => r["revenue"]    // values
@@ -1479,7 +1479,7 @@ This is equivalent to:
 - **pandas:** `df.pivot_table(index='region', columns='product', values='revenue')`
 - **R/tidyr:** `pivot_wider(data, names_from = product, values_from = revenue)`
 
-### `_unpivot` — Wide to long (melt)
+### `.unpivot` — Wide to long (melt)
 
 The reverse of pivot. Takes a list of "id" columns to keep — everything else gets
 melted into `variable` / `value` pairs.
@@ -1490,7 +1490,7 @@ let quarterly = [
     {"region": "West", "Q1": 300, "Q2": 250, "Q3": 400}
 ]
 
-let long = quarterly _unpivot(["region"])
+let long = quarterly.unpivot(["region"])
 
 for row in long { show(row) }
 // {region: East, variable: Q1, value: 100}
@@ -1518,7 +1518,7 @@ let grades = [
 ]
 
 // Long → Wide
-let wide = grades _pivot(
+let wide = grades.pivot(
     (r) => r["student"],
     (r) => r["subject"],
     (r) => r["grade"]
@@ -1527,25 +1527,25 @@ show(wide)
 // [{_index: Alice, math: 95, english: 88}, {_index: Bob, math: 72, english: 91}]
 
 // Wide → Long (back again)
-let long = wide _unpivot(["_index"])
-show(long _count)   // 4
+let long = wide.unpivot(["_index"])
+show(long.count)   // 4
 ```
 
 ---
 
 ## 28. Rolling Aggregates — Window Functions
 
-The `_window` operator applies a function over a sliding window of the data.
+The `.window` operator applies a function over a sliding window of the data.
 This is essential for time-series analysis — moving averages, rolling maxima,
 running totals, etc.
 
-### `_window(size, function)` — Sliding window
+### `.window(size, function)` — Sliding window
 
 ```
 let prices = [10, 12, 11, 15, 14, 16, 18, 17, 20, 19]
 
 // 3-period moving average
-let ma3 = prices _window(3, (w) => round(w _avg, 1))
+let ma3 = prices.window(3, (w) => round(w.avg, 1))
 show(ma3)
 // [10.0, 11.0, 11.0, 12.7, 13.3, 15.0, 16.0, 17.0, 18.3, 18.7]
 ```
@@ -1572,31 +1572,31 @@ show(ma3)
 let data = [1, 2, 3, 4, 5]
 
 // Rolling sum (window of 2)
-show(data _window(2, (w) => w _sum))
+show(data.window(2, (w) => w.sum))
 // [1, 3, 5, 7, 9]
 
 // Rolling max (window of 3)
 let temps = [3, 1, 4, 1, 5, 9, 2, 6]
-show(temps _window(3, (w) => w _max))
+show(temps.window(3, (w) => w.max))
 // [3, 3, 4, 4, 5, 9, 9, 9]
 
 // Running count (window of 3)
-show(data _window(3, (w) => w _count))
+show(data.window(3, (w) => w.count))
 // [1, 2, 3, 3, 3]
 ```
 
 ### Chaining with other steps
 
-`_window` returns a list, so you can chain more steps after it:
+`.window` returns a list, so you can chain more steps after it:
 
 ```
 let prices = [100, 102, 98, 105, 110, 108, 115, 120]
 
 // Find how many periods had a moving average above 105
 let above_threshold = prices
-    _window(3, (w) => w _avg)
-    _filter((x) => x > 105)
-    _count
+    .window(3, (w) => w.avg)
+    .filter((x) => x > 105)
+    .count
 show(above_threshold)
 ```
 
@@ -1626,7 +1626,7 @@ from newTinyTalk import transpile, transpile_pandas
 
 tt_code = '''
 let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-let result = data _filter((x) => x > 3) _sort _reverse _take(3)
+let result = data.filter((x) => x > 3).sort.reverse.take(3)
 show(result)
 '''
 
@@ -1646,25 +1646,25 @@ print(transpile_pandas(tt_code))
 
 | TinyTalk | Python | pandas |
 |----------|--------|--------|
-| `_filter((x) => x > 5)` | `[x for x in data if ...]` | `df[df.apply(...)]` |
-| `_map((x) => x * 2)` | `[fn(x) for x in data]` | `df.apply(fn, axis=1)` |
-| `_sort` or `_sort(fn)` | `sorted(data)` or `sorted(data, key=fn)` | `df.sort_values(...)` |
-| `_sortBy(fn)` | `sorted(data, key=fn)` | `df.sort_values(key=...)` |
-| `_reverse` | `list(reversed(data))` | `df.iloc[::-1]` |
-| `_take(n)` | `data[:n]` | `df.head(n)` |
-| `_drop(n)` | `data[n:]` | `df.tail(-n)` |
-| `_first` | `data[0]` | `df.iloc[0]` |
-| `_last` | `data[-1]` | `df.iloc[-1]` |
-| `_unique` | `list(dict.fromkeys(data))` | `df.drop_duplicates()` |
-| `_sum` | `sum(data)` | `df.sum()` |
-| `_avg` | `sum(data) / len(data)` | `df.mean()` |
-| `_count` | `len(data)` | `len(df)` |
-| `_group(fn)` | `defaultdict(list)` | `df.groupby(...)` |
-| `_reduce(fn, init)` | `functools.reduce(fn, data, init)` | `reduce(fn, ...)` |
-| `_select(cols)` | `[{k: row[k] ...}]` | `df[cols]` |
-| `_rename(map)` | `[{map.get(k,k): v ...}]` | `df.rename(columns=...)` |
-| `_unpivot(ids)` | `[... for col in row ...]` | `df.melt(id_vars=...)` |
-| `_window(n, fn)` | `[fn(data[i-n:i]) ...]` | `df.rolling(n).apply(fn)` |
+| `.filter((x) => x > 5)` | `[x for x in data if ...]` | `df[df.apply(...)]` |
+| `.map((x) => x * 2)` | `[fn(x) for x in data]` | `df.apply(fn, axis=1)` |
+| `.sort` or `.sort(fn)` | `sorted(data)` or `sorted(data, key=fn)` | `df.sort_values(...)` |
+| `.sortBy(fn)` | `sorted(data, key=fn)` | `df.sort_values(key=...)` |
+| `.reverse` | `list(reversed(data))` | `df.iloc[::-1]` |
+| `.take(n)` | `data[:n]` | `df.head(n)` |
+| `.drop(n)` | `data[n:]` | `df.tail(-n)` |
+| `.first` | `data[0]` | `df.iloc[0]` |
+| `.last` | `data[-1]` | `df.iloc[-1]` |
+| `.unique` | `list(dict.fromkeys(data))` | `df.drop_duplicates()` |
+| `.sum` | `sum(data)` | `df.sum()` |
+| `.avg` | `sum(data) / len(data)` | `df.mean()` |
+| `.count` | `len(data)` | `len(df)` |
+| `.group(fn)` | `defaultdict(list)` | `df.groupby(...)` |
+| `.reduce(fn, init)` | `functools.reduce(fn, data, init)` | `reduce(fn, ...)` |
+| `.select(cols)` | `[{k: row[k] ...}]` | `df[cols]` |
+| `.rename(map)` | `[{map.get(k,k): v ...}]` | `df.rename(columns=...)` |
+| `.unpivot(ids)` | `[... for col in row ...]` | `df.melt(id_vars=...)` |
+| `.window(n, fn)` | `[fn(data[i-n:i]) ...]` | `df.rolling(n).apply(fn)` |
 | `show(x)` | `print(x)` | `print(x)` |
 | `upcase(s)` | `s.upper()` | `s.upper()` |
 | `sqrt(x)` | `math.sqrt(x)` | `math.sqrt(x)` |
@@ -1682,7 +1682,7 @@ That's the bridge most CS education is missing:
 
 ```
 // Student writes this:
-data _filter((r) => r["score"] > 90) _sortBy((r) => r["score"]) _reverse _take(5)
+data.filter((r) => r["score"] > 90).sortBy((r) => r["score"]).reverse.take(5)
 
 // Transpiler shows them this:
 list(reversed(sorted([x for x in data if (lambda r: (r["score"] > 90))(x)],
@@ -1702,7 +1702,7 @@ anywhere else. Students write a TinyTalk pipeline and see the SQL equivalent.
 ```python
 from newTinyTalk import transpile_sql
 
-tt_code = 'employees _filter((r) => r["salary"] > 50000) _select("name", "dept", "salary") _arrange((r) => r["salary"], "desc") _take(10)'
+tt_code = 'employees.filter((r) => r["salary"] > 50000).select("name", "dept", "salary").arrange((r) => r["salary"], "desc").take(10)'
 
 print(transpile_sql(tt_code))
 ```
@@ -1727,31 +1727,31 @@ tinytalk transpile-sql analysis.tt
 
 | TinyTalk | SQL |
 |----------|-----|
-| `_filter((r) => r["age"] > 30)` | `WHERE age > 30` |
-| `_select("name", "age")` | `SELECT name, age` |
-| `_group((r) => r["dept"])` | `GROUP BY dept` |
-| `_summarize({"total": ...})` | `SELECT SUM(col) AS total` |
-| `_arrange((r) => r["salary"])` | `ORDER BY salary` |
-| `_arrange((r) => r["salary"], "desc")` | `ORDER BY salary DESC` |
-| `_take(10)` | `LIMIT 10` |
-| `_drop(5)` | `OFFSET 5` |
-| `_join(right, key_fn)` | `INNER JOIN right ON key` |
-| `_leftJoin(right, key_fn)` | `LEFT JOIN right ON key` |
-| `_distinct` | `SELECT DISTINCT` |
-| `_rename({"old": "new"})` | `SELECT old AS new` |
-| `_count` | `SELECT COUNT(*)` |
-| `_sum` | `SELECT SUM(*)` |
-| `_avg` | `SELECT AVG(*)` |
-| `_first` | `LIMIT 1` |
+| `.filter((r) => r["age"] > 30)` | `WHERE age > 30` |
+| `.select("name", "age")` | `SELECT name, age` |
+| `.group((r) => r["dept"])` | `GROUP BY dept` |
+| `.summarize({"total": ...})` | `SELECT SUM(col) AS total` |
+| `.arrange((r) => r["salary"])` | `ORDER BY salary` |
+| `.arrange((r) => r["salary"], "desc")` | `ORDER BY salary DESC` |
+| `.take(10)` | `LIMIT 10` |
+| `.drop(5)` | `OFFSET 5` |
+| `.join(right, key_fn)` | `INNER JOIN right ON key` |
+| `.leftJoin(right, key_fn)` | `LEFT JOIN right ON key` |
+| `.distinct` | `SELECT DISTINCT` |
+| `.rename({"old": "new"})` | `SELECT old AS new` |
+| `.count` | `SELECT COUNT(*)` |
+| `.sum` | `SELECT SUM(*)` |
+| `.avg` | `SELECT AVG(*)` |
+| `.first` | `LIMIT 1` |
 
 ### Group + summarize → GROUP BY + aggregation
 
 ```
 employees
-    _group((r) => r["dept"])
-    _summarize({
-        "avg_salary": (rows) => rows _map((r) => r["salary"]) _avg,
-        "headcount":  (rows) => rows _count
+    .group((r) => r["dept"])
+    .summarize({
+        "avg_salary": (rows) => rows.map((r) => r["salary"]).avg,
+        "headcount":  (rows) => rows.count
     })
 ```
 
@@ -1771,7 +1771,7 @@ transpiler and the JavaScript transpiler, you now get **four industry languages 
 
 ```
 // TinyTalk (what students write)
-data _filter((r) => r["age"] > 25) _select("name", "age") _arrange((r) => r["age"])
+data.filter((r) => r["age"] > 25).select("name", "age").arrange((r) => r["age"])
 
 // SQL (what they learn)
 SELECT name, age FROM data WHERE age > 25 ORDER BY age;
@@ -1795,7 +1795,7 @@ from newTinyTalk import transpile_js
 
 tt_code = '''
 let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-let result = data _filter((x) => x > 3) _sort _reverse _take(3)
+let result = data.filter((x) => x > 3).sort.reverse.take(3)
 show(result)
 '''
 
@@ -1825,27 +1825,27 @@ tinytalk transpile-js analysis.tt
 | `is` / `isnt` | `===` / `!==` |
 | `and` / `or` | `&&` / `\|\|` |
 | `not x` | `!x` |
-| `_filter(fn)` | `.filter(fn)` |
-| `_map(fn)` | `.map(fn)` |
-| `_sort` or `_sort(fn)` | `.slice().sort((a, b) => a - b)` or `.slice().sort(...)` |
-| `_sortBy(fn)` | `.slice().sort(...)` |
-| `_reverse` | `.slice().reverse()` |
-| `_take(n)` | `.slice(0, n)` |
-| `_drop(n)` | `.slice(n)` |
-| `_first` | `[0]` |
-| `_last` | `.at(-1)` |
-| `_unique` | `[...new Set(...)]` |
-| `_flatten` | `.flat()` |
-| `_sum` | `.reduce((a, b) => a + b, 0)` |
-| `_avg` | `.reduce(...) / .length` |
-| `_count` | `.length` |
-| `_min` / `_max` | `Math.min(...)` / `Math.max(...)` |
-| `_reduce(fn, init)` | `.reduce(fn, init)` |
-| `_group(fn)` | `.reduce(...)` (grouping) |
-| `_select(cols)` | `.map(row => ...)` |
-| `_mutate(fn)` | `.map(row => ({...row, ...fn(row)}))` |
-| `_rename(map)` | `.map(row => ...)` (key remapping) |
-| `_join(right, fn)` | `.flatMap(...)` |
+| `.filter(fn)` | `.filter(fn)` |
+| `.map(fn)` | `.map(fn)` |
+| `.sort` or `.sort(fn)` | `.slice().sort((a, b) => a - b)` or `.slice().sort(...)` |
+| `.sortBy(fn)` | `.slice().sort(...)` |
+| `.reverse` | `.slice().reverse()` |
+| `.take(n)` | `.slice(0, n)` |
+| `.drop(n)` | `.slice(n)` |
+| `.first` | `[0]` |
+| `.last` | `.at(-1)` |
+| `.unique` | `[...new Set(...)]` |
+| `.flatten` | `.flat()` |
+| `.sum` | `.reduce((a, b) => a + b, 0)` |
+| `.avg` | `.reduce(...) / .length` |
+| `.count` | `.length` |
+| `.min` / `.max` | `Math.min(...)` / `Math.max(...)` |
+| `.reduce(fn, init)` | `.reduce(fn, init)` |
+| `.group(fn)` | `.reduce(...)` (grouping) |
+| `.select(cols)` | `.map(row => ...)` |
+| `.mutate(fn)` | `.map(row => ({...row, ...fn(row)}))` |
+| `.rename(map)` | `.map(row => ...)` (key remapping) |
+| `.join(right, fn)` | `.flatMap(...)` |
 | `sqrt(x)` | `Math.sqrt(x)` |
 | `upcase(s)` | `s.toUpperCase()` |
 | `parse_json(s)` | `JSON.parse(s)` |
@@ -1858,7 +1858,7 @@ and see it in **four** industry formats — Python, pandas, SQL, and JavaScript.
 
 ```
 // Student writes this:
-data _filter((r) => r["score"] > 90) _sortBy((r) => r["score"]) _reverse _take(5)
+data.filter((r) => r["score"] > 90).sortBy((r) => r["score"]).reverse.take(5)
 
 // JavaScript equivalent:
 data.filter((r) => r["score"] > 90)
@@ -2282,9 +2282,9 @@ Load a CSV and start exploring immediately:
 ```
 >> :load sales.csv
 Loaded sales.csv into variable 'data' (1500 rows)
->> data _take(3)
+>> data.take(3)
 [{date: 2024-01-01, product: Widget, amount: 42}, ...]
->> data _group((r) => r["product"]) _mapValues((rows) => rows _count)
+>> data.group((r) => r["product"]).mapValues((rows) => rows.count)
 {Widget: 450, Gadget: 380, ...}
 ```
 
@@ -2330,8 +2330,8 @@ The REPL supports a full load → explore → export workflow:
 ```
 >> :load employees.csv
 Loaded employees.csv into variable 'data' (500 rows)
->> let top_earners = data _filter((r) => r["salary"] > 100000) _arrange((r) => r["salary"], "desc")
->> top_earners _count
+>> let top_earners = data.filter((r) => r["salary"] > 100000).arrange((r) => r["salary"], "desc")
+>> top_earners.count
 42
 >> :export top_earners.csv
 Exported to top_earners.csv
@@ -2371,11 +2371,11 @@ Use a step on the wrong type? TinyTalk tells you what to do instead:
 
 ```
 let data = {"a": 1, "b": 2}
-data _sort
+data.sort
 ```
 
 ```
-Error: '_sort' works on lists. You have a map — try keys(data) _sort or values(data) _sort.
+Error: '.sort' works on lists. You have a map — try keys(data).sort or values(data).sort.
 ```
 
 ### Usage hints
@@ -2383,11 +2383,11 @@ Error: '_sort' works on lists. You have a map — try keys(data) _sort or values
 Can't remember the arguments for a step chain? The error tells you:
 
 ```
-[1, 2, 3] _filter()
+[1, 2, 3].filter()
 ```
 
 ```
-Error: _filter requires a function: data _filter((x) => condition)
+Error: .filter requires a function: data.filter((x) => condition)
 ```
 
 ### Why this matters
@@ -2441,48 +2441,48 @@ match x { 1 => "one", 2 => "two", _ => "other" }
 
 ### Step chains
 ```
-data _sort _reverse _take(5)
-data _filter((x) => x > 10) _map((x) => x * 2) _sum
-data _unique _count
-data _group((x) => x.category)
-data _reduce((acc, x) => acc + x, 0)
-data _sortBy((r) => r["score"])
-left _join(right, (r) => r["id"])
-grouped _mapValues((xs) => xs _avg)
-data _each((x) => show(x))
+data.sort.reverse.take(5)
+data.filter((x) => x > 10).map((x) => x * 2).sum
+data.unique.count
+data.group((x) => x.category)
+data.reduce((acc, x) => acc + x, 0)
+data.sortBy((r) => r["score"])
+left.join(right, (r) => r["id"])
+grouped.mapValues((xs) => xs.avg)
+data.each((x) => show(x))
 ```
 
 ### dplyr-style verbs
 ```
-data _select(["name", "age"])
-data _mutate((r) => {"bonus": r["salary"] * 0.1})
-data _summarize({"total": (rows) => rows _pull("val") _sum})
-data _group((r) => r["dept"]) _summarize({...})
-data _rename({"old_name": "new_name"})
-data _arrange((r) => r["score"])           // ascending
-data _arrange((r) => r["score"], "desc")   // descending
-data _distinct((r) => r["key"])
-data _pull("column_name")
-data _slice(0, 10)
-data _leftJoin(other, (r) => r["id"])
+data.select(["name", "age"])
+data.mutate((r) => {"bonus": r["salary"] * 0.1})
+data.summarize({"total": (rows) => rows.pull("val").sum})
+data.group((r) => r["dept"]).summarize({...})
+data.rename({"old_name": "new_name"})
+data.arrange((r) => r["score"])           // ascending
+data.arrange((r) => r["score"], "desc")   // descending
+data.distinct((r) => r["key"])
+data.pull("column_name")
+data.slice(0, 10)
+data.leftJoin(other, (r) => r["id"])
 ```
 
 ### Reshape & window
 ```
-data _pivot(row_fn, col_fn, val_fn)         // long → wide
-data _unpivot(["id_col1", "id_col2"])       // wide → long
-data _window(3, (w) => w _avg)              // rolling aggregate
-data _window(5, (w) => w _max)              // sliding max
+data.pivot(row_fn, col_fn, val_fn)         // long → wide
+data.unpivot(["id_col1", "id_col2"])       // wide → long
+data.window(3, (w) => w.avg)              // rolling aggregate
+data.window(5, (w) => w.max)              // sliding max
 ```
 
 ### Transpilers
 ```python
 from newTinyTalk import transpile, transpile_pandas, transpile_sql, transpile_js
 
-transpile('data _filter((x) => x > 5) _sum')       # → plain Python
-transpile_pandas('data _filter((x) => x > 5) _sum') # → pandas
-transpile_sql('data _filter((r) => r["age"] > 30) _select("name") _take(10)')  # → SQL
-transpile_js('data _filter((x) => x > 5) _sum')     # → JavaScript
+transpile('data.filter((x) => x > 5).sum')       # → plain Python
+transpile_pandas('data.filter((x) => x > 5).sum') # → pandas
+transpile_sql('data.filter((r) => r["age"] > 30).select("name").take(10)')  # → SQL
+transpile_js('data.filter((x) => x > 5).sum')     # → JavaScript
 ```
 
 ```bash
@@ -2576,14 +2576,14 @@ That's TinyTalk. A language that's small enough to learn in an afternoon but exp
 enough to write real programs. The key things that make it unique:
 
 1. **Step chains** — Transform data like a pipeline, not a pile of nested calls
-2. **dplyr-style analysis** — `_select`, `_mutate`, `_summarize`, `_group` — feels like R
+2. **dplyr-style analysis** — `.select`, `.mutate`, `.summarize`, `.group` — feels like R
 3. **Four transpiler targets** — See your pipeline as Python, pandas, SQL, or JavaScript
 4. **Import system** — `import`, `from...use`, namespace aliases — build real projects across files
 5. **Persistent REPL** — Load data, explore, define functions, export results — a data workbench
 6. **Type annotations** — Optional `fn add(a: int, b: int): int` — catch mistakes, self-document
 7. **Teaching error messages** — "Did you mean 'score'?" not "undefined identifier"
-8. **Reshape operations** — `_pivot` (long→wide), `_unpivot` (wide→long) — complete the data story
-9. **Window functions** — `_window(n, fn)` for rolling averages, running totals, sliding max
+8. **Reshape operations** — `.pivot` (long→wide), `.unpivot` (wide→long) — complete the data story
+9. **Window functions** — `.window(n, fn)` for rolling averages, running totals, sliding max
 10. **Natural comparisons** — `has`, `isin`, `islike` read like English
 11. **Two styles** — Use curly braces or `end` blocks, whatever feels right
 12. **String interpolation** — Just put `{expressions}` in your strings
@@ -2593,7 +2593,7 @@ enough to write real programs. The key things that make it unique:
 16. **Multi-line lambdas** — `(x) => { ... }` for complex anonymous functions
 17. **Data I/O** — `read_csv`, `read_json`, `http_get` — ingest real data
 18. **Date handling** — Parse, format, diff, floor — time-series ready
-19. **Joins** — `_join`, `_leftJoin`, `_sortBy`, `_mapValues` — real data wrangling
+19. **Joins** — `.join`, `.leftJoin`, `.sortBy`, `.mapValues` — real data wrangling
 
 ---
 
@@ -2637,11 +2637,11 @@ let people = [
 ]
 
 let top_earners = people
-    _filter((r) => r["salary"] > 60000)
-    _sortBy((r) => r["salary"])
-    _reverse
-    _take(2)
-    _select("name", "salary")
+    .filter((r) => r["salary"] > 60000)
+    .sortBy((r) => r["salary"])
+    .reverse
+    .take(2)
+    .select("name", "salary")
 ```
 
 The debugger shows you:
@@ -2649,15 +2649,15 @@ The debugger shows you:
 ```
 Chain #1
   source    [{name: Alice, age: 32, salary: 75000}, ...] (4 items)
-    ↓ _filter(<fn>)
+    ↓ .filter(<fn>)
               [{name: Alice, ...}, {name: Carol, ...}, {name: Dave, ...}] (3 items)
-    ↓ _sort(<fn>)
+    ↓ .sort(<fn>)
               [{name: Dave, ...}, {name: Alice, ...}, {name: Carol, ...}] (3 items)
-    ↓ _reverse
+    ↓ .reverse
               [{name: Carol, ...}, {name: Alice, ...}, {name: Dave, ...}] (3 items)
-    ↓ _take(2)
+    ↓ .take(2)
               [{name: Carol, ...}, {name: Alice, ...}] (2 items)
-    ↓ _select("name", "salary")
+    ↓ .select("name", "salary")
               [{name: Carol, salary: 91000}, {name: Alice, salary: 75000}] (2 items)
 ```
 
@@ -2852,7 +2852,7 @@ The browser playground now has a **REPL mode**. Switch the dropdown from "Progra
 >> show(x * 2)
 84
 >> let data = [1, 2, 3, 4, 5]
->> data _filter((n) => n > 2) _sum
+>> data.filter((n) => n > 2).sum
 12
 ```
 
@@ -2865,8 +2865,8 @@ evaluation are available in the next. This is the interactive notebook experienc
 ## 47. Performance Floor
 
 For large datasets, TinyTalk automatically uses optimized execution paths. When a
-list exceeds 1,000 items and pandas is available, step chain operations like `_sort`,
-`_filter`, `_take`, `_count`, `_sum`, `_avg`, `_unique`, and `_select` delegate to
+list exceeds 1,000 items and pandas is available, step chain operations like `.sort`,
+`.filter`, `.take`, `.count`, `.sum`, `.avg`, `.unique`, and `.select` delegate to
 pandas under the hood.
 
 You don't need to change your code — the same syntax works on 10 rows or 100,000 rows.
@@ -2875,10 +2875,10 @@ The interpreter detects the data size and chooses the fastest execution strategy
 ```tinytalk
 let big_data = read_csv("sales_100k.csv")
 let result = big_data
-    _filter((r) => r["region"] == "West")
-    _sort((r) => r["revenue"])
-    _reverse
-    _take(100)
+    .filter((r) => r["region"] == "West")
+    .sort((r) => r["revenue"])
+    .reverse
+    .take(100)
 // Automatically uses pandas for the heavy lifting
 ```
 
@@ -2896,14 +2896,14 @@ let data: list[map[str, int]] = [
 
 // Type inference tracks through each step:
 // data              -> list[map[str, int]]
-// _filter(...)      -> list[map[str, int]]   (filter preserves type)
-// _count            -> int                    (aggregation changes type)
-// _first            -> map[str, int]          (element extraction)
-// _group(...)       -> map[str, list[...]]    (grouping changes structure)
+// .filter(...)      -> list[map[str, int]]   (filter preserves type)
+// .count            -> int                    (aggregation changes type)
+// .first            -> map[str, int]          (element extraction)
+// .group(...)       -> map[str, list[...]]    (grouping changes structure)
 ```
 
 The type checker catches mismatches like applying list operations to maps, or using
-`_mapValues` on a list instead of a map.
+`.mapValues` on a list instead of a map.
 
 ---
 
@@ -2951,9 +2951,9 @@ DataFrames use the same step chain syntax as lists — every step chain works id
 
 ```tinytalk
 let seniors = df
-    _filter((r) => r["age"] > 28)
-    _sort((r) => r["age"])
-    _select("name", "age")
+    .filter((r) => r["age"] > 28)
+    .sort((r) => r["age"])
+    .select("name", "age")
 
 show(type(seniors))   // "dataframe"  — result stays as DataFrame
 show(seniors.shape)   // [2, 2]
@@ -2962,8 +2962,8 @@ show(seniors.shape)   // [2, 2]
 Aggregation steps that collapse to a single value return that value (not a DataFrame):
 
 ```tinytalk
-df _count          // 3
-df _map((r) => r["age"]) _avg   // 30.0
+df.count          // 3
+df.map((r) => r["age"]).avg   // 30.0
 ```
 
 ### Converting Back to List
@@ -3067,7 +3067,7 @@ chart_multi(months, series, "Monthly Financials")
 | `chart_multi` | `(labels, series_map [, title])` | Multi-series line/bar |
 
 > **Tip:** Charts combine beautifully with step chains. Process your data with
-> `_filter`, `_group`, `_map`, then pipe the results into a chart function.
+> `.filter`, `.group`, `.map`, then pipe the results into a chart function.
 
 ---
 
@@ -3100,7 +3100,7 @@ show(summary(scores))
 
 ```tinytalk
 let x = seq(1, 20, 1)
-let y = x _map((v) => v * 2.5 + 10)
+let y = x.map((v) => v * 2.5 + 10)
 
 show(cor(x, y))    // Pearson correlation coefficient
 show(cov(x, y))    // Sample covariance
@@ -3229,7 +3229,7 @@ show("Rows: {len(data)}")
 show("Columns: {keys(data[0])}")
 
 // Analyze
-let by_region = data _group((r) => r["region"]) _mapValues((rows) => rows _count)
+let by_region = data.group((r) => r["region"]).mapValues((rows) => rows.count)
 chart_bar(by_region, "Sales by Region")
 ```
 
@@ -3297,7 +3297,7 @@ Studio is where statistics and visualization come together:
 set_seed(42)
 let x = seq(1, 20, 1)
 let noise = rnorm(20, 0, 3)
-let y = x _zip(noise) _map((pair) => pair[0] * 2.5 + 10 + pair[1])
+let y = x.zip(noise).map((pair) => pair[0] * 2.5 + 10 + pair[1])
 
 let model = lm(y, x)
 show("Slope: {model["slope"]}")

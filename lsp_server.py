@@ -287,8 +287,8 @@ class DocumentAnalyzer:
 
         items = []
 
-        # After underscore: step chain completions
-        if text_before.rstrip().endswith("_") or "_" in text_before.split()[-1:]:
+        # After dot: step chain completions and property completions
+        if text_before.rstrip().endswith("."):
             for step in ALL_STEP_NAMES:
                 items.append({
                     "label": step,
@@ -296,10 +296,7 @@ class DocumentAnalyzer:
                     "detail": f"Step chain: {step}",
                     "insertText": step,
                 })
-            return items
-
-        # After dot: property completions
-        if text_before.rstrip().endswith("."):
+            # Also add property completions after dot
             for prop, desc in [
                 ("str", "Convert to string"), ("int", "Convert to integer"),
                 ("float", "Convert to float"), ("bool", "Convert to boolean"),
@@ -366,7 +363,7 @@ class DocumentAnalyzer:
                 }
 
         # Check step chains
-        if target_name.startswith("_") and target_name in ALL_STEP_NAMES:
+        if target_name in ALL_STEP_NAMES:
             from .errors import step_args_hint
             hint = step_args_hint(target_name)
             return {
@@ -460,7 +457,7 @@ class TinyTalkLSP:
             return self._respond(msg_id, {
                 "capabilities": {
                     "textDocumentSync": 1,  # Full sync
-                    "completionProvider": {"triggerCharacters": ["_", ".", " "]},
+                    "completionProvider": {"triggerCharacters": [".", " "]},
                     "hoverProvider": True,
                     "definitionProvider": True,
                     "documentSymbolProvider": True,

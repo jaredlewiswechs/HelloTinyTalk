@@ -319,7 +319,7 @@ FUNCTION_DOCS: Dict[str, dict] = {
             'let df = DataFrame(data)',
             'df.columns  // ["name", "age"]',
             'df.shape    // [100, 3]',
-            'df _filter((r) => r["age"] > 30)  // returns DataFrame',
+            'df.filter((r) => r["age"] > 30)  // returns DataFrame',
         ],
     },
 
@@ -367,58 +367,58 @@ FUNCTION_DOCS: Dict[str, dict] = {
 # ---------------------------------------------------------------------------
 
 STEP_DOCS: Dict[str, dict] = {
-    "_filter": {
-        "signature": "data _filter(predicate)",
+    "filter": {
+        "signature": "data.filter(predicate)",
         "description": "Keep only items where predicate returns true. Like R's filter() or dplyr::filter().",
-        "examples": ['data _filter((r) => r["age"] > 30)'],
+        "examples": ['data.filter((r) => r["age"] > 30)'],
     },
-    "_map": {
-        "signature": "data _map(fn)",
+    "map": {
+        "signature": "data.map(fn)",
         "description": "Transform each item. Like R's sapply() or purrr::map().",
-        "examples": ['[1, 2, 3] _map((x) => x * 2)  // [2, 4, 6]'],
+        "examples": ['[1, 2, 3].map((x) => x * 2)  // [2, 4, 6]'],
     },
-    "_sort": {
-        "signature": "data _sort or data _sort(fn)",
+    "sort": {
+        "signature": "data.sort or data.sort(fn)",
         "description": "Sort in ascending order. Optionally accepts a key function.",
         "examples": [
-            "[3, 1, 2] _sort  // [1, 2, 3]",
-            'people _sort((r) => r["age"])  // sort by key',
+            "[3, 1, 2].sort  // [1, 2, 3]",
+            'people.sort((r) => r["age"])  // sort by key',
         ],
     },
-    "_sortBy": {
-        "signature": "data _sortBy(fn)",
+    "sortBy": {
+        "signature": "data.sortBy(fn)",
         "description": "Sort by a computed key.",
-        "examples": ['data _sortBy((r) => r["name"])'],
+        "examples": ['data.sortBy((r) => r["name"])'],
     },
-    "_reverse": {"signature": "data _reverse", "description": "Reverse order.", "examples": ["[1, 2, 3] _reverse  // [3, 2, 1]"]},
-    "_take": {"signature": "data _take(n)", "description": "First n items. Like R's head().", "examples": ["[1, 2, 3, 4, 5] _take(3)  // [1, 2, 3]"]},
-    "_drop": {"signature": "data _drop(n)", "description": "Skip first n items. Like R's tail(-n).", "examples": ["[1, 2, 3, 4, 5] _drop(2)  // [3, 4, 5]"]},
-    "_first": {"signature": "data _first", "description": "Get the first item.", "examples": ["[1, 2, 3] _first  // 1"]},
-    "_last": {"signature": "data _last", "description": "Get the last item.", "examples": ["[1, 2, 3] _last  // 3"]},
-    "_count": {"signature": "data _count", "description": "Count items. Like R's length() or nrow().", "examples": ["[1, 2, 3] _count  // 3"]},
-    "_sum": {"signature": "data _sum", "description": "Sum all values.", "examples": ["[1, 2, 3] _sum  // 6"]},
-    "_avg": {"signature": "data _avg", "description": "Average of all values. Like R's mean().", "examples": ["[1, 2, 3, 4, 5] _avg  // 3.0"]},
-    "_min": {"signature": "data _min", "description": "Minimum value.", "examples": ["[3, 1, 2] _min  // 1"]},
-    "_max": {"signature": "data _max", "description": "Maximum value.", "examples": ["[3, 1, 2] _max  // 3"]},
-    "_unique": {"signature": "data _unique", "description": "Remove duplicates. Like R's unique().", "examples": ["[1, 2, 2, 3, 1] _unique  // [1, 2, 3]"]},
-    "_flatten": {"signature": "data _flatten", "description": "Flatten nested lists. Like R's unlist().", "examples": ["[[1, 2], [3, 4]] _flatten  // [1, 2, 3, 4]"]},
-    "_group": {"signature": "data _group(fn)", "description": "Group items by key. Like R's split() or dplyr::group_by().", "examples": ['data _group((r) => r["category"])']},
-    "_reduce": {"signature": "data _reduce(fn, initial)", "description": "Reduce to a single value. Like R's Reduce().", "examples": ["[1, 2, 3, 4] _reduce((acc, x) => acc + x, 0)  // 10"]},
-    "_select": {"signature": 'data _select("col1", "col2")', "description": "Select columns from tabular data. Like dplyr::select().", "examples": ['data _select("name", "age")']},
-    "_mutate": {"signature": "data _mutate(fn)", "description": "Add or modify columns. Like dplyr::mutate().", "examples": ['data _mutate((r) => {"total": r["price"] * r["qty"]})']},
-    "_summarize": {"signature": "grouped _summarize(aggs)", "description": "Aggregate groups. Like dplyr::summarize().", "examples": ['grouped _summarize({"total": (g) => g _map(...) _sum})']},
-    "_rename": {"signature": 'data _rename({"old": "new"})', "description": "Rename columns. Like dplyr::rename().", "examples": ['data _rename({"nm": "name"})']},
-    "_arrange": {"signature": 'data _arrange(fn, "desc")', "description": "Sort rows. Like dplyr::arrange().", "examples": ['data _arrange((r) => r["score"], "desc")']},
-    "_distinct": {"signature": "data _distinct(fn)", "description": "Unique rows by key. Like dplyr::distinct().", "examples": ['data _distinct((r) => r["id"])']},
-    "_pull": {"signature": 'data _pull("column")', "description": "Extract a single column as a list. Like dplyr::pull().", "examples": ['data _pull("name")  // ["Alice", "Bob", ...]']},
-    "_leftJoin": {"signature": "data _leftJoin(other, fn)", "description": "Left join two datasets. Like dplyr::left_join().", "examples": ['data _leftJoin(lookup, (a, b) => a["id"] == b["id"])']},
-    "_pivot": {"signature": "data _pivot(row_fn, col_fn, val_fn)", "description": "Reshape long to wide. Like tidyr::pivot_wider().", "examples": ['data _pivot((r) => r["year"], (r) => r["metric"], (r) => r["value"])']},
-    "_unpivot": {"signature": 'data _unpivot("id_col")', "description": "Reshape wide to long. Like tidyr::pivot_longer().", "examples": ['data _unpivot("name")']},
-    "_window": {"signature": "data _window(n, fn)", "description": "Rolling window aggregation.", "examples": ["data _window(3, (w) => w _avg)  // 3-period moving average"]},
-    "_chunk": {"signature": "data _chunk(n)", "description": "Split into chunks of size n.", "examples": ["[1, 2, 3, 4, 5, 6] _chunk(2)  // [[1, 2], [3, 4], [5, 6]]"]},
-    "_zip": {"signature": "data _zip(other)", "description": "Pair elements from two lists.", "examples": ['[1, 2, 3] _zip(["a", "b", "c"])']},
-    "_each": {"signature": "data _each(fn)", "description": "Execute fn for each item (side effects).", "examples": ["data _each((item) => show(item))"]},
-    "_groupBy": {"signature": "data _groupBy(fn)", "description": "Alias for _group.", "examples": ['data _groupBy((r) => r["dept"])']},
+    "reverse": {"signature": "data.reverse", "description": "Reverse order.", "examples": ["[1, 2, 3].reverse  // [3, 2, 1]"]},
+    "take": {"signature": "data.take(n)", "description": "First n items. Like R's head().", "examples": ["[1, 2, 3, 4, 5].take(3)  // [1, 2, 3]"]},
+    "drop": {"signature": "data.drop(n)", "description": "Skip first n items. Like R's tail(-n).", "examples": ["[1, 2, 3, 4, 5].drop(2)  // [3, 4, 5]"]},
+    "first": {"signature": "data.first", "description": "Get the first item.", "examples": ["[1, 2, 3].first  // 1"]},
+    "last": {"signature": "data.last", "description": "Get the last item.", "examples": ["[1, 2, 3].last  // 3"]},
+    "count": {"signature": "data.count", "description": "Count items. Like R's length() or nrow().", "examples": ["[1, 2, 3].count  // 3"]},
+    "sum": {"signature": "data.sum", "description": "Sum all values.", "examples": ["[1, 2, 3].sum  // 6"]},
+    "avg": {"signature": "data.avg", "description": "Average of all values. Like R's mean().", "examples": ["[1, 2, 3, 4, 5].avg  // 3.0"]},
+    "min": {"signature": "data.min", "description": "Minimum value.", "examples": ["[3, 1, 2].min  // 1"]},
+    "max": {"signature": "data.max", "description": "Maximum value.", "examples": ["[3, 1, 2].max  // 3"]},
+    "unique": {"signature": "data.unique", "description": "Remove duplicates. Like R's unique().", "examples": ["[1, 2, 2, 3, 1].unique  // [1, 2, 3]"]},
+    "flatten": {"signature": "data.flatten", "description": "Flatten nested lists. Like R's unlist().", "examples": ["[[1, 2], [3, 4]].flatten  // [1, 2, 3, 4]"]},
+    "group": {"signature": "data.group(fn)", "description": "Group items by key. Like R's split() or dplyr::group_by().", "examples": ['data.group((r) => r["category"])']},
+    "reduce": {"signature": "data.reduce(fn, initial)", "description": "Reduce to a single value. Like R's Reduce().", "examples": ["[1, 2, 3, 4].reduce((acc, x) => acc + x, 0)  // 10"]},
+    "select": {"signature": 'data.select("col1", "col2")', "description": "Select columns from tabular data. Like dplyr::select().", "examples": ['data.select("name", "age")']},
+    "mutate": {"signature": "data.mutate(fn)", "description": "Add or modify columns. Like dplyr::mutate().", "examples": ['data.mutate((r) => {"total": r["price"] * r["qty"]})']},
+    "summarize": {"signature": "grouped.summarize(aggs)", "description": "Aggregate groups. Like dplyr::summarize().", "examples": ['grouped.summarize({"total": (g) => g.map(...).sum})']},
+    "rename": {"signature": 'data.rename({"old": "new"})', "description": "Rename columns. Like dplyr::rename().", "examples": ['data.rename({"nm": "name"})']},
+    "arrange": {"signature": 'data.arrange(fn, "desc")', "description": "Sort rows. Like dplyr::arrange().", "examples": ['data.arrange((r) => r["score"], "desc")']},
+    "distinct": {"signature": "data.distinct(fn)", "description": "Unique rows by key. Like dplyr::distinct().", "examples": ['data.distinct((r) => r["id"])']},
+    "pull": {"signature": 'data.pull("column")', "description": "Extract a single column as a list. Like dplyr::pull().", "examples": ['data.pull("name")  // ["Alice", "Bob", ...]']},
+    "leftJoin": {"signature": "data.leftJoin(other, fn)", "description": "Left join two datasets. Like dplyr::left_join().", "examples": ['data.leftJoin(lookup, (a, b) => a["id"] == b["id"])']},
+    "pivot": {"signature": "data.pivot(row_fn, col_fn, val_fn)", "description": "Reshape long to wide. Like tidyr::pivot_wider().", "examples": ['data.pivot((r) => r["year"], (r) => r["metric"], (r) => r["value"])']},
+    "unpivot": {"signature": 'data.unpivot("id_col")', "description": "Reshape wide to long. Like tidyr::pivot_longer().", "examples": ['data.unpivot("name")']},
+    "window": {"signature": "data.window(n, fn)", "description": "Rolling window aggregation.", "examples": ["data.window(3, (w) => w.avg)  // 3-period moving average"]},
+    "chunk": {"signature": "data.chunk(n)", "description": "Split into chunks of size n.", "examples": ["[1, 2, 3, 4, 5, 6].chunk(2)  // [[1, 2], [3, 4], [5, 6]]"]},
+    "zip": {"signature": "data.zip(other)", "description": "Pair elements from two lists.", "examples": ['[1, 2, 3].zip(["a", "b", "c"])']},
+    "each": {"signature": "data.each(fn)", "description": "Execute fn for each item (side effects).", "examples": ["data.each((item) => show(item))"]},
+    "groupBy": {"signature": "data.groupBy(fn)", "description": "Alias for group.", "examples": ['data.groupBy((r) => r["dept"])']},
 }
 
 
@@ -439,10 +439,10 @@ LANGUAGE_DOCS: Dict[str, dict] = {
     "try": {"description": "Error handling.", "examples": ['try {\n    risky_operation()\n} catch e {\n    show("Error:" e)\n}']},
     "import": {"description": "Import from another module.", "examples": ['import "utils.tt"', 'from python use math']},
     "step_chains": {
-        "description": "TinyTalk's signature feature: chain operations with underscore-prefixed steps. Like R's pipe operator (|>) or dplyr chains.",
+        "description": "TinyTalk's signature feature: chain operations with dot-notation steps. Like R's pipe operator (|>) or dplyr chains.",
         "examples": [
-            'let top = data\n    _filter((r) => r["score"] > 80)\n    _sortBy((r) => r["score"])\n    _reverse\n    _take(5)',
-            "[1, 2, 3, 4, 5] _filter((x) => x > 2) _map((x) => x * 10) _sum",
+            'let top = data\n    .filter((r) => r["score"] > 80)\n    .sortBy((r) => r["score"])\n    .reverse\n    .take(5)',
+            "[1, 2, 3, 4, 5].filter((x) => x > 2).map((x) => x * 10).sum",
         ],
     },
 }
@@ -488,9 +488,10 @@ def get_help(name: str) -> Optional[dict]:
         return {"type": "step", "name": name, **STEP_DOCS[name]}
     if name in LANGUAGE_DOCS:
         return {"type": "keyword", "name": name, **LANGUAGE_DOCS[name]}
-    # Try with underscore prefix for steps
-    if "_" + name in STEP_DOCS:
-        return {"type": "step", "name": "_" + name, **STEP_DOCS["_" + name]}
+    # Try stripping underscore prefix for legacy step names
+    if name.startswith("_") and name[1:] in STEP_DOCS:
+        stripped = name[1:]
+        return {"type": "step", "name": stripped, **STEP_DOCS[stripped]}
     return None
 
 

@@ -34,6 +34,24 @@ STEP_TOKEN_TYPES = frozenset({
     TokenType.STEP_PIVOT, TokenType.STEP_UNPIVOT, TokenType.STEP_WINDOW,
 })
 
+# Step names for dot-based step chain syntax: nums.reverse.sort.take(3)
+STEP_NAMES = frozenset({
+    "filter", "sort", "map", "take", "drop", "first", "last",
+    "reverse", "unique", "count", "sum", "avg", "min", "max",
+    "group", "flatten", "zip", "chunk", "reduce", "sortBy",
+    "join", "mapValues", "each",
+    # dplyr-style verbs
+    "select", "mutate", "summarize", "summarise", "rename",
+    "arrange", "distinct", "slice", "pull", "groupBy", "group_by",
+    "leftJoin", "left_join", "pivot", "unpivot", "window",
+})
+
+# Token types that can be step names after a dot (keywords that collide)
+# e.g. "map" is lexed as TokenType.MAP, not IDENTIFIER
+_STEP_KEYWORD_TOKENS = frozenset({
+    TokenType.MAP,   # "map" is both a type keyword and a step name
+})
+
 EXPR_START_TOKENS = frozenset({
     TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.NULL,
     TokenType.IDENTIFIER, TokenType.LPAREN, TokenType.LBRACKET, TokenType.LBRACE,
@@ -131,6 +149,17 @@ class Parser:
     def _skip_newlines(self):
         while self._match(TokenType.NEWLINE):
             pass
+
+    def _is_step_name(self) -> bool:
+        """Check if the current token is a valid step chain name.
+        Handles both identifiers and keywords that collide with step names
+        (e.g. 'map' is TokenType.MAP but also a step name)."""
+        tok = self._peek()
+        if tok.type == TokenType.IDENTIFIER and tok.value in STEP_NAMES:
+            return True
+        if tok.type in _STEP_KEYWORD_TOKENS:
+            return True
+        return False
 
     # -- statements ---------------------------------------------------------
 
@@ -750,10 +779,15 @@ class Parser:
                 self._consume(TokenType.RBRACKET, "Expected ']'")
                 expr = Index(obj=expr, index=idx, line=tok.line, column=tok.column)
 
-            # Member access
+            # Member access / dot-based step chain
             elif self._match(TokenType.DOT):
                 tok = self.tokens[self.pos - 1]
-                if self._check(TokenType.IDENTIFIER):
+                if self._is_step_name():
+                    # Dot-based step chain: nums.reverse.sort.take(3)
+                    steps = self._collect_dot_steps()
+                    expr = StepChain(source=expr, steps=steps,
+                                     line=tok.line, column=tok.column)
+                elif self._check(TokenType.IDENTIFIER):
                     ft = self._advance()
                     expr = Member(obj=expr, field_name=ft.value,
                                   line=tok.line, column=tok.column)
@@ -772,7 +806,7 @@ class Parser:
                 else:
                     raise SyntaxError(f"Line {tok.line}: Expected field name after '.'")
 
-            # Step chain
+            # Legacy underscore step chain (_filter, _sort, etc.)
             elif self._peek().type in STEP_TOKEN_TYPES:
                 tok = self._peek()
                 steps = self._collect_steps()
@@ -780,9 +814,7 @@ class Parser:
                                  line=tok.line, column=tok.column)
             else:
                 # Before giving up, look past newlines for step chain
-                # continuation.  Step tokens (_filter, _select, etc.) can
-                # ONLY appear as step chains, never as standalone statements,
-                # so this is safe.
+                # or dot-based step continuation.
                 saved = self.pos
                 self._skip_newlines()
                 if self._peek().type in STEP_TOKEN_TYPES:
@@ -790,6 +822,17 @@ class Parser:
                     steps = self._collect_steps()
                     expr = StepChain(source=expr, steps=steps,
                                      line=tok.line, column=tok.column)
+                elif self._check(TokenType.DOT):
+                    dot_saved = self.pos
+                    self._advance()  # consume DOT
+                    if self._is_step_name():
+                        steps = self._collect_dot_steps()
+                        expr = StepChain(source=expr, steps=steps,
+                                         line=self.tokens[dot_saved].line,
+                                         column=self.tokens[dot_saved].column)
+                    else:
+                        self.pos = saved
+                        break
                 else:
                     self.pos = saved
                     break
@@ -806,6 +849,59 @@ class Parser:
                     args = self._parse_args()
                 self._consume(TokenType.RPAREN, f"Expected ')' after {st.value}")
             steps.append((st.value, args))
+        return steps
+
+    def _collect_dot_steps(self) -> list:
+        """Collect dot-separated step chain: .reverse.sort.take(3)
+        Caller has already consumed the DOT; the current token is the
+        first step-name IDENTIFIER."""
+        steps = []
+        # Consume first step (DOT already consumed by caller)
+        st = self._advance()  # consume IDENTIFIER
+        args = []
+        if self._match(TokenType.LPAREN):
+            if not self._check(TokenType.RPAREN):
+                args = self._parse_args()
+            self._consume(TokenType.RPAREN, f"Expected ')' after .{st.value}")
+        steps.append((st.value, args))
+        # Collect additional dot-separated steps
+        while True:
+            # Check for DOT followed by step name (possibly across newlines)
+            if self._check(TokenType.DOT):
+                saved = self.pos
+                self._advance()  # consume DOT
+                if self._is_step_name():
+                    st = self._advance()
+                    args = []
+                    if self._match(TokenType.LPAREN):
+                        if not self._check(TokenType.RPAREN):
+                            args = self._parse_args()
+                        self._consume(TokenType.RPAREN, f"Expected ')' after .{st.value}")
+                    steps.append((st.value, args))
+                else:
+                    self.pos = saved  # backtrack, not a step
+                    break
+            else:
+                # Look past newlines for continuation
+                saved = self.pos
+                self._skip_newlines()
+                if self._check(TokenType.DOT):
+                    dot_saved = self.pos
+                    self._advance()  # consume DOT
+                    if self._is_step_name():
+                        st = self._advance()
+                        args = []
+                        if self._match(TokenType.LPAREN):
+                            if not self._check(TokenType.RPAREN):
+                                args = self._parse_args()
+                            self._consume(TokenType.RPAREN, f"Expected ')' after .{st.value}")
+                        steps.append((st.value, args))
+                    else:
+                        self.pos = saved
+                        break
+                else:
+                    self.pos = saved
+                    break
         return steps
 
     def _parse_args(self) -> List[ASTNode]:

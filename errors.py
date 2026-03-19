@@ -49,30 +49,30 @@ def find_closest(name: str, candidates: List[str], max_distance: int = 2) -> Opt
 # ---------------------------------------------------------------------------
 
 ALL_STEP_NAMES = [
-    "_filter", "_sort", "_map", "_take", "_drop", "_first", "_last",
-    "_reverse", "_unique", "_count", "_sum", "_avg", "_min", "_max",
-    "_group", "_flatten", "_zip", "_chunk", "_reduce", "_sortBy",
-    "_join", "_mapValues", "_each",
-    "_select", "_mutate", "_summarize", "_rename", "_arrange",
-    "_distinct", "_slice", "_pull", "_groupBy", "_group_by",
-    "_leftJoin", "_left_join", "_pivot", "_unpivot", "_window",
+    "filter", "sort", "map", "take", "drop", "first", "last",
+    "reverse", "unique", "count", "sum", "avg", "min", "max",
+    "group", "flatten", "zip", "chunk", "reduce", "sortBy",
+    "join", "mapValues", "each",
+    "select", "mutate", "summarize", "rename", "arrange",
+    "distinct", "slice", "pull", "groupBy", "group_by",
+    "leftJoin", "left_join", "pivot", "unpivot", "window",
 ]
 
 # Steps that require a list
 STEPS_REQUIRING_LIST = {
-    "_filter", "_sort", "_map", "_take", "_drop", "_first", "_last",
-    "_reverse", "_unique", "_count", "_sum", "_avg", "_min", "_max",
-    "_flatten", "_zip", "_chunk", "_reduce", "_sortBy", "_each",
-    "_select", "_mutate", "_rename", "_arrange", "_distinct",
-    "_slice", "_pull", "_leftJoin", "_left_join",
-    "_pivot", "_unpivot", "_window",
+    "filter", "sort", "map", "take", "drop", "first", "last",
+    "reverse", "unique", "count", "sum", "avg", "min", "max",
+    "flatten", "zip", "chunk", "reduce", "sortBy", "each",
+    "select", "mutate", "rename", "arrange", "distinct",
+    "slice", "pull", "leftJoin", "left_join",
+    "pivot", "unpivot", "window",
 }
 
 # Steps that work on maps
-STEPS_REQUIRING_MAP = {"_mapValues"}
+STEPS_REQUIRING_MAP = {"mapValues"}
 
 # Steps that can work on grouped maps (map of lists)
-STEPS_ON_GROUPED = {"_summarize"}
+STEPS_ON_GROUPED = {"summarize"}
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ def step_type_mismatch_hint(step_name: str, actual_type: str) -> str:
     if step_name in STEPS_REQUIRING_MAP:
         msg = f"'{step_name}' works on maps. You have a {actual_type}"
         if actual_type == "list":
-            msg += f" — try converting to a map first with _group, or use _map instead."
+            msg += f" — try converting to a map first with .group, or use .map instead."
         return msg
 
     if step_name in STEPS_REQUIRING_LIST:
@@ -119,30 +119,30 @@ def step_type_mismatch_hint(step_name: str, actual_type: str) -> str:
 def step_args_hint(step_name: str) -> str:
     """Provide usage hints for a step chain that received wrong arguments."""
     hints: Dict[str, str] = {
-        "_filter": "_filter requires a function: data _filter((x) => condition)",
-        "_map": "_map requires a function: data _map((x) => transform(x))",
-        "_sort": "_sort optionally takes a key function: data _sort or data _sort((x) => x.field)",
-        "_reduce": "_reduce requires a function and optional initial value: data _reduce((acc, x) => acc + x, 0)",
-        "_group": "_group requires a key function: data _group((x) => x.category)",
-        "_groupBy": "_groupBy requires a key function: data _groupBy((x) => x.category)",
-        "_join": "_join requires (right_list, key_fn): left _join(right, (r) => r.id)",
-        "_leftJoin": "_leftJoin requires (right_list, key_fn): left _leftJoin(right, (r) => r.id)",
-        "_left_join": "_left_join requires (right_list, key_fn): left _left_join(right, (r) => r.id)",
-        "_select": '_select requires column names: data _select(["name", "age"]) or data _select("name", "age")',
-        "_mutate": "_mutate requires a function returning a map: data _mutate((r) => {\"new_col\": value})",
-        "_summarize": "_summarize requires a map of aggregation functions: data _summarize({\"total\": (rows) => rows _sum})",
-        "_rename": "_rename requires a map of {old: new}: data _rename({\"old_name\": \"new_name\"})",
-        "_arrange": "_arrange requires a key function: data _arrange((r) => r.field)",
-        "_sortBy": "_sortBy requires a key function: data _sortBy((x) => x.field)",
-        "_each": "_each requires a function: data _each((x) => show(x))",
-        "_mapValues": "_mapValues requires a function: map_data _mapValues((v) => transform(v))",
-        "_zip": "_zip requires a list: list1 _zip(list2)",
-        "_chunk": "_chunk requires a size: data _chunk(3)",
-        "_pivot": "_pivot requires (index_fn, column_fn, value_fn)",
-        "_unpivot": "_unpivot requires a list of id column names",
-        "_window": "_window requires (window_size, function)",
-        "_pull": '_pull requires a column name: data _pull("column_name")',
-        "_distinct": "_distinct optionally takes a key function or column list",
+        "filter": ".filter requires a function: data.filter((x) => condition)",
+        "map": ".map requires a function: data.map((x) => transform(x))",
+        "sort": ".sort optionally takes a key function: data.sort or data.sort((x) => x.field)",
+        "reduce": ".reduce requires a function and optional initial value: data.reduce((acc, x) => acc + x, 0)",
+        "group": ".group requires a key function: data.group((x) => x.category)",
+        "groupBy": ".groupBy requires a key function: data.groupBy((x) => x.category)",
+        "join": ".join requires (right_list, key_fn): left.join(right, (r) => r.id)",
+        "leftJoin": ".leftJoin requires (right_list, key_fn): left.leftJoin(right, (r) => r.id)",
+        "left_join": ".left_join requires (right_list, key_fn): left.left_join(right, (r) => r.id)",
+        "select": '.select requires column names: data.select(["name", "age"]) or data.select("name", "age")',
+        "mutate": ".mutate requires a function returning a map: data.mutate((r) => {\"new_col\": value})",
+        "summarize": ".summarize requires a map of aggregation functions: data.summarize({\"total\": (rows) => rows.sum})",
+        "rename": ".rename requires a map of {old: new}: data.rename({\"old_name\": \"new_name\"})",
+        "arrange": ".arrange requires a key function: data.arrange((r) => r.field)",
+        "sortBy": ".sortBy requires a key function: data.sortBy((x) => x.field)",
+        "each": ".each requires a function: data.each((x) => show(x))",
+        "mapValues": ".mapValues requires a function: map_data.mapValues((v) => transform(v))",
+        "zip": ".zip requires a list: list1.zip(list2)",
+        "chunk": ".chunk requires a size: data.chunk(3)",
+        "pivot": ".pivot requires (index_fn, column_fn, value_fn)",
+        "unpivot": ".unpivot requires a list of id column names",
+        "window": ".window requires (window_size, function)",
+        "pull": '.pull requires a column name: data.pull("column_name")',
+        "distinct": ".distinct optionally takes a key function or column list",
     }
     return hints.get(step_name, f"Check the usage of '{step_name}'")
 

@@ -11,30 +11,30 @@ Mapping:
     fn add(a, b) { ... }   →  function add(a, b) { ... }
     (x) => x * 2           →  (x) => x * 2
     show(x)                 →  console.log(x)
-    _filter(pred)           →  .filter(pred)
-    _map(fn)                →  .map(fn)
-    _sort                   →  .slice().sort(...)
-    _reduce(fn, init)       →  .reduce(fn, init)
-    _take(n)                →  .slice(0, n)
-    _drop(n)                →  .slice(n)
-    _reverse                →  .slice().reverse()
-    _first                  →  [0]
-    _last                   →  .at(-1)
-    _unique                 →  [...new Set(...)]
-    _flatten                →  .flat()
-    _sum                    →  .reduce((a, b) => a + b, 0)
-    _avg                    →  (arr => arr.reduce((a,b)=>a+b,0)/arr.length)
-    _count                  →  .length
-    _min / _max             →  Math.min(...) / Math.max(...)
-    _group(fn)              →  Object.groupBy(...)
-    _each(fn)               →  .forEach(fn)
-    _chunk(n)               →  chunked via helper
-    _join / _leftJoin       →  nested loops / flatMap
+    .filter(pred)           →  .filter(pred)
+    .map(fn)                →  .map(fn)
+    .sort                   →  .slice().sort(...)
+    .reduce(fn, init)       →  .reduce(fn, init)
+    .take(n)                →  .slice(0, n)
+    .drop(n)                →  .slice(n)
+    .reverse                →  .slice().reverse()
+    .first                  →  [0]
+    .last                   →  .at(-1)
+    .unique                 →  [...new Set(...)]
+    .flatten                →  .flat()
+    .sum                    →  .reduce((a, b) => a + b, 0)
+    .avg                    →  (arr => arr.reduce((a,b)=>a+b,0)/arr.length)
+    .count                  →  .length
+    .min / .max             →  Math.min(...) / Math.max(...)
+    .group(fn)              →  Object.groupBy(...)
+    .each(fn)               →  .forEach(fn)
+    .chunk(n)               →  chunked via helper
+    .join / .leftJoin       →  nested loops / flatMap
 
 Usage:
     from newTinyTalk.js_transpiler import transpile_js
 
-    js = transpile_js('let x = [1,2,3] _filter((n) => n > 1) _sum')
+    js = transpile_js('let x = [1,2,3].filter((n) => n > 1).sum')
 """
 
 from .ast_nodes import (
@@ -545,156 +545,156 @@ class JavaScriptTranspiler:
     def _apply_step(self, data: str, step: str, args: list[str]) -> str:
         """Convert a single step chain operation to JavaScript."""
 
-        if step == "_filter":
+        if step == "filter":
             fn = args[0] if args else "Boolean"
             return f"{data}.filter({fn})"
 
-        if step == "_map":
+        if step == "map":
             fn = args[0] if args else "(x) => x"
             return f"{data}.map({fn})"
 
-        if step == "_sort":
+        if step == "sort":
             if args:
                 return f"{data}.slice().sort((a, b) => {args[0]}(a) < {args[0]}(b) ? -1 : {args[0]}(a) > {args[0]}(b) ? 1 : 0)"
             return f"{data}.slice().sort((a, b) => a - b)"
 
-        if step == "_sortBy":
+        if step == "sortBy":
             fn = args[0]
             return f"{data}.slice().sort((a, b) => {fn}(a) < {fn}(b) ? -1 : {fn}(a) > {fn}(b) ? 1 : 0)"
 
-        if step == "_reverse":
+        if step == "reverse":
             return f"{data}.slice().reverse()"
 
-        if step == "_take":
+        if step == "take":
             return f"{data}.slice(0, {args[0]})"
 
-        if step == "_drop":
+        if step == "drop":
             return f"{data}.slice({args[0]})"
 
-        if step == "_first":
+        if step == "first":
             return f"{data}[0]"
 
-        if step == "_last":
+        if step == "last":
             return f"{data}.at(-1)"
 
-        if step == "_unique":
+        if step == "unique":
             return f"[...new Set({data})]"
 
-        if step == "_flatten":
+        if step == "flatten":
             return f"{data}.flat()"
 
-        if step == "_count":
+        if step == "count":
             if args:
                 return f"{data}.filter({args[0]}).length"
             return f"{data}.length"
 
-        if step == "_sum":
+        if step == "sum":
             return f"{data}.reduce((a, b) => a + b, 0)"
 
-        if step == "_avg":
+        if step == "avg":
             return f"({data}.reduce((a, b) => a + b, 0) / {data}.length)"
 
-        if step == "_min":
+        if step == "min":
             return f"Math.min(...{data})"
 
-        if step == "_max":
+        if step == "max":
             return f"Math.max(...{data})"
 
-        if step in ("_group", "_groupBy", "_group_by"):
+        if step in ("group", "groupBy", "group_by"):
             fn = args[0]
             return (f"{data}.reduce((groups, item) => "
                     f"((groups[{fn}(item)] = groups[{fn}(item)] || []).push(item), groups), {{}})")
 
-        if step == "_reduce":
+        if step == "reduce":
             fn = args[0]
             if len(args) > 1:
                 return f"{data}.reduce({fn}, {args[1]})"
             return f"{data}.reduce({fn})"
 
-        if step == "_each":
+        if step == "each":
             return f"((arr) => (arr.forEach({args[0]}), arr))({data})"
 
-        if step == "_zip":
+        if step == "zip":
             return f"{data}.map((e, i) => [e, {args[0]}[i]])"
 
-        if step == "_chunk":
+        if step == "chunk":
             n = args[0] if args else "2"
             return (f"Array.from({{length: Math.ceil({data}.length / {n})}}, "
                     f"(_, i) => {data}.slice(i * {n}, (i + 1) * {n}))")
 
-        if step == "_join":
+        if step == "join":
             right = args[0]
             fn = args[1]
             return (f"{data}.flatMap(l => "
                     f"{right}.filter(r => {fn}(l) === {fn}(r))"
                     f".map(r => ({{...l, ...r}})))")
 
-        if step in ("_leftJoin", "_left_join"):
+        if step in ("leftJoin", "left_join"):
             right = args[0]
             fn = args[1]
             return (f"{data}.map(l => ({{...l, "
                     f"...({right}.find(r => {fn}(r) === {fn}(l)) || {{}})}}))")
 
         # dplyr-style verbs
-        if step == "_select":
+        if step == "select":
             if len(args) == 1:
                 cols = args[0]
                 return f"{data}.map(row => {cols}.reduce((o, k) => (o[k] = row[k], o), {{}}))"
             cols_str = ", ".join(args)
             return f"{data}.map(row => [{cols_str}].reduce((o, k) => (o[k] = row[k], o), {{}}))"
 
-        if step == "_mutate":
+        if step == "mutate":
             fn = args[0]
             return f"{data}.map(row => ({{...row, ...{fn}(row)}}))"
 
-        if step == "_summarize":
+        if step == "summarize":
             return f"Object.fromEntries(Object.entries({args[0]}).map(([k, fn]) => [k, fn({data})]))"
 
-        if step == "_rename":
+        if step == "rename":
             rename_map = args[0]
             return (f"{data}.map(row => Object.fromEntries("
                     f"Object.entries(row).map(([k, v]) => [{rename_map}[k] || k, v])))")
 
-        if step == "_arrange":
+        if step == "arrange":
             fn = args[0]
             if len(args) > 1:
                 return f"{data}.slice().sort((a, b) => {fn}(b) < {fn}(a) ? -1 : {fn}(b) > {fn}(a) ? 1 : 0)"
             return f"{data}.slice().sort((a, b) => {fn}(a) < {fn}(b) ? -1 : {fn}(a) > {fn}(b) ? 1 : 0)"
 
-        if step in ("_distinct", "_unique"):
+        if step in ("distinct", "unique"):
             if args:
                 fn = args[0]
                 return f"[...new Map({data}.map(x => [{fn}(x), x])).values()]"
             return f"[...new Set({data})]"
 
-        if step == "_slice":
+        if step == "slice":
             start = args[0] if args else "0"
             if len(args) > 1:
                 return f"{data}.slice({start}, {start} + {args[1]})"
             return f"{data}.slice({start})"
 
-        if step == "_pull":
+        if step == "pull":
             col = args[0]
             return f"{data}.map(row => row[{col}])"
 
-        if step == "_mapValues":
+        if step == "mapValues":
             fn = args[0]
             return f"Object.fromEntries(Object.entries({data}).map(([k, v]) => [k, {fn}(v)]))"
 
-        if step == "_pivot":
+        if step == "pivot":
             idx_fn, col_fn, val_fn = args[0], args[1], args[2]
             return (f"{data}.reduce((acc, r) => "
                     f"((acc[{idx_fn}(r)] = acc[{idx_fn}(r)] || {{}})["
                     f"{col_fn}(r)] = {val_fn}(r), acc), {{}})")
 
-        if step == "_unpivot":
+        if step == "unpivot":
             id_cols = args[0]
             return (f"{data}.flatMap(row => Object.entries(row)"
                     f".filter(([k]) => !{id_cols}.includes(k))"
                     f".map(([k, v]) => ({{...Object.fromEntries({id_cols}.map(c => [c, row[c]])), "
                     f"variable: k, value: v}})))")
 
-        if step == "_window":
+        if step == "window":
             n = args[0]
             fn = args[1]
             return (f"{data}.map((_, i, arr) => "

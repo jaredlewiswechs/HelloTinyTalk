@@ -3,8 +3,8 @@ TinyTalk Chain Debugger
 Step-through debugging for step chains with intermediate result inspection.
 
 The killer feature: hover over each step in a pipeline like
-    data _filter(...) _sort _reverse _take(3)
-and see the intermediate result at every underscore.
+    data.filter(...).sort.reverse.take(3)
+and see the intermediate result at every step.
 
 No other language does this. Python debuggers show you the final result
 of a chained expression. TinyTalk shows you every stage.

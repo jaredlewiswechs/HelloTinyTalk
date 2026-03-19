@@ -6,7 +6,7 @@ Two styles, one language:
   - Classic: when, law, forge, reply, end
 
 Standout features:
-  - Step chains:  data _filter(pred) _sort _take(3)
+  - Step chains:  data.filter(pred).sort.take(3)
   - Property conversions:  x.str  x.int  x.type  x.len
   - Natural comparisons:  x is y, list has item, s islike "A*"
   - Space-separated args:  show "hello" name

@@ -21,14 +21,14 @@ for i in range(len(days)) {
 chart_line(days, conversion, "Conversion Rate (%)")
 
 // 4. Bounce rate (pie for average breakdown)
-let avg_bounce = round(bounces _avg, 1)
+let avg_bounce = round(bounces.avg, 1)
 let bounce_labels = ["Bounced", "Engaged"]
 let bounce_values = [avg_bounce, 100 - avg_bounce]
 chart_pie(bounce_labels, bounce_values, "Avg Bounce vs Engagement")
 
 // Summary
 show("=== Weekly Dashboard ===")
-show("Total Visits:    {visits _sum}")
-show("Total Signups:   {signups _sum}")
-show("Avg Conversion:  {round(conversion _avg, 1)}%")
+show("Total Visits:    {visits.sum}")
+show("Total Signups:   {signups.sum}")
+show("Avg Conversion:  {round(conversion.avg, 1)}%")
 show("Avg Bounce Rate: {avg_bounce}%")

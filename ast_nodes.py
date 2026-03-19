@@ -196,7 +196,7 @@ class Pipe(ASTNode):
 
 @dataclass
 class StepChain(ASTNode):
-    """data _filter(pred) _sort _take(3)"""
+    """data.filter(pred).sort.take(3)"""
     source: ASTNode = None
     steps: List[tuple] = field(default_factory=list)  # [(step_name, args)]
 

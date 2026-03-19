@@ -1,0 +1,1141 @@
+# ============================================================
+# LANGUAGE DESIGN WORKSHEET
+# Every operation your language needs to handle.
+# Python | Ruby | YOUR SYNTAX (type yours in the blank sections)
+# ============================================================
+
+
+# ============================================================
+# 1. VARIABLES - BASIC ASSIGNMENT
+# ============================================================
+
+# --- Python ---
+name = "Jared Lewis"
+age = 28
+pi = 3.14159
+active = True
+data = None
+
+# --- Ruby ---
+name = "Jared Lewis"
+age = 28
+pi = 3.14159
+active = true
+data = nil
+
+# --- YOUR LANGUAGE ---
+name is Jared Lewis
+age is 28
+pi is 3.14159
+active is true
+data is nil
+
+
+
+# ============================================================
+# 2. CHANGING A VARIABLE
+# ============================================================
+
+# --- Python ---
+name = "Johnny"
+age = age + 1
+
+# --- Ruby ---
+name = "Johnny"
+age += 1
+
+# --- YOUR LANGUAGE ---
+name is Johnny
+age is age + 1
+
+
+
+
+# ============================================================
+# 3. PRINTING / OUTPUT
+# ============================================================
+
+# --- Python ---
+print("Hello world")
+print(f"My name is {name} and I am {age} years old")
+print(f"The total is {price + tax}")
+
+# --- Ruby ---
+puts "Hello world"
+puts "My name is #{name} and I am #{age} years old"
+puts "The total is #{price + tax}"
+
+# --- YOUR LANGUAGE ---
+show Hello world
+show My name is .name and I am .age years old
+show The total is .price + .tax
+
+# ============================================================
+# 4. LISTS / ARRAYS - CREATION
+# ============================================================
+
+# --- Python ---
+colors = ["red", "green", "blue"]
+numbers = [1, 2, 3, 4, 5]
+empty = []
+
+# --- Ruby ---
+colors = ["red", "green", "blue"]
+numbers = [1, 2, 3, 4, 5]
+empty = []
+
+# --- YOUR LANGUAGE ---
+colors are red, green, blue
+numbers are 1, 2, 3, 4, 5
+empty is []
+
+
+
+# ============================================================
+# 5. LISTS - ADD, REMOVE, ACCESS
+# ============================================================
+
+# --- Python ---
+colors.append("yellow")
+colors.remove("green")
+first = colors[0]
+last = colors[-1]
+length = len(colors)
+
+# --- Ruby ---
+colors.push("yellow")
+colors.delete("green")
+first = colors.first
+last = colors.last
+length = colors.length
+
+# --- YOUR LANGUAGE ---
+length is colors.length
+colors.add yellow
+colors.remove green
+first is colors.first
+last is colors.end
+
+
+# ============================================================
+# 6. DICTIONARIES / HASHES / MAPS
+# ============================================================
+
+# --- Python ---
+person = {"name": "Jared", "age": 28, "city": "Houston"}
+person["email"] = "jared@example.com"
+print(person["name"])
+del person["city"]
+
+# --- Ruby ---
+person = {name: "Jared", age: 28, city: "Houston"}
+person[:email] = "jared@example.com"
+puts person[:name]
+person.delete(:city)
+
+# --- YOUR LANGUAGE ---
+person is name: Jared, age: 28, city: Houston
+person.email is jared@example.com
+show person.name
+person delete city
+
+
+
+# ============================================================
+# 7. IF / ELSE IF / ELSE
+# ============================================================
+
+# --- Python ---
+if age >= 21:
+    print("Can drink")
+elif age >= 18:
+    print("Can vote")
+else:
+    print("Too young")
+
+# --- Ruby ---
+if age >= 21
+  puts "Can drink"
+elsif age >= 18
+  puts "Can vote"
+else
+  puts "Too young"
+end
+
+# --- YOUR LANGUAGE ---
+if age >= 21 then show Can drink
+if age >= 18 then show Can vote
+else show Too young
+
+
+# ============================================================
+# 8. TERNARY / INLINE CONDITIONAL
+# ============================================================
+
+# --- Python ---
+status = "adult" if age >= 18 else "minor"
+
+# --- Ruby ---
+status = age >= 18 ? "adult" : "minor"
+
+# --- YOUR LANGUAGE ---
+status = "adult" if age >= 18 else "minor"
+
+
+
+
+# ============================================================
+# 9. FOR LOOP - OVER A LIST
+# ============================================================
+
+# --- Python ---
+for color in colors:
+    print(color)
+
+# --- Ruby ---
+colors.each do |color|
+  puts color
+end
+
+# --- YOUR LANGUAGE ---
+for color in colors:
+show color
+
+
+
+
+
+# ============================================================
+# 10. FOR LOOP - WITH INDEX
+# ============================================================
+
+# --- Python ---
+for i, color in enumerate(colors):
+    print(f"{i}: {color}")
+
+# --- Ruby ---
+colors.each_with_index do |color, i|
+  puts "#{i}: #{color}"
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 11. FOR LOOP - RANGE OF NUMBERS
+# ============================================================
+
+# --- Python ---
+for i in range(1, 11):
+    print(i)
+
+# --- Ruby ---
+(1..10).each do |i|
+  puts i
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 12. WHILE LOOP
+# ============================================================
+
+# --- Python ---
+count = 10
+while count > 0:
+    print(count)
+    count -= 1
+
+# --- Ruby ---
+count = 10
+while count > 0
+  puts count
+  count -= 1
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 13. LOOP WITH BREAK
+# ============================================================
+
+# --- Python ---
+while True:
+    line = input()
+    if line == "quit":
+        break
+    print(f"You said: {line}")
+
+# --- Ruby ---
+loop do
+  line = gets.chomp
+  break if line == "quit"
+  puts "You said: #{line}"
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 14. FUNCTION - BASIC
+# ============================================================
+
+# --- Python ---
+def add(a, b):
+    return a + b
+
+result = add(2, 3)
+
+# --- Ruby ---
+def add(a, b)
+  a + b
+end
+
+result = add(2, 3)
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 15. FUNCTION - MULTIPLE LINES
+# ============================================================
+
+# --- Python ---
+def describe(person):
+    if person["age"] >= 18:
+        return f"{person['name']} is an adult"
+    else:
+        return f"{person['name']} is a minor"
+
+# --- Ruby ---
+def describe(person)
+  if person[:age] >= 18
+    "#{person[:name]} is an adult"
+  else
+    "#{person[:name]} is a minor"
+  end
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 16. FUNCTION - DEFAULT PARAMETERS
+# ============================================================
+
+# --- Python ---
+def connect(host="localhost", port=3000):
+    print(f"Connecting to {host}:{port}")
+
+connect()
+connect(host="example.com")
+
+# --- Ruby ---
+def connect(host: "localhost", port: 3000)
+  puts "Connecting to #{host}:#{port}"
+end
+
+connect
+connect(host: "example.com")
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 17. FUNCTION - MULTIPLE NAMED PARAMETERS
+# ============================================================
+
+# --- Python ---
+def send_email(message, to, subject="No Subject"):
+    print(f"To: {to}\nSubject: {subject}\n{message}")
+
+send_email("Hello!", to="alice@mail.com", subject="Greetings")
+
+# --- Ruby ---
+def send_email(message, to:, subject: "No Subject")
+  puts "To: #{to}\nSubject: #{subject}\n#{message}"
+end
+
+send_email("Hello!", to: "alice@mail.com", subject: "Greetings")
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 18. CLASS / TYPE - DEFINITION
+# ============================================================
+
+# --- Python ---
+class Dog:
+    def __init__(self, name, breed, age):
+        self.name = name
+        self.breed = breed
+        self.age = age
+
+# --- Ruby ---
+class Dog
+  attr_accessor :name, :breed, :age
+  def initialize(name, breed, age)
+    @name = name
+    @breed = breed
+    @age = age
+  end
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 19. CLASS / TYPE - METHODS
+# ============================================================
+
+# --- Python ---
+class Dog:
+    def __init__(self, name, breed, age):
+        self.name = name
+        self.breed = breed
+        self.age = age
+
+    def speak(self):
+        return f"Woof! I'm {self.name}"
+
+    def fetch(self, thing):
+        return f"{self.name} fetches the {thing}"
+
+    def is_old(self):
+        return self.age > 10
+
+# --- Ruby ---
+class Dog
+  attr_accessor :name, :breed, :age
+  def initialize(name, breed, age)
+    @name = name
+    @breed = breed
+    @age = age
+  end
+
+  def speak
+    "Woof! I'm #{@name}"
+  end
+
+  def fetch(thing)
+    "#{@name} fetches the #{thing}"
+  end
+
+  def old?
+    @age > 10
+  end
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 20. CLASS / TYPE - CREATING INSTANCES
+# ============================================================
+
+# --- Python ---
+rex = Dog("Rex", "Labrador", 3)
+buddy = Dog(name="Buddy", breed="Poodle", age=7)
+
+# --- Ruby ---
+rex = Dog.new("Rex", "Labrador", 3)
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 21. CLASS / TYPE - USING INSTANCES
+# ============================================================
+
+# --- Python ---
+print(rex.speak())
+print(rex.fetch("ball"))
+print(rex.name)
+print(rex.is_old())
+
+# --- Ruby ---
+puts rex.speak
+puts rex.fetch("ball")
+puts rex.name
+puts rex.old?
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 22. CLASS / TYPE - CHANGING FIELDS
+# ============================================================
+
+# --- Python ---
+rex.name = "Rexter"
+rex.age = 4
+
+# --- Ruby ---
+rex.name = "Rexter"
+rex.age = 4
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 23. INHERITANCE / TYPE EXTENSION
+# ============================================================
+
+# --- Python ---
+class ServiceDog(Dog):
+    def __init__(self, name, breed, age, job):
+        super().__init__(name, breed, age)
+        self.job = job
+
+    def work(self):
+        return f"{self.name} is working as a {self.job} dog"
+
+# --- Ruby ---
+class ServiceDog < Dog
+  attr_accessor :job
+  def initialize(name, breed, age, job)
+    super(name, breed, age)
+    @job = job
+  end
+
+  def work
+    "#{@name} is working as a #{@job} dog"
+  end
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 24. FILTER A LIST
+# ============================================================
+
+# --- Python ---
+evens = [x for x in numbers if x % 2 == 0]
+# or
+evens = list(filter(lambda x: x % 2 == 0, numbers))
+
+# --- Ruby ---
+evens = numbers.select { |x| x.even? }
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 25. MAP / TRANSFORM A LIST
+# ============================================================
+
+# --- Python ---
+doubled = [x * 2 for x in numbers]
+# or
+doubled = list(map(lambda x: x * 2, numbers))
+
+# --- Ruby ---
+doubled = numbers.map { |x| x * 2 }
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 26. REDUCE / SUM A LIST
+# ============================================================
+
+# --- Python ---
+total = sum(numbers)
+# or
+from functools import reduce
+total = reduce(lambda a, b: a + b, numbers)
+
+# --- Ruby ---
+total = numbers.sum
+# or
+total = numbers.reduce(:+)
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 27. CHAIN FILTER + MAP + REDUCE
+# ============================================================
+
+# --- Python ---
+result = sum(x * 2 for x in numbers if x % 2 == 0)
+
+# --- Ruby ---
+result = numbers.select(&:even?).map { |x| x * 2 }.sum
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 28. SORT A LIST
+# ============================================================
+
+# --- Python ---
+sorted_nums = sorted(numbers)
+sorted_names = sorted(people, key=lambda p: p.age)
+numbers.sort()  # in-place
+
+# --- Ruby ---
+sorted_nums = numbers.sort
+sorted_people = people.sort_by { |p| p.age }
+numbers.sort!  # in-place
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 29. FIND IN A LIST
+# ============================================================
+
+# --- Python ---
+found = next((p for p in people if p.name == "Alice"), None)
+exists = any(p.name == "Alice" for p in people)
+
+# --- Ruby ---
+found = people.find { |p| p.name == "Alice" }
+exists = people.any? { |p| p.name == "Alice" }
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 30. STRING OPERATIONS
+# ============================================================
+
+# --- Python ---
+upper = name.upper()
+lower = name.lower()
+words = name.split(" ")
+joined = " ".join(words)
+trimmed = name.strip()
+has_j = name.startswith("J")
+length = len(name)
+replaced = name.replace("Jared", "Johnny")
+
+# --- Ruby ---
+upper = name.upcase
+lower = name.downcase
+words = name.split(" ")
+joined = words.join(" ")
+trimmed = name.strip
+has_j = name.start_with?("J")
+length = name.length
+replaced = name.gsub("Jared", "Johnny")
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 31. ERROR HANDLING - BASIC
+# ============================================================
+
+# --- Python ---
+try:
+    data = open("file.txt").read()
+except FileNotFoundError:
+    data = "default"
+
+# --- Ruby ---
+begin
+  data = File.read("file.txt")
+rescue Errno::ENOENT
+  data = "default"
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 32. ERROR HANDLING - DETAILED
+# ============================================================
+
+# --- Python ---
+try:
+    data = open("file.txt").read()
+    parsed = json.loads(data)
+except FileNotFoundError as e:
+    print(f"File error: {e}")
+except json.JSONDecodeError as e:
+    print(f"Parse error: {e}")
+finally:
+    print("Done")
+
+# --- Ruby ---
+begin
+  data = File.read("file.txt")
+  parsed = JSON.parse(data)
+rescue Errno::ENOENT => e
+  puts "File error: #{e}"
+rescue JSON::ParserError => e
+  puts "Parse error: #{e}"
+ensure
+  puts "Done"
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 33. FILE I/O - READ
+# ============================================================
+
+# --- Python ---
+content = open("data.txt").read()
+lines = open("data.txt").readlines()
+
+# --- Ruby ---
+content = File.read("data.txt")
+lines = File.readlines("data.txt")
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 34. FILE I/O - WRITE
+# ============================================================
+
+# --- Python ---
+with open("output.txt", "w") as f:
+    f.write("Hello world")
+
+# --- Ruby ---
+File.write("output.txt", "Hello world")
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 35. IMPORTING MODULES / LIBRARIES
+# ============================================================
+
+# --- Python ---
+import math
+from math import pi, sqrt
+import json
+
+print(math.pi)
+print(sqrt(16))
+
+# --- Ruby ---
+require "json"
+require "net/http"
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 36. SWITCH / CASE / MATCH
+# ============================================================
+
+# --- Python ---
+match command:
+    case "start":
+        print("Starting")
+    case "stop":
+        print("Stopping")
+    case _:
+        print("Unknown")
+
+# --- Ruby ---
+case command
+when "start"
+  puts "Starting"
+when "stop"
+  puts "Stopping"
+else
+  puts "Unknown"
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 37. TESTING / ASSERTIONS
+# ============================================================
+
+# --- Python ---
+def test_addition():
+    assert add(2, 2) == 4
+    assert add(0, 0) == 0
+
+def test_dog_speak():
+    rex = Dog("Rex", "Lab", 3)
+    assert rex.speak() == "Woof! I'm Rex"
+
+# --- Ruby ---
+RSpec.describe "addition" do
+  it "adds two numbers" do
+    expect(add(2, 2)).to eq(4)
+  end
+end
+
+RSpec.describe Dog do
+  it "speaks" do
+    rex = Dog.new("Rex", "Lab", 3)
+    expect(rex.speak).to eq("Woof! I'm Rex")
+  end
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 38. CLOSURES / LAMBDAS / ANONYMOUS FUNCTIONS
+# ============================================================
+
+# --- Python ---
+double = lambda x: x * 2
+greet = lambda name: f"Hello {name}"
+numbers.sort(key=lambda x: -x)
+
+# --- Ruby ---
+double = ->(x) { x * 2 }
+greet = ->(name) { "Hello #{name}" }
+numbers.sort_by { |x| -x }
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 39. HIGHER ORDER FUNCTIONS (passing functions as args)
+# ============================================================
+
+# --- Python ---
+def apply(func, value):
+    return func(value)
+
+result = apply(double, 5)  # 10
+
+def make_greeter(greeting):
+    def greeter(name):
+        return f"{greeting}, {name}!"
+    return greeter
+
+hello = make_greeter("Hello")
+print(hello("Jared"))  # "Hello, Jared!"
+
+# --- Ruby ---
+def apply(func, value)
+  func.call(value)
+end
+
+result = apply(double, 5)  # 10
+
+def make_greeter(greeting)
+  ->(name) { "#{greeting}, #{name}!" }
+end
+
+hello = make_greeter("Hello")
+puts hello.call("Jared")  # "Hello, Jared!"
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 40. INSPECT / DEBUG AN OBJECT
+# ============================================================
+
+# --- Python ---
+print(type(rex))        # <class 'Dog'>
+print(dir(rex))         # list of attributes
+print(vars(rex))        # {'name': 'Rex', 'breed': 'Lab', 'age': 3}
+print(repr(rex))
+
+# --- Ruby ---
+puts rex.class          # Dog
+puts rex.methods        # list of methods
+puts rex.inspect        # #<Dog:0x... @name="Rex", @breed="Lab", @age=3>
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 41. TYPE CHECKING
+# ============================================================
+
+# --- Python ---
+isinstance(rex, Dog)      # True
+isinstance(42, int)       # True
+type(rex) == Dog          # True
+
+# --- Ruby ---
+rex.is_a?(Dog)            # true
+42.is_a?(Integer)         # true
+rex.class == Dog          # true
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 42. COMMENTS
+# ============================================================
+
+# --- Python ---
+# This is a comment
+x = 5  # inline comment
+"""
+This is a
+multi-line comment
+"""
+
+# --- Ruby ---
+# This is a comment
+x = 5  # inline comment
+=begin
+This is a
+multi-line comment
+=end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 43. MATH OPERATIONS
+# ============================================================
+
+# --- Python ---
+total = 10 + 5
+diff = 10 - 5
+product = 10 * 5
+quotient = 10 / 3       # 3.333...
+integer_div = 10 // 3   # 3
+remainder = 10 % 3      # 1
+power = 2 ** 10          # 1024
+
+# --- Ruby ---
+total = 10 + 5
+diff = 10 - 5
+product = 10 * 5
+quotient = 10.0 / 3     # 3.333...
+integer_div = 10 / 3    # 3
+remainder = 10 % 3      # 1
+power = 2 ** 10          # 1024
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 44. COMPARISON AND LOGIC
+# ============================================================
+
+# --- Python ---
+x == y       # equal
+x != y       # not equal
+x > y        # greater
+x < y        # less
+x >= y       # greater or equal
+x <= y       # less or equal
+x and y      # both true
+x or y       # either true
+not x        # negate
+
+# --- Ruby ---
+x == y
+x != y
+x > y
+x < y
+x >= y
+x <= y
+x && y       # or: x and y
+x || y       # or: x or y
+!x           # or: not x
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 45. ASYNC / WAITING FOR THINGS
+# ============================================================
+
+# --- Python ---
+import asyncio
+
+async def fetch_data(url):
+    response = await http_get(url)
+    return response.body
+
+async def main():
+    data = await fetch_data("https://api.example.com")
+    print(data)
+
+# --- Ruby ---
+# Ruby uses threads/fibers
+require "async"
+
+Async do
+  response = await http_get("https://api.example.com")
+  puts response.body
+end
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 46. INPUT FROM USER
+# ============================================================
+
+# --- Python ---
+name = input("What is your name? ")
+age = int(input("How old are you? "))
+
+# --- Ruby ---
+print "What is your name? "
+name = gets.chomp
+print "How old are you? "
+age = gets.chomp.to_i
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 47. RANDOM
+# ============================================================
+
+# --- Python ---
+import random
+num = random.randint(1, 100)
+choice = random.choice(colors)
+random.shuffle(colors)
+
+# --- Ruby ---
+num = rand(1..100)
+choice = colors.sample
+colors.shuffle!
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 48. DATES AND TIME
+# ============================================================
+
+# --- Python ---
+from datetime import datetime
+now = datetime.now()
+print(now.strftime("%Y-%m-%d"))
+print(now.year)
+
+# --- Ruby ---
+now = Time.now
+puts now.strftime("%Y-%m-%d")
+puts now.year
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 49. SLEEP / WAIT
+# ============================================================
+
+# --- Python ---
+import time
+time.sleep(2)  # wait 2 seconds
+
+# --- Ruby ---
+sleep(2)
+
+# --- YOUR LANGUAGE ---
+
+
+
+
+# ============================================================
+# 50. RUNNING A PROGRAM (entry point)
+# ============================================================
+
+# --- Python ---
+# file: main.py
+# just runs top to bottom
+# or:
+if __name__ == "__main__":
+    main()
+
+# --- Ruby ---
+# file: main.rb
+# just runs top to bottom
+
+# --- YOUR LANGUAGE ---
+# What does a .say file look like from top to bottom?
+# Is there a main? Or does it just run?

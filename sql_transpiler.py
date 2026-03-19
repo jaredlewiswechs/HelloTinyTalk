@@ -6,29 +6,29 @@ This is a teaching tool: students write TinyTalk pipelines and see
 the SQL equivalent, bridging data manipulation to industry SQL.
 
 Mapping:
-    _filter(pred)         →  WHERE pred
-    _select("a", "b")     →  SELECT a, b
-    _group(key)           →  GROUP BY key
-    _summarize(aggs)      →  SELECT agg_fn(col) AS name
-    _arrange(key)         →  ORDER BY key
-    _arrange(key, "desc") →  ORDER BY key DESC
-    _take(n)              →  LIMIT n
-    _drop(n)              →  OFFSET n
-    _join(right, key)     →  INNER JOIN right ON key
-    _leftJoin(right, key) →  LEFT JOIN right ON key
-    _distinct             →  SELECT DISTINCT
-    _rename({old: new})   →  SELECT old AS new
-    _sort                 →  ORDER BY (all columns)
-    _count                →  SELECT COUNT(*)
-    _sum                  →  SELECT SUM(col)
-    _avg                  →  SELECT AVG(col)
-    _min                  →  SELECT MIN(col)
-    _max                  →  SELECT MAX(col)
+    .filter(pred)         →  WHERE pred
+    .select("a", "b")     →  SELECT a, b
+    .group(key)           →  GROUP BY key
+    .summarize(aggs)      →  SELECT agg_fn(col) AS name
+    .arrange(key)         →  ORDER BY key
+    .arrange(key, "desc") →  ORDER BY key DESC
+    .take(n)              →  LIMIT n
+    .drop(n)              →  OFFSET n
+    .join(right, key)     →  INNER JOIN right ON key
+    .leftJoin(right, key) →  LEFT JOIN right ON key
+    .distinct             →  SELECT DISTINCT
+    .rename({old: new})   →  SELECT old AS new
+    .sort                 →  ORDER BY (all columns)
+    .count                →  SELECT COUNT(*)
+    .sum                  →  SELECT SUM(col)
+    .avg                  →  SELECT AVG(col)
+    .min                  →  SELECT MIN(col)
+    .max                  →  SELECT MAX(col)
 
 Usage:
     from newTinyTalk.sql_transpiler import transpile_sql
 
-    sql = transpile_sql('data _filter((r) => r["age"] > 30) _select("name", "age") _arrange((r) => r["age"])')
+    sql = transpile_sql('data.filter((r) => r["age"] > 30).select("name", "age").arrange((r) => r["age"])')
     # → SELECT name, age FROM data WHERE age > 30 ORDER BY age
 """
 
@@ -103,28 +103,28 @@ class SQLTranspiler:
         renames = {}
 
         for step_name, step_args in node.steps:
-            if step_name == "_filter":
+            if step_name == "filter":
                 cond = self._lambda_to_sql(step_args[0] if step_args else None, table)
                 if cond:
                     where_clauses.append(cond)
 
-            elif step_name == "_select":
+            elif step_name == "select":
                 cols = self._extract_column_names(step_args)
                 if cols:
                     select_cols = cols
 
-            elif step_name in ("_group", "_groupBy", "_group_by"):
+            elif step_name in ("group", "groupBy", "group_by"):
                 if step_args:
                     col = self._lambda_to_column(step_args[0])
                     if col:
                         group_by.append(col)
 
-            elif step_name == "_summarize":
+            elif step_name == "summarize":
                 agg_map = self._extract_agg_map(step_args)
                 if agg_map:
                     agg_selects = agg_map
 
-            elif step_name in ("_arrange", "_sortBy", "_sort"):
+            elif step_name in ("arrange", "sortBy", "sort"):
                 if step_args:
                     col = self._lambda_to_column(step_args[0])
                     desc = (len(step_args) > 1 and
@@ -132,18 +132,18 @@ class SQLTranspiler:
                             step_args[1].value == "desc")
                     if col:
                         order_by.append(f"{col} DESC" if desc else col)
-                elif step_name == "_sort":
+                elif step_name == "sort":
                     order_by.append("1")  # ORDER BY first column
 
-            elif step_name == "_take":
+            elif step_name == "take":
                 if step_args and isinstance(step_args[0], Literal):
                     limit = int(step_args[0].value)
 
-            elif step_name == "_drop":
+            elif step_name == "drop":
                 if step_args and isinstance(step_args[0], Literal):
                     offset = int(step_args[0].value)
 
-            elif step_name in ("_join", "_leftJoin", "_left_join"):
+            elif step_name in ("join", "leftJoin", "left_join"):
                 join_type = "LEFT JOIN" if "left" in step_name.lower() else "INNER JOIN"
                 if len(step_args) >= 2:
                     right_table = self._emit_source(step_args[0])
@@ -151,38 +151,38 @@ class SQLTranspiler:
                     if right_table and on_col:
                         joins.append(f"{join_type} {right_table} ON {table}.{on_col} = {right_table}.{on_col}")
 
-            elif step_name in ("_distinct", "_unique"):
+            elif step_name in ("distinct", "unique"):
                 distinct = True
 
-            elif step_name == "_rename":
+            elif step_name == "rename":
                 renames = self._extract_rename_map(step_args)
 
-            elif step_name == "_count":
+            elif step_name == "count":
                 agg_selects = [("count", "COUNT(*)", None)]
 
-            elif step_name == "_sum":
+            elif step_name == "sum":
                 agg_selects = [("total", "SUM(*)", None)]
 
-            elif step_name == "_avg":
+            elif step_name == "avg":
                 agg_selects = [("average", "AVG(*)", None)]
 
-            elif step_name == "_min":
+            elif step_name == "min":
                 agg_selects = [("minimum", "MIN(*)", None)]
 
-            elif step_name == "_max":
+            elif step_name == "max":
                 agg_selects = [("maximum", "MAX(*)", None)]
 
-            elif step_name == "_mutate":
-                # _mutate adds computed columns — express as SELECT *, expr AS name
+            elif step_name == "mutate":
+                # .mutate adds computed columns — express as SELECT *, expr AS name
                 computed = self._extract_mutate_cols(step_args)
                 if computed and select_cols == ["*"]:
                     select_cols = ["*"] + computed
 
-            elif step_name == "_pull":
+            elif step_name == "pull":
                 if step_args and isinstance(step_args[0], Literal):
                     select_cols = [step_args[0].value]
 
-            elif step_name == "_reverse":
+            elif step_name == "reverse":
                 if order_by:
                     # Reverse existing order
                     order_by = [
@@ -193,16 +193,16 @@ class SQLTranspiler:
                 else:
                     order_by.append("1 DESC")
 
-            elif step_name == "_slice":
+            elif step_name == "slice":
                 if step_args:
                     offset = int(step_args[0].value) if isinstance(step_args[0], Literal) else None
                     if len(step_args) > 1 and isinstance(step_args[1], Literal):
                         limit = int(step_args[1].value)
 
-            elif step_name == "_first":
+            elif step_name == "first":
                 limit = 1
 
-            elif step_name == "_last":
+            elif step_name == "last":
                 limit = 1
                 if not order_by:
                     order_by.append("1 DESC")
@@ -410,7 +410,7 @@ class SQLTranspiler:
         return fn_map.get(name)
 
     def _extract_column_names(self, args: list) -> list:
-        """Extract column names from _select arguments."""
+        """Extract column names from .select arguments."""
         cols = []
         for arg in args:
             if isinstance(arg, Literal) and isinstance(arg.value, str):
@@ -422,7 +422,7 @@ class SQLTranspiler:
         return cols
 
     def _extract_rename_map(self, args: list) -> dict:
-        """Extract {old: new} mapping from _rename argument."""
+        """Extract {old: new} mapping from .rename argument."""
         renames = {}
         if args and isinstance(args[0], MapLiteral):
             for k, v in args[0].pairs:
@@ -431,7 +431,7 @@ class SQLTranspiler:
         return renames
 
     def _extract_agg_map(self, args: list) -> list:
-        """Extract aggregation expressions from _summarize argument."""
+        """Extract aggregation expressions from .summarize argument."""
         aggs = []
         if not args:
             return aggs
@@ -444,25 +444,25 @@ class SQLTranspiler:
         return aggs
 
     def _agg_lambda_to_sql(self, node: ASTNode) -> str:
-        """Convert an aggregation lambda to SQL (e.g., (rows) => rows _sum → SUM(*))."""
+        """Convert an aggregation lambda to SQL (e.g., (rows) => rows.sum → SUM(*))."""
         if isinstance(node, Lambda):
             body = node.body
             if isinstance(body, StepChain):
-                # (rows) => rows _map((r) => r["col"]) _sum
+                # (rows) => rows.map((r) => r["col"]).sum
                 col = "*"
                 agg_fn = None
                 for step_name, step_args in body.steps:
-                    if step_name == "_map" and step_args:
+                    if step_name == "map" and step_args:
                         col = self._lambda_to_column(step_args[0])
-                    elif step_name == "_sum":
+                    elif step_name == "sum":
                         agg_fn = "SUM"
-                    elif step_name == "_avg":
+                    elif step_name == "avg":
                         agg_fn = "AVG"
-                    elif step_name == "_min":
+                    elif step_name == "min":
                         agg_fn = "MIN"
-                    elif step_name == "_max":
+                    elif step_name == "max":
                         agg_fn = "MAX"
-                    elif step_name == "_count":
+                    elif step_name == "count":
                         agg_fn = "COUNT"
                 if agg_fn:
                     return f"{agg_fn}({col})"
@@ -470,7 +470,7 @@ class SQLTranspiler:
         return "?"
 
     def _extract_mutate_cols(self, args: list) -> list:
-        """Extract computed column expressions from _mutate lambda."""
+        """Extract computed column expressions from .mutate lambda."""
         if not args:
             return []
         arg = args[0]

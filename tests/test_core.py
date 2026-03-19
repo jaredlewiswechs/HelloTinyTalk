@@ -219,41 +219,41 @@ class TestCollections:
 
 class TestStepChains:
     def test_sort(self):
-        assert output('show([3, 1, 2] _sort)') == "[1, 2, 3]"
+        assert output('show([3, 1, 2].sort)') == "[1, 2, 3]"
 
     def test_reverse(self):
-        assert output('show([1, 2, 3] _reverse)') == "[3, 2, 1]"
+        assert output('show([1, 2, 3].reverse)') == "[3, 2, 1]"
 
     def test_filter(self):
-        assert output('show([1, 2, 3, 4, 5] _filter((x) => x > 3))') == "[4, 5]"
+        assert output('show([1, 2, 3, 4, 5].filter((x) => x > 3))') == "[4, 5]"
 
     def test_map(self):
-        assert output('show([1, 2, 3] _map((x) => x * 2))') == "[2, 4, 6]"
+        assert output('show([1, 2, 3].map((x) => x * 2))') == "[2, 4, 6]"
 
     def test_take(self):
-        assert output('show([1, 2, 3, 4, 5] _take(3))') == "[1, 2, 3]"
+        assert output('show([1, 2, 3, 4, 5].take(3))') == "[1, 2, 3]"
 
     def test_chained(self):
-        assert output('show([5, 3, 1, 4, 2] _sort _reverse _take(3))') == "[5, 4, 3]"
+        assert output('show([5, 3, 1, 4, 2].sort.reverse.take(3))') == "[5, 4, 3]"
 
     def test_sum(self):
-        assert output('show([1, 2, 3, 4, 5] _sum)') == "15"
+        assert output('show([1, 2, 3, 4, 5].sum)') == "15"
 
     def test_unique(self):
-        assert output('show([1, 2, 2, 3, 3, 3] _unique)') == "[1, 2, 3]"
+        assert output('show([1, 2, 2, 3, 3, 3].unique)') == "[1, 2, 3]"
 
     def test_count(self):
-        assert output('show([1, 2, 3] _count)') == "3"
+        assert output('show([1, 2, 3].count)') == "3"
 
     def test_first_last(self):
-        assert output('show([1, 2, 3] _first)') == "1"
-        assert output('show([1, 2, 3] _last)') == "3"
+        assert output('show([1, 2, 3].first)') == "1"
+        assert output('show([1, 2, 3].last)') == "3"
 
     def test_flatten(self):
-        assert output('show([[1, 2], [3, 4]] _flatten)') == "[1, 2, 3, 4]"
+        assert output('show([[1, 2], [3, 4]].flatten)') == "[1, 2, 3, 4]"
 
     def test_chunk(self):
-        assert output('show([1, 2, 3, 4, 5, 6] _chunk(2))') == "[[1, 2], [3, 4], [5, 6]]"
+        assert output('show([1, 2, 3, 4, 5, 6].chunk(2))') == "[[1, 2], [3, 4], [5, 6]]"
 
 
 # ===== Natural Comparisons =====
@@ -703,7 +703,7 @@ show(calc(5))
 
     def test_block_lambda_in_step_chain(self):
         code = """
-let result = [1, 2, 3, 4, 5] _map((x) => {
+let result = [1, 2, 3, 4, 5].map((x) => {
     let squared = x * x
     return squared + 1
 })
@@ -779,48 +779,48 @@ show(add_base(5, 20))
         assert output(code) == "15\n25"
 
 
-# ===== _reduce Step Chain =====
+# ===== .reduce Step Chain =====
 
 class TestReduceStep:
     def test_reduce_sum(self):
         code = """
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc + x, 0))
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc + x, 0))
 """
         assert output(code) == "15"
 
     def test_reduce_product(self):
         code = """
-show([1, 2, 3, 4, 5] _reduce((acc, x) => acc * x, 1))
+show([1, 2, 3, 4, 5].reduce((acc, x) => acc * x, 1))
 """
         assert output(code) == "120"
 
     def test_reduce_without_initial(self):
         code = """
-show([1, 2, 3, 4] _reduce((acc, x) => acc + x))
+show([1, 2, 3, 4].reduce((acc, x) => acc + x))
 """
         assert output(code) == "10"
 
     def test_reduce_string_concat(self):
         code = """
-show(["a", "b", "c"] _reduce((acc, x) => acc + x, ""))
+show(["a", "b", "c"].reduce((acc, x) => acc + x, ""))
 """
         assert output(code) == "abc"
 
     def test_reduce_in_chain(self):
         code = """
-show([1, 2, 3, 4, 5] _filter((x) => x > 2) _reduce((acc, x) => acc + x, 0))
+show([1, 2, 3, 4, 5].filter((x) => x > 2).reduce((acc, x) => acc + x, 0))
 """
         assert output(code) == "12"
 
     def test_reduce_empty_with_initial(self):
         code = """
-show([] _reduce((acc, x) => acc + x, 42))
+show([].reduce((acc, x) => acc + x, 42))
 """
         assert output(code) == "42"
 
     def test_reduce_empty_without_initial(self):
         code = """
-show([] _reduce((acc, x) => acc + x))
+show([].reduce((acc, x) => acc + x))
 """
         assert output(code) == "null"
 
@@ -992,13 +992,13 @@ show(date_format("2024-03-15", "%B %d, %Y"))
         assert output(code) == "March 15, 2024"
 
 
-# ===== New Step Chains: _sortBy, _join, _mapValues, _each =====
+# ===== New Step Chains: .sortBy, .join, .mapValues, .each =====
 
 class TestNewStepChains:
     def test_sort_by(self):
         code = '''
 let people = [{"name": "Charlie", "age": 20}, {"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-let sorted = people _sortBy((p) => p["age"])
+let sorted = people.sortBy((p) => p["age"])
 show(sorted[0]["name"])
 show(sorted[2]["name"])
 '''
@@ -1007,7 +1007,7 @@ show(sorted[2]["name"])
     def test_sort_by_string(self):
         code = '''
 let people = [{"name": "Charlie"}, {"name": "Alice"}, {"name": "Bob"}]
-let sorted = people _sortBy((p) => p["name"])
+let sorted = people.sortBy((p) => p["name"])
 show(sorted[0]["name"])
 '''
         assert output(code) == "Alice"
@@ -1016,7 +1016,7 @@ show(sorted[0]["name"])
         code = '''
 let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
-let joined = users _join(scores, (r) => r["id"])
+let joined = users.join(scores, (r) => r["id"])
 show(joined[0]["name"])
 show(joined[0]["score"])
 show(joined[1]["name"])
@@ -1027,7 +1027,7 @@ show(joined[1]["name"])
         code = '''
 let left = [{"id": 1, "name": "Alice"}, {"id": 3, "name": "Charlie"}]
 let right = [{"id": 1, "score": 95}]
-let joined = left _join(right, (r) => r["id"])
+let joined = left.join(right, (r) => r["id"])
 show(len(joined))
 show(joined[0]["name"])
 '''
@@ -1036,7 +1036,7 @@ show(joined[0]["name"])
     def test_map_values(self):
         code = '''
 let grouped = {"math": [90, 85, 92], "science": [88, 76, 95]}
-let counts = grouped _mapValues((xs) => xs _count)
+let counts = grouped.mapValues((xs) => xs.count)
 show(counts["math"])
 show(counts["science"])
 '''
@@ -1045,7 +1045,7 @@ show(counts["science"])
     def test_map_values_with_avg(self):
         code = '''
 let grouped = {"a": [10, 20, 30], "b": [5, 15]}
-let avgs = grouped _mapValues((xs) => xs _avg)
+let avgs = grouped.mapValues((xs) => xs.avg)
 show(avgs["a"])
 show(avgs["b"])
 '''
@@ -1054,7 +1054,7 @@ show(avgs["b"])
     def test_each(self):
         code = '''
 let results = []
-[1, 2, 3] _each((x) => { append(results, x * 10) })
+[1, 2, 3].each((x) => { append(results, x * 10) })
 show(results)
 '''
         assert output(code) == "[10, 20, 30]"
@@ -1062,7 +1062,7 @@ show(results)
     def test_each_returns_original(self):
         code = '''
 let data = [1, 2, 3]
-let same = data _each((x) => x)
+let same = data.each((x) => x)
 show(same)
 '''
         assert output(code) == "[1, 2, 3]"
@@ -1074,7 +1074,7 @@ class TestDplyrSelect:
     def test_select_list_of_cols(self):
         code = '''
 let people = [{"name": "Alice", "age": 30, "city": "NYC"}, {"name": "Bob", "age": 25, "city": "LA"}]
-let slim = people _select(["name", "age"])
+let slim = people.select(["name", "age"])
 show(slim[0])
 show(slim[1])
 '''
@@ -1083,7 +1083,7 @@ show(slim[1])
     def test_select_string_args(self):
         code = '''
 let data = [{"a": 1, "b": 2, "c": 3}]
-let r = data _select("a", "c")
+let r = data.select("a", "c")
 show(r[0])
 '''
         assert output(code) == '{a: 1, c: 3}'
@@ -1091,7 +1091,7 @@ show(r[0])
     def test_select_missing_col(self):
         code = '''
 let data = [{"name": "Alice"}]
-let r = data _select(["name", "age"])
+let r = data.select(["name", "age"])
 show(r[0]["age"])
 '''
         assert output(code) == "null"
@@ -1101,7 +1101,7 @@ class TestDplyrMutate:
     def test_mutate_add_column(self):
         code = '''
 let people = [{"name": "Alice", "salary": 100}, {"name": "Bob", "salary": 80}]
-let enriched = people _mutate((r) => {"bonus": r["salary"] * 0.1})
+let enriched = people.mutate((r) => {"bonus": r["salary"] * 0.1})
 show(enriched[0]["bonus"])
 show(enriched[1]["bonus"])
 '''
@@ -1110,7 +1110,7 @@ show(enriched[1]["bonus"])
     def test_mutate_overwrite_column(self):
         code = '''
 let data = [{"x": 10}]
-let r = data _mutate((row) => {"x": row["x"] * 2, "y": 99})
+let r = data.mutate((row) => {"x": row["x"] * 2, "y": 99})
 show(r[0]["x"])
 show(r[0]["y"])
 '''
@@ -1119,7 +1119,7 @@ show(r[0]["y"])
     def test_mutate_preserves_existing(self):
         code = '''
 let data = [{"a": 1, "b": 2}]
-let r = data _mutate((row) => {"c": 3})
+let r = data.mutate((row) => {"c": 3})
 show(r[0]["a"])
 show(r[0]["b"])
 show(r[0]["c"])
@@ -1131,9 +1131,9 @@ class TestDplyrSummarize:
     def test_summarize_on_list(self):
         code = '''
 let data = [{"val": 10}, {"val": 20}, {"val": 30}]
-let summary = data _summarize({
-    "total": (rows) => rows _map((r) => r["val"]) _sum,
-    "n": (rows) => rows _count
+let summary = data.summarize({
+    "total": (rows) => rows.map((r) => r["val"]).sum,
+    "n": (rows) => rows.count
 })
 show(summary["total"])
 show(summary["n"])
@@ -1147,9 +1147,9 @@ let data = [
     {"dept": "eng", "salary": 120},
     {"dept": "sales", "salary": 80}
 ]
-let result = data _group((r) => r["dept"]) _summarize({
-    "avg_salary": (rows) => rows _map((r) => r["salary"]) _avg,
-    "count": (rows) => rows _count
+let result = data.group((r) => r["dept"]).summarize({
+    "avg_salary": (rows) => rows.map((r) => r["salary"]).avg,
+    "count": (rows) => rows.count
 })
 show(len(result))
 show(result[0]["count"] + result[1]["count"])
@@ -1163,8 +1163,8 @@ let data = [
     {"dept": "eng", "salary": 120},
     {"dept": "sales", "salary": 80}
 ]
-let result = data _group((r) => r["dept"]) _summarize({
-    "total": (rows) => rows _map((r) => r["salary"]) _sum
+let result = data.group((r) => r["dept"]).summarize({
+    "total": (rows) => rows.map((r) => r["salary"]).sum
 })
 show(result[0]["_group"])
 show(result[1]["_group"])
@@ -1175,8 +1175,8 @@ show(result[0]["total"])
     def test_summarize_avg(self):
         code = '''
 let scores = [{"s": 90}, {"s": 80}, {"s": 70}]
-let r = scores _summarize({
-    "mean": (rows) => rows _map((r) => r["s"]) _avg
+let r = scores.summarize({
+    "mean": (rows) => rows.map((r) => r["s"]).avg
 })
 show(r["mean"])
 '''
@@ -1187,7 +1187,7 @@ class TestDplyrRename:
     def test_rename_columns(self):
         code = '''
 let data = [{"first_name": "Alice", "age": 30}]
-let r = data _rename({"first_name": "name"})
+let r = data.rename({"first_name": "name"})
 show(r[0]["name"])
 show(r[0]["age"])
 '''
@@ -1196,7 +1196,7 @@ show(r[0]["age"])
     def test_rename_multiple(self):
         code = '''
 let data = [{"a": 1, "b": 2, "c": 3}]
-let r = data _rename({"a": "x", "b": "y"})
+let r = data.rename({"a": "x", "b": "y"})
 show(r[0]["x"])
 show(r[0]["y"])
 show(r[0]["c"])
@@ -1208,7 +1208,7 @@ class TestDplyrArrange:
     def test_arrange_ascending(self):
         code = '''
 let data = [{"name": "C", "val": 30}, {"name": "A", "val": 10}, {"name": "B", "val": 20}]
-let sorted = data _arrange((r) => r["val"])
+let sorted = data.arrange((r) => r["val"])
 show(sorted[0]["name"])
 show(sorted[2]["name"])
 '''
@@ -1217,7 +1217,7 @@ show(sorted[2]["name"])
     def test_arrange_descending(self):
         code = '''
 let data = [{"name": "C", "val": 30}, {"name": "A", "val": 10}, {"name": "B", "val": 20}]
-let sorted = data _arrange((r) => r["val"], "desc")
+let sorted = data.arrange((r) => r["val"], "desc")
 show(sorted[0]["name"])
 show(sorted[2]["name"])
 '''
@@ -1227,14 +1227,14 @@ show(sorted[2]["name"])
 class TestDplyrDistinct:
     def test_distinct_no_args(self):
         code = '''
-show([1, 2, 2, 3, 3, 3] _distinct _count)
+show([1, 2, 2, 3, 3, 3].distinct.count)
 '''
         assert output(code) == "3"
 
     def test_distinct_by_function(self):
         code = '''
 let data = [{"name": "Alice", "dept": "eng"}, {"name": "Bob", "dept": "eng"}, {"name": "Charlie", "dept": "sales"}]
-let r = data _distinct((r) => r["dept"])
+let r = data.distinct((r) => r["dept"])
 show(len(r))
 '''
         assert output(code) == "2"
@@ -1242,7 +1242,7 @@ show(len(r))
     def test_distinct_by_columns(self):
         code = '''
 let data = [{"a": 1, "b": "x"}, {"a": 1, "b": "x"}, {"a": 1, "b": "y"}]
-let r = data _distinct(["a", "b"])
+let r = data.distinct(["a", "b"])
 show(len(r))
 '''
         assert output(code) == "2"
@@ -1251,13 +1251,13 @@ show(len(r))
 class TestDplyrSlice:
     def test_slice_start_count(self):
         code = '''
-show([10, 20, 30, 40, 50] _slice(1, 3))
+show([10, 20, 30, 40, 50].slice(1, 3))
 '''
         assert output(code) == "[20, 30, 40]"
 
     def test_slice_start_only(self):
         code = '''
-show([10, 20, 30, 40, 50] _slice(2))
+show([10, 20, 30, 40, 50].slice(2))
 '''
         assert output(code) == "[30, 40, 50]"
 
@@ -1266,14 +1266,14 @@ class TestDplyrPull:
     def test_pull_column(self):
         code = '''
 let data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-show(data _pull("name"))
+show(data.pull("name"))
 '''
         assert output(code) == "[Alice, Bob]"
 
     def test_pull_numeric(self):
         code = '''
 let data = [{"val": 10}, {"val": 20}, {"val": 30}]
-show(data _pull("val") _sum)
+show(data.pull("val").sum)
 '''
         assert output(code) == "60"
 
@@ -1282,7 +1282,7 @@ class TestDplyrGroupBy:
     def test_group_by_alias(self):
         code = '''
 let data = [{"dept": "eng", "n": 1}, {"dept": "sales", "n": 2}, {"dept": "eng", "n": 3}]
-let g = data _groupBy((r) => r["dept"])
+let g = data.groupBy((r) => r["dept"])
 show(len(g["eng"]))
 show(len(g["sales"]))
 '''
@@ -1294,7 +1294,7 @@ class TestDplyrLeftJoin:
         code = '''
 let users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 let scores = [{"id": 1, "score": 95}, {"id": 2, "score": 87}]
-let joined = users _leftJoin(scores, (r) => r["id"])
+let joined = users.leftJoin(scores, (r) => r["id"])
 show(joined[0]["name"])
 show(joined[0]["score"])
 show(len(joined))
@@ -1305,7 +1305,7 @@ show(len(joined))
         code = '''
 let left = [{"id": 1, "name": "Alice"}, {"id": 3, "name": "Charlie"}]
 let right = [{"id": 1, "score": 95}]
-let joined = left _leftJoin(right, (r) => r["id"])
+let joined = left.leftJoin(right, (r) => r["id"])
 show(len(joined))
 show(joined[0]["name"])
 show(joined[0]["score"])
@@ -1328,10 +1328,10 @@ let employees = [
 ]
 
 let result = employees
-    _filter((r) => r["salary"] > 95)
-    _select(["name", "dept", "salary"])
-    _mutate((r) => {"bonus": r["salary"] * 0.1})
-    _arrange((r) => r["salary"], "desc")
+    .filter((r) => r["salary"] > 95)
+    .select(["name", "dept", "salary"])
+    .mutate((r) => {"bonus": r["salary"] * 0.1})
+    .arrange((r) => r["salary"], "desc")
 
 show(result[0]["name"])
 show(result[0]["bonus"])
@@ -1349,10 +1349,10 @@ let sales = [
 ]
 
 let summary = sales
-    _group((r) => r["product"])
-    _summarize({
-        "total_qty": (rows) => rows _map((r) => r["qty"]) _sum,
-        "avg_qty": (rows) => rows _map((r) => r["qty"]) _avg
+    .group((r) => r["product"])
+    .summarize({
+        "total_qty": (rows) => rows.map((r) => r["qty"]).sum,
+        "avg_qty": (rows) => rows.map((r) => r["qty"]).avg
     })
 
 show(len(summary))
@@ -1363,10 +1363,10 @@ show(len(summary))
         code = '''
 let data = [{"x": 1, "y": 10}, {"x": 2, "y": 20}, {"x": 3, "y": 30}]
 let totals = data
-    _mutate((r) => {"total": r["x"] + r["y"]})
-    _pull("total")
+    .mutate((r) => {"total": r["x"] + r["y"]})
+    .pull("total")
 show(totals)
-show(totals _sum)
+show(totals.sum)
 '''
         assert output(code) == "[11, 22, 33]\n66"
 
@@ -1425,7 +1425,7 @@ show(df["x"])
     def test_filter_returns_dataframe(self):
         code = '''
 let df = DataFrame([{"x": 10}, {"x": 20}, {"x": 30}])
-let filtered = df _filter((r) => r["x"] > 15)
+let filtered = df.filter((r) => r["x"] > 15)
 show(type(filtered))
 show(filtered.nrows)
 '''
@@ -1434,7 +1434,7 @@ show(filtered.nrows)
     def test_step_chain(self):
         code = '''
 let df = DataFrame([{"v": 3}, {"v": 1}, {"v": 2}])
-let result = df _sortBy((r) => r["v"]) _map((r) => r["v"]) _sum
+let result = df.sortBy((r) => r["v"]).map((r) => r["v"]).sum
 show(result)
 '''
         assert output(code) == "6"
@@ -1458,7 +1458,7 @@ show(df.empty)
     def test_select_returns_dataframe(self):
         code = '''
 let df = DataFrame([{"a": 1, "b": 2, "c": 3}])
-let sub = df _select("a", "c")
+let sub = df.select("a", "c")
 show(type(sub))
 show(sub.columns)
 '''
@@ -1467,7 +1467,7 @@ show(sub.columns)
     def test_mutate_returns_dataframe(self):
         code = '''
 let df = DataFrame([{"x": 10}, {"x": 20}])
-let enriched = df _mutate((r) => {"doubled": r["x"] * 2})
+let enriched = df.mutate((r) => {"doubled": r["x"] * 2})
 show(type(enriched))
 show(enriched.ncols)
 '''

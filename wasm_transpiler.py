@@ -17,7 +17,7 @@ Mapping:
     x + y                   →  (i32.add (local.get $x) (local.get $y))
     if cond { ... }         →  (if (local.get $cond) (then ...))
     for i in range(n)       →  (block (loop ...))
-    _filter/_map/_sum       →  loop-based array operations over linear memory
+    .filter/.map/.sum       →  loop-based array operations over linear memory
     [1, 2, 3]              →  linear memory with length prefix
 
 Type strategy:
@@ -1124,126 +1124,126 @@ class WasmTranspiler:
     def _emit_step(self, step: str, args: list) -> list[str]:
         """Emit a single step chain operation."""
         # Aggregation steps that reduce to a single value
-        if step == "_count":
-            return ["i32.load  ;; _count: load array length"]
+        if step == "count":
+            return ["i32.load  ;; .count: load array length"]
 
-        if step == "_sum":
+        if step == "sum":
             return [
-                ";; _sum: loop over array, accumulate",
+                ";; .sum: loop over array, accumulate",
                 ";; (requires loop-based reduction over memory)",
                 "drop",
                 "i32.const 0  ;; placeholder sum",
             ]
 
-        if step == "_first":
+        if step == "first":
             return [
                 "i32.const 4",
                 "i32.add",
-                "i32.load  ;; _first: load element[0]",
+                "i32.load  ;; .first: load element[0]",
             ]
 
-        if step == "_last":
+        if step == "last":
             return [
-                ";; _last: load element[length-1]",
+                ";; .last: load element[length-1]",
                 ";; (requires reading length then computing offset)",
                 "drop",
                 "i32.const 0  ;; placeholder",
             ]
 
-        if step in ("_min", "_max"):
+        if step in ("min", "max"):
             return [
-                f";; {step}: scan array (requires loop)",
+                f";; .{step}: scan array (requires loop)",
                 "drop",
                 "i32.const 0  ;; placeholder",
             ]
 
-        if step == "_avg":
+        if step == "avg":
             return [
-                ";; _avg: sum / count (requires loop)",
+                ";; .avg: sum / count (requires loop)",
                 "drop",
                 "f64.const 0  ;; placeholder",
             ]
 
         # Transform steps that return new arrays
-        if step == "_filter":
+        if step == "filter":
             arg_str = ", ".join(str(a) for a in args) if args else ""
-            return [f";; _filter({arg_str}): loop + conditional copy"]
+            return [f";; .filter({arg_str}): loop + conditional copy"]
 
-        if step == "_map":
+        if step == "map":
             arg_str = ", ".join(str(a) for a in args) if args else ""
-            return [f";; _map({arg_str}): loop + transform into new array"]
+            return [f";; .map({arg_str}): loop + transform into new array"]
 
-        if step == "_sort":
-            return [";; _sort: in-place sort (requires sort implementation)"]
+        if step == "sort":
+            return [";; .sort: in-place sort (requires sort implementation)"]
 
-        if step == "_sortBy":
-            return [";; _sortBy: sort with key function"]
+        if step == "sortBy":
+            return [";; .sortBy: sort with key function"]
 
-        if step == "_reverse":
-            return [";; _reverse: reverse array in memory"]
+        if step == "reverse":
+            return [";; .reverse: reverse array in memory"]
 
-        if step == "_take":
+        if step == "take":
             if args:
                 n_lines = self._emit_expr(args[0])
-                return [";; _take: copy first N elements"] + n_lines + ["drop"]
-            return [";; _take"]
+                return [";; .take: copy first N elements"] + n_lines + ["drop"]
+            return [";; .take"]
 
-        if step == "_drop":
+        if step == "drop":
             if args:
                 n_lines = self._emit_expr(args[0])
-                return [";; _drop: skip first N elements"] + n_lines + ["drop"]
-            return [";; _drop"]
+                return [";; .drop: skip first N elements"] + n_lines + ["drop"]
+            return [";; .drop"]
 
-        if step == "_unique":
-            return [";; _unique: deduplicate (requires hash set)"]
+        if step == "unique":
+            return [";; .unique: deduplicate (requires hash set)"]
 
-        if step == "_flatten":
-            return [";; _flatten: concatenate sub-arrays"]
+        if step == "flatten":
+            return [";; .flatten: concatenate sub-arrays"]
 
-        if step == "_reduce":
-            return [";; _reduce: fold over array"]
+        if step == "reduce":
+            return [";; .reduce: fold over array"]
 
-        if step == "_each":
-            return [";; _each: iterate with side effects"]
+        if step == "each":
+            return [";; .each: iterate with side effects"]
 
-        if step == "_chunk":
-            return [";; _chunk: split into sub-arrays"]
+        if step == "chunk":
+            return [";; .chunk: split into sub-arrays"]
 
-        if step == "_group":
-            return [";; _group: group by key function"]
+        if step == "group":
+            return [";; .group: group by key function"]
 
-        if step == "_zip":
-            return [";; _zip: interleave two arrays"]
+        if step == "zip":
+            return [";; .zip: interleave two arrays"]
 
-        if step == "_join":
-            return [";; _join: inner join on key"]
+        if step == "join":
+            return [";; .join: inner join on key"]
 
-        if step in ("_leftJoin", "_left_join"):
-            return [";; _leftJoin: left outer join"]
+        if step in ("leftJoin", "left_join"):
+            return [";; .leftJoin: left outer join"]
 
         # dplyr-style verbs
-        if step == "_select":
-            return [";; _select: project columns"]
-        if step == "_mutate":
-            return [";; _mutate: add/modify columns"]
-        if step == "_summarize":
-            return [";; _summarize: aggregate columns"]
-        if step == "_arrange":
-            return [";; _arrange: sort by column"]
-        if step == "_distinct":
-            return [";; _distinct: unique rows"]
-        if step == "_rename":
-            return [";; _rename: rename columns"]
-        if step == "_pull":
-            return [";; _pull: extract single column"]
-        if step == "_slice":
-            return [";; _slice: row subset"]
-        if step == "_pivot":
-            return [";; _pivot: wide format"]
-        if step == "_unpivot":
-            return [";; _unpivot: long format"]
-        if step == "_window":
-            return [";; _window: rolling window"]
+        if step == "select":
+            return [";; .select: project columns"]
+        if step == "mutate":
+            return [";; .mutate: add/modify columns"]
+        if step == "summarize":
+            return [";; .summarize: aggregate columns"]
+        if step == "arrange":
+            return [";; .arrange: sort by column"]
+        if step == "distinct":
+            return [";; .distinct: unique rows"]
+        if step == "rename":
+            return [";; .rename: rename columns"]
+        if step == "pull":
+            return [";; .pull: extract single column"]
+        if step == "slice":
+            return [";; .slice: row subset"]
+        if step == "pivot":
+            return [";; .pivot: wide format"]
+        if step == "unpivot":
+            return [";; .unpivot: long format"]
+        if step == "window":
+            return [";; .window: rolling window"]
 
         return [f";; unknown step: {step}"]
 
@@ -1320,9 +1320,9 @@ class WasmTranspiler:
             # Aggregation steps return scalars, others return arrays (pointers)
             if node.steps:
                 last_step = node.steps[-1][0]
-                if last_step in ("_sum", "_count", "_first", "_last", "_min", "_max"):
+                if last_step in ("sum", "count", "first", "last", "min", "max"):
                     return WasmType.I32
-                if last_step == "_avg":
+                if last_step == "avg":
                     return WasmType.F64
             return WasmType.I32
 

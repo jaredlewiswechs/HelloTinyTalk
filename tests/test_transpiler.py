@@ -149,91 +149,91 @@ class TestTranspilerExpressions:
 
 class TestTranspilerStepChains:
     def test_filter(self):
-        py = transpile("let r = [1,2,3,4,5] _filter((x) => x > 2)")
+        py = transpile("let r = [1,2,3,4,5].filter((x) => x > 2)")
         assert "for x in" in py or "filter" in py
 
     def test_map(self):
-        py = transpile("let r = [1,2,3] _map((x) => x * 2)")
+        py = transpile("let r = [1,2,3].map((x) => x * 2)")
         assert "for x in" in py or "map" in py
 
     def test_sort(self):
-        py = transpile("let r = [3,1,2] _sort")
+        py = transpile("let r = [3,1,2].sort")
         assert "sorted" in py
 
     def test_sortBy(self):
-        py = transpile('let r = data _sortBy((x) => x["age"])')
+        py = transpile('let r = data.sortBy((x) => x["age"])')
         assert "sorted" in py
 
     def test_reverse(self):
-        py = transpile("let r = [1,2,3] _reverse")
+        py = transpile("let r = [1,2,3].reverse")
         assert "reversed" in py
 
     def test_take(self):
-        py = transpile("let r = [1,2,3,4,5] _take(3)")
+        py = transpile("let r = [1,2,3,4,5].take(3)")
         assert "[:3]" in py
 
     def test_drop(self):
-        py = transpile("let r = [1,2,3,4,5] _drop(2)")
+        py = transpile("let r = [1,2,3,4,5].drop(2)")
         assert "[2:]" in py
 
     def test_first(self):
-        py = transpile("let r = [1,2,3] _first")
+        py = transpile("let r = [1,2,3].first")
         assert "[0]" in py
 
     def test_last(self):
-        py = transpile("let r = [1,2,3] _last")
+        py = transpile("let r = [1,2,3].last")
         assert "[-1]" in py
 
     def test_unique(self):
-        py = transpile("let r = [1,1,2,2,3] _unique")
+        py = transpile("let r = [1,1,2,2,3].unique")
         assert "dict.fromkeys" in py
 
     def test_count(self):
-        py = transpile("let r = [1,2,3] _count")
+        py = transpile("let r = [1,2,3].count")
         assert "len" in py
 
     def test_sum(self):
-        py = transpile("let r = [1,2,3] _sum")
+        py = transpile("let r = [1,2,3].sum")
         assert "sum" in py
 
     def test_avg(self):
-        py = transpile("let r = [1,2,3] _avg")
+        py = transpile("let r = [1,2,3].avg")
         assert "sum" in py
         assert "len" in py
 
     def test_min_max(self):
-        py = transpile("let r = [1,2,3] _min")
+        py = transpile("let r = [1,2,3].min")
         assert "min" in py
-        py = transpile("let r = [1,2,3] _max")
+        py = transpile("let r = [1,2,3].max")
         assert "max" in py
 
     def test_flatten(self):
-        py = transpile("let r = [[1,2],[3,4]] _flatten")
+        py = transpile("let r = [[1,2],[3,4]].flatten")
         assert "sublist" in py or "flatten" in py
 
     def test_chunk(self):
-        py = transpile("let r = [1,2,3,4,5,6] _chunk(2)")
+        py = transpile("let r = [1,2,3,4,5,6].chunk(2)")
         assert "range" in py
 
     def test_reduce(self):
-        py = transpile("let r = [1,2,3,4] _reduce((a, b) => a + b, 0)")
+        py = transpile("let r = [1,2,3,4].reduce((a, b) => a + b, 0)")
         assert "reduce" in py
 
     def test_chain_multiple(self):
-        py = transpile("let r = data _filter((x) => x > 0) _sort _take(5)")
+        py = transpile("let r = data.filter((x) => x > 0).sort.take(5)")
         assert "sorted" in py
         assert "[:5]" in py
 
     def test_pivot(self):
-        py = transpile('data _pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
+        py = transpile('data.pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
         assert "lambda" in py
 
     def test_unpivot(self):
-        py = transpile('data _unpivot(["id"])')
+        py = transpile('data.unpivot(["id"])')
         assert "variable" in py
 
     def test_window(self):
-        py = transpile("data _window(3, (w) => w)")
+        py = transpile("data.window(3, (w) => w)")
         assert "range" in py
 
 
@@ -285,23 +285,23 @@ class TestTranspilerBuiltins:
 
 class TestTranspilerDplyrVerbs:
     def test_select(self):
-        py = transpile('data _select(["name", "age"])')
+        py = transpile('data.select(["name", "age"])')
         assert "row" in py
 
     def test_mutate(self):
-        py = transpile('data _mutate((r) => {"doubled": r["x"] * 2})')
+        py = transpile('data.mutate((r) => {"doubled": r["x"] * 2})')
         assert "row" in py or "**" in py
 
     def test_rename(self):
-        py = transpile('data _rename({"old": "new"})')
+        py = transpile('data.rename({"old": "new"})')
         assert "get" in py or "rename" in py
 
     def test_pull(self):
-        py = transpile('data _pull("name")')
+        py = transpile('data.pull("name")')
         assert "row" in py
 
     def test_arrange(self):
-        py = transpile('data _arrange((r) => r["age"])')
+        py = transpile('data.arrange((r) => r["age"])')
         assert "sorted" in py
 
 
@@ -319,7 +319,7 @@ class TestRoundTrip:
     def test_filter_sort_take(self):
         assert_roundtrip(
             "let data = [1,2,3,4,5,6,7,8,9,10]\n"
-            "let r = data _filter((x) => x > 3) _sort _reverse _take(3)\n"
+            "let r = data.filter((x) => x > 3).sort.reverse.take(3)\n"
             "show(r)"
         )
 
@@ -342,12 +342,12 @@ show(total)
 
     def test_map_step(self):
         assert_roundtrip(
-            "let r = [1,2,3] _map((x) => x * x)\nshow(r)"
+            "let r = [1,2,3].map((x) => x * x)\nshow(r)"
         )
 
     def test_sum_avg(self):
         assert_roundtrip(
-            "let data = [10, 20, 30]\nshow(data _sum)\nshow(data _avg)"
+            "let data = [10, 20, 30]\nshow(data.sum)\nshow(data.avg)"
         )
 
     def test_conditional(self):
@@ -365,7 +365,7 @@ show(total)
 
     def test_nested_chain(self):
         assert_roundtrip(
-            "let r = [5,3,1,4,2] _sort _reverse _first\nshow(r)"
+            "let r = [5,3,1,4,2].sort.reverse.first\nshow(r)"
         )
 
 
@@ -375,40 +375,40 @@ show(total)
 
 class TestPandasMode:
     def test_generates_pandas_import(self):
-        py = transpile_pandas("data _filter((x) => x > 0)")
+        py = transpile_pandas("data.filter((x) => x > 0)")
         assert "import pandas as pd" in py
         assert "pd.DataFrame" in py
 
     def test_filter_uses_apply(self):
-        py = transpile_pandas("data _filter((r) => r > 0)")
+        py = transpile_pandas("data.filter((r) => r > 0)")
         assert ".apply(" in py
 
     def test_head(self):
-        py = transpile_pandas("data _take(10)")
+        py = transpile_pandas("data.take(10)")
         assert ".head(10)" in py
 
     def test_sort_values(self):
-        py = transpile_pandas('data _sortBy((r) => r["age"])')
+        py = transpile_pandas('data.sortBy((r) => r["age"])')
         assert ".sort_values" in py
 
     def test_drop_duplicates(self):
-        py = transpile_pandas("data _unique")
+        py = transpile_pandas("data.unique")
         assert ".drop_duplicates()" in py
 
     def test_select_columns(self):
-        py = transpile_pandas('data _select(["name", "age"])')
+        py = transpile_pandas('data.select(["name", "age"])')
         assert '["name", "age"]' in py
 
     def test_rename(self):
-        py = transpile_pandas('data _rename({"old": "new"})')
+        py = transpile_pandas('data.rename({"old": "new"})')
         assert ".rename(columns=" in py
 
     def test_melt(self):
-        py = transpile_pandas('data _unpivot(["id"])')
+        py = transpile_pandas('data.unpivot(["id"])')
         assert ".melt(" in py
 
     def test_rolling(self):
-        py = transpile_pandas("data _window(3, avg_fn)")
+        py = transpile_pandas("data.window(3, avg_fn)")
         assert ".rolling(3)" in py
 
 
@@ -538,92 +538,92 @@ class TestJSTranspilerExpressions:
 
 class TestJSTranspilerStepChains:
     def test_filter(self):
-        js = transpile_js("let r = [1,2,3,4,5] _filter((x) => x > 2)")
+        js = transpile_js("let r = [1,2,3,4,5].filter((x) => x > 2)")
         assert ".filter(" in js
 
     def test_map(self):
-        js = transpile_js("let r = [1,2,3] _map((x) => x * 2)")
+        js = transpile_js("let r = [1,2,3].map((x) => x * 2)")
         assert ".map(" in js
 
     def test_sort(self):
-        js = transpile_js("let r = [3,1,2] _sort")
+        js = transpile_js("let r = [3,1,2].sort")
         assert ".sort(" in js
 
     def test_sortBy(self):
-        js = transpile_js('let r = data _sortBy((x) => x["age"])')
+        js = transpile_js('let r = data.sortBy((x) => x["age"])')
         assert ".sort(" in js
 
     def test_reverse(self):
-        js = transpile_js("let r = [1,2,3] _reverse")
+        js = transpile_js("let r = [1,2,3].reverse")
         assert ".reverse()" in js
 
     def test_take(self):
-        js = transpile_js("let r = [1,2,3,4,5] _take(3)")
+        js = transpile_js("let r = [1,2,3,4,5].take(3)")
         assert ".slice(0, 3)" in js
 
     def test_drop(self):
-        js = transpile_js("let r = [1,2,3,4,5] _drop(2)")
+        js = transpile_js("let r = [1,2,3,4,5].drop(2)")
         assert ".slice(2)" in js
 
     def test_first(self):
-        js = transpile_js("let r = [1,2,3] _first")
+        js = transpile_js("let r = [1,2,3].first")
         assert "[0]" in js
 
     def test_last(self):
-        js = transpile_js("let r = [1,2,3] _last")
+        js = transpile_js("let r = [1,2,3].last")
         assert ".at(-1)" in js
 
     def test_unique(self):
-        js = transpile_js("let r = [1,1,2,2,3] _unique")
+        js = transpile_js("let r = [1,1,2,2,3].unique")
         assert "new Set" in js
 
     def test_count(self):
-        js = transpile_js("let r = [1,2,3] _count")
+        js = transpile_js("let r = [1,2,3].count")
         assert ".length" in js
 
     def test_sum(self):
-        js = transpile_js("let r = [1,2,3] _sum")
+        js = transpile_js("let r = [1,2,3].sum")
         assert ".reduce(" in js
 
     def test_avg(self):
-        js = transpile_js("let r = [1,2,3] _avg")
+        js = transpile_js("let r = [1,2,3].avg")
         assert ".reduce(" in js
         assert ".length" in js
 
     def test_min_max(self):
-        js = transpile_js("let r = [1,2,3] _min")
+        js = transpile_js("let r = [1,2,3].min")
         assert "Math.min" in js
-        js = transpile_js("let r = [1,2,3] _max")
+        js = transpile_js("let r = [1,2,3].max")
         assert "Math.max" in js
 
     def test_flatten(self):
-        js = transpile_js("let r = [[1,2],[3,4]] _flatten")
+        js = transpile_js("let r = [[1,2],[3,4]].flatten")
         assert ".flat()" in js
 
     def test_chunk(self):
-        js = transpile_js("let r = [1,2,3,4,5,6] _chunk(2)")
+        js = transpile_js("let r = [1,2,3,4,5,6].chunk(2)")
         assert "slice" in js
 
     def test_reduce(self):
-        js = transpile_js("let r = [1,2,3,4] _reduce((a, b) => a + b, 0)")
+        js = transpile_js("let r = [1,2,3,4].reduce((a, b) => a + b, 0)")
         assert ".reduce(" in js
 
     def test_chain_multiple(self):
-        js = transpile_js("let r = data _filter((x) => x > 0) _sort _take(5)")
+        js = transpile_js("let r = data.filter((x) => x > 0).sort.take(5)")
         assert ".filter(" in js
         assert ".sort(" in js
         assert ".slice(0, 5)" in js
 
     def test_pivot(self):
-        js = transpile_js('data _pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
+        js = transpile_js('data.pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
         assert ".reduce(" in js
 
     def test_unpivot(self):
-        js = transpile_js('data _unpivot(["id"])')
+        js = transpile_js('data.unpivot(["id"])')
         assert ".flatMap(" in js
 
     def test_window(self):
-        js = transpile_js("data _window(3, (w) => w)")
+        js = transpile_js("data.window(3, (w) => w)")
         assert ".map(" in js
         assert ".slice(" in js
 
@@ -685,24 +685,24 @@ class TestJSTranspilerBuiltins:
 
 class TestJSTranspilerDplyrVerbs:
     def test_select(self):
-        js = transpile_js('data _select(["name", "age"])')
+        js = transpile_js('data.select(["name", "age"])')
         assert ".map(" in js
 
     def test_mutate(self):
-        js = transpile_js('data _mutate((r) => {"doubled": r["x"] * 2})')
+        js = transpile_js('data.mutate((r) => {"doubled": r["x"] * 2})')
         assert ".map(" in js
         assert "...row" in js
 
     def test_rename(self):
-        js = transpile_js('data _rename({"old": "new"})')
+        js = transpile_js('data.rename({"old": "new"})')
         assert ".map(" in js
 
     def test_pull(self):
-        js = transpile_js('data _pull("name")')
+        js = transpile_js('data.pull("name")')
         assert ".map(" in js
 
     def test_arrange(self):
-        js = transpile_js('data _arrange((r) => r["age"])')
+        js = transpile_js('data.arrange((r) => r["age"])')
         assert ".sort(" in js
 
 

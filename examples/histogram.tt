@@ -13,14 +13,14 @@ chart_histogram(scores, 8, "Exam Score Distribution")
 
 show("=== Score Statistics ===")
 show("Students:  {len(scores)}")
-show("Average:   {round(scores _avg, 1)}")
-show("Minimum:   {scores _min}")
-show("Maximum:   {scores _max}")
-show("Std Range: {scores _max - scores _min}")
+show("Average:   {round(scores.avg, 1)}")
+show("Minimum:   {scores.min}")
+show("Maximum:   {scores.max}")
+show("Std Range: {scores.max - scores.min}")
 
 // === Passing vs failing ===
-let passing = scores _filter((s) => s >= 60) _count
-let failing = scores _filter((s) => s < 60) _count
+let passing = scores.filter((s) => s >= 60).count
+let failing = scores.filter((s) => s < 60).count
 
 let pass_labels = ["Passing (>=60)", "Failing (<60)"]
 let pass_values = [passing, failing]

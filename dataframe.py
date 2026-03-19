@@ -11,8 +11,8 @@ performance. The TinyTalk API stays the same regardless.
 Usage in TinyTalk:
     let df = DataFrame(data)         // from list of maps
     let df = read_csv("file.csv")    // auto-detects as DataFrame for large files
-    df _filter((r) => r["age"] > 30) // same step chain syntax
-    df _select("name", "age")        // column selection
+    df.filter((r) => r["age"] > 30)  // same step chain syntax
+    df.select("name", "age")         // column selection
     df.columns                       // list of column names
     df.shape                         // [rows, cols]
 """
@@ -215,42 +215,42 @@ def try_pandas_fast_path(data: Value, step: str, args: list) -> Optional[Value]:
     df = pd.DataFrame(rows)
 
     try:
-        if step == "_sort":
+        if step == "sort":
             if not args:
                 # Sort by first column
                 df = df.sort_values(by=df.columns[0])
             return _df_to_value(df)
 
-        if step == "_reverse":
+        if step == "reverse":
             df = df.iloc[::-1].reset_index(drop=True)
             return _df_to_value(df)
 
-        if step == "_take":
+        if step == "take":
             n = int(args[0].data) if args else 1
             df = df.head(n)
             return _df_to_value(df)
 
-        if step == "_drop":
+        if step == "drop":
             n = int(args[0].data) if args else 1
             df = df.iloc[n:]
             return _df_to_value(df)
 
-        if step == "_count":
+        if step == "count":
             return Value.int_val(len(df))
 
-        if step == "_sum":
+        if step == "sum":
             total = df.select_dtypes(include='number').sum().sum()
             return Value.float_val(float(total))
 
-        if step == "_avg":
+        if step == "avg":
             avg = df.select_dtypes(include='number').mean().mean()
             return Value.float_val(float(avg))
 
-        if step == "_unique" or step == "_distinct":
+        if step == "unique" or step == "distinct":
             df = df.drop_duplicates()
             return _df_to_value(df)
 
-        if step == "_select" and args:
+        if step == "select" and args:
             if args[0].type == ValueType.LIST:
                 cols = [v.data for v in args[0].data]
             elif args[0].type == ValueType.STRING:

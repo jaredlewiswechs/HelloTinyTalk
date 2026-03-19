@@ -413,85 +413,85 @@ class TestWasmArrays:
 
 class TestWasmStepChains:
     def test_filter(self):
-        wat = transpile_wasm("let r = [1,2,3,4,5] _filter((x) => x > 2)")
-        assert "_filter" in wat
+        wat = transpile_wasm("let r = [1,2,3,4,5].filter((x) => x > 2)")
+        assert "filter" in wat
 
     def test_map(self):
-        wat = transpile_wasm("let r = [1,2,3] _map((x) => x * 2)")
-        assert "_map" in wat
+        wat = transpile_wasm("let r = [1,2,3].map((x) => x * 2)")
+        assert "map" in wat
 
     def test_sort(self):
-        wat = transpile_wasm("let r = [3,1,2] _sort")
-        assert "_sort" in wat
+        wat = transpile_wasm("let r = [3,1,2].sort")
+        assert "sort" in wat
 
     def test_count(self):
-        wat = transpile_wasm("let r = [1,2,3] _count")
+        wat = transpile_wasm("let r = [1,2,3].count")
         assert "i32.load" in wat
-        assert "_count" in wat
+        assert "count" in wat
 
     def test_sum(self):
-        wat = transpile_wasm("let r = [1,2,3] _sum")
-        assert "_sum" in wat
+        wat = transpile_wasm("let r = [1,2,3].sum")
+        assert "sum" in wat
 
     def test_first(self):
-        wat = transpile_wasm("let r = [1,2,3] _first")
-        assert "_first" in wat
+        wat = transpile_wasm("let r = [1,2,3].first")
+        assert "first" in wat
         assert "i32.load" in wat
 
     def test_take(self):
-        wat = transpile_wasm("let r = [1,2,3,4,5] _take(3)")
-        assert "_take" in wat
+        wat = transpile_wasm("let r = [1,2,3,4,5].take(3)")
+        assert "take" in wat
 
     def test_drop(self):
-        wat = transpile_wasm("let r = [1,2,3,4,5] _drop(2)")
-        assert "_drop" in wat
+        wat = transpile_wasm("let r = [1,2,3,4,5].drop(2)")
+        assert "drop" in wat
 
     def test_reverse(self):
-        wat = transpile_wasm("let r = [1,2,3] _reverse")
-        assert "_reverse" in wat
+        wat = transpile_wasm("let r = [1,2,3].reverse")
+        assert "reverse" in wat
 
     def test_unique(self):
-        wat = transpile_wasm("let r = [1,1,2,2,3] _unique")
-        assert "_unique" in wat
+        wat = transpile_wasm("let r = [1,1,2,2,3].unique")
+        assert "unique" in wat
 
     def test_flatten(self):
-        wat = transpile_wasm("let r = [[1,2],[3,4]] _flatten")
-        assert "_flatten" in wat
+        wat = transpile_wasm("let r = [[1,2],[3,4]].flatten")
+        assert "flatten" in wat
 
     def test_reduce(self):
-        wat = transpile_wasm("let r = [1,2,3,4] _reduce((a, b) => a + b, 0)")
-        assert "_reduce" in wat
+        wat = transpile_wasm("let r = [1,2,3,4].reduce((a, b) => a + b, 0)")
+        assert "reduce" in wat
 
     def test_chain_multiple(self):
-        wat = transpile_wasm("let r = data _filter((x) => x > 0) _sort _take(5)")
-        assert "_filter" in wat
-        assert "_sort" in wat
-        assert "_take" in wat
+        wat = transpile_wasm("let r = data.filter((x) => x > 0).sort.take(5)")
+        assert "filter" in wat
+        assert "sort" in wat
+        assert "take" in wat
         assert "step chain" in wat
 
     def test_dplyr_select(self):
-        wat = transpile_wasm('data _select(["name", "age"])')
-        assert "_select" in wat
+        wat = transpile_wasm('data.select(["name", "age"])')
+        assert "select" in wat
 
     def test_dplyr_mutate(self):
-        wat = transpile_wasm('data _mutate((r) => {"doubled": r["x"] * 2})')
-        assert "_mutate" in wat
+        wat = transpile_wasm('data.mutate((r) => {"doubled": r["x"] * 2})')
+        assert "mutate" in wat
 
     def test_dplyr_arrange(self):
-        wat = transpile_wasm('data _arrange((r) => r["age"])')
-        assert "_arrange" in wat
+        wat = transpile_wasm('data.arrange((r) => r["age"])')
+        assert "arrange" in wat
 
     def test_pivot(self):
-        wat = transpile_wasm('data _pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
-        assert "_pivot" in wat
+        wat = transpile_wasm('data.pivot((r) => r["k1"], (r) => r["k2"], (r) => r["v"])')
+        assert "pivot" in wat
 
     def test_unpivot(self):
-        wat = transpile_wasm('data _unpivot(["id"])')
-        assert "_unpivot" in wat
+        wat = transpile_wasm('data.unpivot(["id"])')
+        assert "unpivot" in wat
 
     def test_window(self):
-        wat = transpile_wasm("data _window(3, (w) => w)")
-        assert "_window" in wat
+        wat = transpile_wasm("data.window(3, (w) => w)")
+        assert "window" in wat
 
 
 # ---------------------------------------------------------------------------

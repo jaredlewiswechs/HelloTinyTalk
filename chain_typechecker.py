@@ -4,8 +4,8 @@ Static type inference for step chain pipelines.
 
 Infers that:
     data: list[map[str, int]]
-    data _filter((r) => r["salary"] > 50000)    // OK — int > int
-    data _filter((r) => r["salary"] + "hello")   // ERROR — int + str
+    data.filter((r) => r["salary"] > 50000)    // OK — int > int
+    data.filter((r) => r["salary"] + "hello")   // ERROR — int + str
 
 Provides:
     - Type flow through step chains
@@ -121,42 +121,42 @@ def _infer_summarize_output(input_type: TinyType) -> TinyType:
 
 # Step catalog
 STEP_SIGNATURES = {
-    "_filter":    {"input": "list", "preserves_type": True},
-    "_sort":      {"input": "list", "preserves_type": True},
-    "_map":       {"input": "list", "preserves_type": False, "output": "list"},
-    "_take":      {"input": "list", "preserves_type": True},
-    "_drop":      {"input": "list", "preserves_type": True},
-    "_first":     {"input": "list", "output": "element"},
-    "_last":      {"input": "list", "output": "element"},
-    "_reverse":   {"input": "list", "preserves_type": True},
-    "_unique":    {"input": "list", "preserves_type": True},
-    "_count":     {"input": "list", "output": "int"},
-    "_sum":       {"input": "list", "output": "num"},
-    "_avg":       {"input": "list", "output": "float"},
-    "_min":       {"input": "list", "output": "element"},
-    "_max":       {"input": "list", "output": "element"},
-    "_group":     {"input": "list", "output": "map"},
-    "_groupBy":   {"input": "list", "output": "map"},
-    "_flatten":   {"input": "list", "output": "list"},
-    "_zip":       {"input": "list", "preserves_type": False, "output": "list"},
-    "_chunk":     {"input": "list", "output": "list"},
-    "_reduce":    {"input": "list", "output": "any"},
-    "_sortBy":    {"input": "list", "preserves_type": True},
-    "_each":      {"input": "list", "preserves_type": True},
-    "_select":    {"input": "list", "preserves_type": True},
-    "_mutate":    {"input": "list", "preserves_type": True},
-    "_rename":    {"input": "list", "preserves_type": True},
-    "_arrange":   {"input": "list", "preserves_type": True},
-    "_distinct":  {"input": "list", "preserves_type": True},
-    "_slice":     {"input": "list", "preserves_type": True},
-    "_pull":      {"input": "list", "output": "list"},
-    "_join":      {"input": "list", "output": "list"},
-    "_leftJoin":  {"input": "list", "output": "list"},
-    "_pivot":     {"input": "list", "output": "list"},
-    "_unpivot":   {"input": "list", "output": "list"},
-    "_window":    {"input": "list", "output": "list"},
-    "_mapValues": {"input": "map", "output": "map"},
-    "_summarize": {"input": "any", "output": "map"},
+    "filter":    {"input": "list", "preserves_type": True},
+    "sort":      {"input": "list", "preserves_type": True},
+    "map":       {"input": "list", "preserves_type": False, "output": "list"},
+    "take":      {"input": "list", "preserves_type": True},
+    "drop":      {"input": "list", "preserves_type": True},
+    "first":     {"input": "list", "output": "element"},
+    "last":      {"input": "list", "output": "element"},
+    "reverse":   {"input": "list", "preserves_type": True},
+    "unique":    {"input": "list", "preserves_type": True},
+    "count":     {"input": "list", "output": "int"},
+    "sum":       {"input": "list", "output": "num"},
+    "avg":       {"input": "list", "output": "float"},
+    "min":       {"input": "list", "output": "element"},
+    "max":       {"input": "list", "output": "element"},
+    "group":     {"input": "list", "output": "map"},
+    "groupBy":   {"input": "list", "output": "map"},
+    "flatten":   {"input": "list", "output": "list"},
+    "zip":       {"input": "list", "preserves_type": False, "output": "list"},
+    "chunk":     {"input": "list", "output": "list"},
+    "reduce":    {"input": "list", "output": "any"},
+    "sortBy":    {"input": "list", "preserves_type": True},
+    "each":      {"input": "list", "preserves_type": True},
+    "select":    {"input": "list", "preserves_type": True},
+    "mutate":    {"input": "list", "preserves_type": True},
+    "rename":    {"input": "list", "preserves_type": True},
+    "arrange":   {"input": "list", "preserves_type": True},
+    "distinct":  {"input": "list", "preserves_type": True},
+    "slice":     {"input": "list", "preserves_type": True},
+    "pull":      {"input": "list", "output": "list"},
+    "join":      {"input": "list", "output": "list"},
+    "leftJoin":  {"input": "list", "output": "list"},
+    "pivot":     {"input": "list", "output": "list"},
+    "unpivot":   {"input": "list", "output": "list"},
+    "window":    {"input": "list", "output": "list"},
+    "mapValues": {"input": "map", "output": "map"},
+    "summarize": {"input": "any", "output": "map"},
 }
 
 
@@ -222,7 +222,7 @@ def infer_chain_types(chain: StepChain, env: Optional[Dict[str, TinyType]] = Non
             else:
                 output_type = TinyType.any_type()
         elif output_spec == "map":
-            if step_name in ("_group", "_groupBy"):
+            if step_name in ("group", "groupBy"):
                 output_type = _infer_group_output(current_type)
             else:
                 output_type = TinyType.map_type(TinyType.str_type(), TinyType.any_type())

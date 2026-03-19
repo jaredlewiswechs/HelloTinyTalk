@@ -1,5 +1,5 @@
 """
-Tests for _pivot, _unpivot, and _window step chain operators.
+Tests for .pivot, .unpivot, and .window step chain operators.
 """
 
 import pytest
@@ -20,7 +20,7 @@ def value(code: str):
     return r.value.to_python() if r.value else None
 
 
-# ===== _pivot =====
+# ===== .pivot =====
 
 class TestPivot:
     def test_basic_pivot(self):
@@ -32,9 +32,9 @@ let data = [
     {"region": "West", "product": "A", "rev": 150},
     {"region": "West", "product": "B", "rev": 300}
 ]
-let wide = data _pivot((r) => r["region"], (r) => r["product"], (r) => r["rev"])
+let wide = data.pivot((r) => r["region"], (r) => r["product"], (r) => r["rev"])
 show(len(wide))
-show(wide _first)
+show(wide.first)
 ''')
         assert r.success
         lines = r.output.strip().split("\n")
@@ -50,7 +50,7 @@ let data = [
     {"name": "Alice", "subj": "sci",  "grade": 88},
     {"name": "Bob",   "subj": "math", "grade": 72}
 ]
-let wide = data _pivot((r) => r["name"], (r) => r["subj"], (r) => r["grade"])
+let wide = data.pivot((r) => r["name"], (r) => r["subj"], (r) => r["grade"])
 for row in wide { show(row) }
 ''')
         assert r.success
@@ -61,19 +61,19 @@ for row in wide { show(row) }
     def test_pivot_single_row(self):
         r = run('''
 let data = [{"k": "A", "col": "x", "val": 1}]
-let wide = data _pivot((r) => r["k"], (r) => r["col"], (r) => r["val"])
+let wide = data.pivot((r) => r["k"], (r) => r["col"], (r) => r["val"])
 show(len(wide))
 ''')
         assert r.success
         assert r.output.strip() == "1"
 
     def test_pivot_requires_three_args(self):
-        r = run('let d = [1,2,3]\nd _pivot((x) => x)')
+        r = run('let d = [1,2,3]\nd.pivot((x) => x)')
         assert not r.success
         assert "requires" in r.error.lower()
 
 
-# ===== _unpivot =====
+# ===== .unpivot =====
 
 class TestUnpivot:
     def test_basic_unpivot(self):
@@ -83,7 +83,7 @@ let data = [
     {"name": "Alice", "math": 95, "sci": 88},
     {"name": "Bob",   "math": 72, "sci": 91}
 ]
-let long = data _unpivot(["name"])
+let long = data.unpivot(["name"])
 show(len(long))
 for row in long { show(row) }
 ''')
@@ -96,7 +96,7 @@ for row in long { show(row) }
     def test_unpivot_single_id(self):
         r = run('''
 let data = [{"id": 1, "a": 10, "b": 20}]
-let long = data _unpivot(["id"])
+let long = data.unpivot(["id"])
 show(len(long))
 ''')
         assert r.success
@@ -105,7 +105,7 @@ show(len(long))
     def test_unpivot_multiple_ids(self):
         r = run('''
 let data = [{"dept": "eng", "team": "A", "q1": 100, "q2": 200}]
-let long = data _unpivot(["dept", "team"])
+let long = data.unpivot(["dept", "team"])
 show(len(long))
 for row in long { show(row) }
 ''')
@@ -117,18 +117,18 @@ for row in long { show(row) }
         assert "team: A" in lines[1]
 
     def test_unpivot_requires_list(self):
-        r = run('let d = [{"a": 1}]\nd _unpivot("a")')
+        r = run('let d = [{"a": 1}]\nd.unpivot("a")')
         assert not r.success
         assert "requires" in r.error.lower()
 
 
-# ===== _window =====
+# ===== .window =====
 
 class TestWindow:
     def test_rolling_avg(self):
         r = run('''
 let data = [10, 20, 30, 40, 50]
-let result = data _window(3, (w) => round(w _avg, 1))
+let result = data.window(3, (w) => round(w.avg, 1))
 show(result)
 ''')
         assert r.success
@@ -142,7 +142,7 @@ show(result)
     def test_rolling_sum(self):
         r = run('''
 let data = [1, 2, 3, 4, 5]
-let result = data _window(2, (w) => w _sum)
+let result = data.window(2, (w) => w.sum)
 show(result)
 ''')
         assert r.success
@@ -151,7 +151,7 @@ show(result)
     def test_rolling_max(self):
         r = run('''
 let data = [3, 1, 4, 1, 5, 9, 2, 6]
-let result = data _window(3, (w) => w _max)
+let result = data.window(3, (w) => w.max)
 show(result)
 ''')
         assert r.success
@@ -160,7 +160,7 @@ show(result)
     def test_rolling_count(self):
         r = run('''
 let data = [1, 2, 3, 4, 5]
-let result = data _window(3, (w) => w _count)
+let result = data.window(3, (w) => w.count)
 show(result)
 ''')
         assert r.success
@@ -170,7 +170,7 @@ show(result)
         """Window of 1 is just a map."""
         r = run('''
 let data = [10, 20, 30]
-let result = data _window(1, (w) => w _first)
+let result = data.window(1, (w) => w.first)
 show(result)
 ''')
         assert r.success
@@ -180,7 +180,7 @@ show(result)
         """Window size >= list length means growing windows reaching full."""
         r = run('''
 let data = [1, 2, 3]
-let result = data _window(10, (w) => w _sum)
+let result = data.window(10, (w) => w.sum)
 show(result)
 ''')
         assert r.success
@@ -188,15 +188,15 @@ show(result)
         assert r.output.strip() == "[1, 3, 6]"
 
     def test_window_requires_two_args(self):
-        r = run("let d = [1,2,3]\nd _window(3)")
+        r = run("let d = [1,2,3]\nd.window(3)")
         assert not r.success
         assert "requires" in r.error.lower()
 
     def test_window_with_step_chain(self):
-        """_window can be chained with other steps."""
+        """.window can be chained with other steps."""
         r = run('''
 let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-let result = data _window(3, (w) => w _avg) _filter((x) => x > 5) _count
+let result = data.window(3, (w) => w.avg).filter((x) => x > 5).count
 show(result)
 ''')
         assert r.success
@@ -215,9 +215,9 @@ let data = [
     {"name": "B", "metric": "x", "val": 3},
     {"name": "B", "metric": "y", "val": 4}
 ]
-let wide = data _pivot((r) => r["name"], (r) => r["metric"], (r) => r["val"])
-let long = wide _unpivot(["_index"])
-show(long _count)
+let wide = data.pivot((r) => r["name"], (r) => r["metric"], (r) => r["val"])
+let long = wide.unpivot(["_index"])
+show(long.count)
 ''')
         assert r.success
         # Should have 4 rows (2 names × 2 metrics)
@@ -227,8 +227,8 @@ show(long _count)
         """Compute rolling avg, then filter for values above threshold."""
         r = run('''
 let prices = [100, 102, 98, 105, 110, 108, 115, 120]
-let ma = prices _window(3, (w) => round(w _avg, 1))
-let above = ma _filter((x) => x > 105) _count
+let ma = prices.window(3, (w) => round(w.avg, 1))
+let above = ma.filter((x) => x > 105).count
 show(above)
 ''')
         assert r.success
@@ -240,8 +240,8 @@ let data = [
     {"id": 1, "a": 10, "b": 20},
     {"id": 2, "a": 30, "b": 40}
 ]
-let long = data _unpivot(["id"])
-let grouped = long _group((r) => r["variable"])
+let long = data.unpivot(["id"])
+let grouped = long.group((r) => r["variable"])
 show(keys(grouped))
 ''')
         assert r.success

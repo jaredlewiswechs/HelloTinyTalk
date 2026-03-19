@@ -318,48 +318,9 @@ class Lexer:
         "@": TokenType.AT,
     }
 
-    STEP_KEYWORDS = {
-        "_filter": TokenType.STEP_FILTER,
-        "_sort": TokenType.STEP_SORT,
-        "_map": TokenType.STEP_MAP,
-        "_take": TokenType.STEP_TAKE,
-        "_drop": TokenType.STEP_DROP,
-        "_first": TokenType.STEP_FIRST,
-        "_last": TokenType.STEP_LAST,
-        "_reverse": TokenType.STEP_REVERSE,
-        "_unique": TokenType.STEP_UNIQUE,
-        "_count": TokenType.STEP_COUNT,
-        "_sum": TokenType.STEP_SUM,
-        "_avg": TokenType.STEP_AVG,
-        "_min": TokenType.STEP_MIN,
-        "_max": TokenType.STEP_MAX,
-        "_group": TokenType.STEP_GROUP,
-        "_flatten": TokenType.STEP_FLATTEN,
-        "_zip": TokenType.STEP_ZIP,
-        "_chunk": TokenType.STEP_CHUNK,
-        "_reduce": TokenType.STEP_REDUCE,
-        "_sortBy": TokenType.STEP_SORT_BY,
-        "_join": TokenType.STEP_JOIN,
-        "_mapValues": TokenType.STEP_MAP_VALUES,
-        "_each": TokenType.STEP_EACH,
-        # dplyr-style verbs
-        "_select": TokenType.STEP_SELECT,
-        "_mutate": TokenType.STEP_MUTATE,
-        "_summarize": TokenType.STEP_SUMMARIZE,
-        "_summarise": TokenType.STEP_SUMMARIZE,
-        "_rename": TokenType.STEP_RENAME,
-        "_arrange": TokenType.STEP_ARRANGE,
-        "_distinct": TokenType.STEP_DISTINCT,
-        "_slice": TokenType.STEP_SLICE,
-        "_pull": TokenType.STEP_PULL,
-        "_groupBy": TokenType.STEP_GROUP_BY,
-        "_group_by": TokenType.STEP_GROUP_BY,
-        "_leftJoin": TokenType.STEP_LEFT_JOIN,
-        "_left_join": TokenType.STEP_LEFT_JOIN,
-        "_pivot": TokenType.STEP_PIVOT,
-        "_unpivot": TokenType.STEP_UNPIVOT,
-        "_window": TokenType.STEP_WINDOW,
-    }
+    # Legacy underscore step keywords kept empty — step chains now use
+    # dot syntax: nums.reverse.sort.take(3)
+    STEP_KEYWORDS = {}
 
     def __init__(self, source: str):
         self.source = source

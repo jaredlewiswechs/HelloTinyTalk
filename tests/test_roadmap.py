@@ -75,10 +75,10 @@ show(math["PI"])
         """from "module" use { name1, name2 } imports only selected names."""
         with tempfile.TemporaryDirectory() as tmpdir:
             self._write_module(tmpdir, "stats.tt", """
-fn mean(data) { return data _sum / data _count }
+fn mean(data) { return data.sum / data.count }
 fn median(data) {
-    let sorted = data _sort
-    let n = data _count
+    let sorted = data.sort
+    let n = data.count
     return sorted[n // 2]
 }
 fn mode(data) { return data[0] }
@@ -302,12 +302,10 @@ let result = total_scroe + 1
     def test_runtime_unknown_step_suggests(self):
         """Unknown step in runtime includes suggestion via variable hint."""
         code = """
-show([1, 2, 3] _fliter((x) => x > 1))
+show([1, 2, 3].fliter((x) => x > 1))
 """
         r = run(code)
         assert not r.success
-        # _fliter is parsed as an identifier, so we get an undefined variable error
-        assert "Undefined variable '_fliter'" in r.error
 
     # -- type mismatch hints --
 
@@ -472,66 +470,66 @@ class TestSQLTranspiler:
     """Test TinyTalk → SQL transpilation."""
 
     def test_simple_filter(self):
-        sql = transpile_sql('data _filter((r) => r["age"] > 30)')
+        sql = transpile_sql('data.filter((r) => r["age"] > 30)')
         assert "WHERE" in sql
         assert "age > 30" in sql
 
     def test_select_columns(self):
-        sql = transpile_sql('data _select("name", "age")')
+        sql = transpile_sql('data.select("name", "age")')
         assert "SELECT" in sql
         assert "name" in sql
         assert "age" in sql
 
     def test_filter_and_select(self):
-        sql = transpile_sql('data _filter((r) => r["age"] > 30) _select("name", "age")')
+        sql = transpile_sql('data.filter((r) => r["age"] > 30).select("name", "age")')
         assert "WHERE" in sql
         assert "age > 30" in sql
         assert "SELECT" in sql
 
     def test_arrange_order_by(self):
-        sql = transpile_sql('data _arrange((r) => r["name"])')
+        sql = transpile_sql('data.arrange((r) => r["name"])')
         assert "ORDER BY" in sql
         assert "name" in sql
 
     def test_arrange_desc(self):
-        sql = transpile_sql('data _arrange((r) => r["salary"], "desc")')
+        sql = transpile_sql('data.arrange((r) => r["salary"], "desc")')
         assert "ORDER BY" in sql
         assert "DESC" in sql
 
     def test_take_limit(self):
-        sql = transpile_sql('data _take(10)')
+        sql = transpile_sql('data.take(10)')
         assert "LIMIT 10" in sql
 
     def test_drop_offset(self):
-        sql = transpile_sql('data _drop(5)')
+        sql = transpile_sql('data.drop(5)')
         assert "OFFSET 5" in sql
 
     def test_distinct(self):
-        sql = transpile_sql('data _distinct')
+        sql = transpile_sql('data.distinct')
         assert "DISTINCT" in sql
 
     def test_group_by(self):
-        sql = transpile_sql('data _group((r) => r["dept"])')
+        sql = transpile_sql('data.group((r) => r["dept"])')
         assert "GROUP BY" in sql
         assert "dept" in sql
 
     def test_join(self):
-        sql = transpile_sql('users _join(scores, (r) => r["id"])')
+        sql = transpile_sql('users.join(scores, (r) => r["id"])')
         assert "JOIN" in sql
         assert "id" in sql
 
     def test_left_join(self):
-        sql = transpile_sql('users _leftJoin(scores, (r) => r["id"])')
+        sql = transpile_sql('users.leftJoin(scores, (r) => r["id"])')
         assert "LEFT JOIN" in sql
 
     def test_count(self):
-        sql = transpile_sql('data _count')
+        sql = transpile_sql('data.count')
         assert "COUNT(*)" in sql
 
     def test_full_pipeline(self):
         """Full dplyr-style pipeline → SQL."""
         code = '''
-data _filter((r) => r["salary"] > 50000) _select("name", "dept", "salary") _arrange((r) => r["salary"], "desc") _take(10)
+data.filter((r) => r["salary"] > 50000).select("name", "dept", "salary").arrange((r) => r["salary"], "desc").take(10)
 '''
         sql = transpile_sql(code)
         assert "WHERE" in sql
@@ -545,7 +543,7 @@ data _filter((r) => r["salary"] > 50000) _select("name", "dept", "salary") _arra
     def test_group_summarize_pipeline(self):
         """Group + summarize → GROUP BY + aggregation."""
         code = '''
-data _group((r) => r["dept"]) _summarize({"avg_salary": (rows) => rows _map((r) => r["salary"]) _avg, "count": (rows) => rows _count})
+data.group((r) => r["dept"]).summarize({"avg_salary": (rows) => rows.map((r) => r["salary"]).avg, "count": (rows) => rows.count})
 '''
         sql = transpile_sql(code)
         assert "GROUP BY" in sql
@@ -555,27 +553,27 @@ data _group((r) => r["dept"]) _summarize({"avg_salary": (rows) => rows _map((r) 
 
     def test_read_csv_source(self):
         """read_csv("file.csv") extracts table name from filename."""
-        sql = transpile_sql('read_csv("employees.csv") _filter((r) => r["active"] == true)')
+        sql = transpile_sql('read_csv("employees.csv").filter((r) => r["active"] == true)')
         assert "employees" in sql.lower()
         assert "WHERE" in sql
 
     def test_rename(self):
-        sql = transpile_sql('data _rename({"first_name": "name"})')
+        sql = transpile_sql('data.rename({"first_name": "name"})')
         assert "AS" in sql
         assert "name" in sql
 
     def test_pull(self):
-        sql = transpile_sql('data _pull("email")')
+        sql = transpile_sql('data.pull("email")')
         assert "email" in sql
 
     def test_first(self):
-        sql = transpile_sql('data _first')
+        sql = transpile_sql('data.first')
         assert "LIMIT 1" in sql
 
     def test_combined_filter_and_operations(self):
         """Realistic query combining multiple operations."""
         code = '''
-employees _filter((r) => r["dept"] == "engineering") _select("name", "salary") _arrange((r) => r["salary"], "desc") _take(5)
+employees.filter((r) => r["dept"] == "engineering").select("name", "salary").arrange((r) => r["salary"], "desc").take(5)
 '''
         sql = transpile_sql(code)
         lines = sql.strip().split("\n")

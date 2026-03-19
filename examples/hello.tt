@@ -18,7 +18,7 @@ show("5 squared is {square(5)}")
 
 // Step chains - the standout feature
 let numbers = [5, 3, 8, 1, 9, 2, 7, 4, 6]
-show("Sorted top 3:" numbers _sort _reverse _take(3))
+show("Sorted top 3:" numbers.sort.reverse.take(3))
 
 // Natural comparisons
 let items = [1, 2, 3]
