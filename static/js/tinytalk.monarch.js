@@ -3,7 +3,7 @@
  * Monarch tokenizer — maps directly to the lexer.py token types.
  */
 
-/* exported tinytalkLanguageDef, tinytalkTheme */
+/* exported tinytalkLanguageDef, tinytalkThemeDark, tinytalkThemeLight */
 /* global window */
 
 window.tinytalkLanguageDef = {
@@ -163,30 +163,30 @@ window.tinytalkLanguageDef = {
 /**
  * TinyTalk dark theme for Monaco — designed to complement the IDE.
  */
-window.tinytalkTheme = {
+window.tinytalkThemeDark = {
   base: 'vs-dark',
   inherit: true,
   rules: [
-    { token: 'keyword',           foreground: 'C586C0' },       // purple — control flow
-    { token: 'keyword.step',      foreground: '4EC9B0', fontStyle: 'bold' },  // teal — step chains
-    { token: 'keyword.operator',  foreground: 'C586C0' },       // purple — is/has/and/or
-    { token: 'type',              foreground: '4EC9B0' },       // teal — type keywords
-    { token: 'predefined',        foreground: 'DCDCAA' },       // yellow — builtin functions
-    { token: 'constant',          foreground: '569CD6' },       // blue — true/false/PI
-    { token: 'identifier',        foreground: '9CDCFE' },       // light blue — variables
-    { token: 'number',            foreground: 'B5CEA8' },       // green — numbers
+    { token: 'keyword',           foreground: 'C586C0' },
+    { token: 'keyword.step',      foreground: '4EC9B0', fontStyle: 'bold' },
+    { token: 'keyword.operator',  foreground: 'C586C0' },
+    { token: 'type',              foreground: '4EC9B0' },
+    { token: 'predefined',        foreground: 'DCDCAA' },
+    { token: 'constant',          foreground: '569CD6' },
+    { token: 'identifier',        foreground: '9CDCFE' },
+    { token: 'number',            foreground: 'B5CEA8' },
     { token: 'number.hex',        foreground: 'B5CEA8' },
     { token: 'number.octal',      foreground: 'B5CEA8' },
     { token: 'number.binary',     foreground: 'B5CEA8' },
     { token: 'number.float',      foreground: 'B5CEA8' },
-    { token: 'string',            foreground: 'CE9178' },       // orange — strings
-    { token: 'string.escape',     foreground: 'D7BA7D' },       // gold — escape sequences
-    { token: 'string.interpolation', foreground: 'C586C0' },    // purple — { } in strings
+    { token: 'string',            foreground: 'CE9178' },
+    { token: 'string.escape',     foreground: 'D7BA7D' },
+    { token: 'string.interpolation', foreground: 'C586C0' },
     { token: 'comment',           foreground: '6A9955', fontStyle: 'italic' },
     { token: 'operator',          foreground: 'D4D4D4' },
-    { token: 'operator.pipe',     foreground: '4EC9B0', fontStyle: 'bold' },  // teal — pipe ops
+    { token: 'operator.pipe',     foreground: '4EC9B0', fontStyle: 'bold' },
     { token: 'delimiter',         foreground: 'D4D4D4' },
-    { token: '@brackets',         foreground: 'FFD700' },       // gold — brackets
+    { token: '@brackets',         foreground: 'FFD700' },
   ],
   colors: {
     'editor.background':                '#1E1E2E',
@@ -197,5 +197,45 @@ window.tinytalkTheme = {
     'editorLineNumber.foreground':      '#6C7086',
     'editorLineNumber.activeForeground':'#CDD6F4',
     'editor.inactiveSelectionBackground':'#313244',
+  },
+};
+
+/**
+ * TinyTalk light theme for Monaco.
+ */
+window.tinytalkThemeLight = {
+  base: 'vs',
+  inherit: true,
+  rules: [
+    { token: 'keyword',           foreground: '7C3AED' },
+    { token: 'keyword.step',      foreground: '0D9488', fontStyle: 'bold' },
+    { token: 'keyword.operator',  foreground: '7C3AED' },
+    { token: 'type',              foreground: '0D9488' },
+    { token: 'predefined',        foreground: 'B45309' },
+    { token: 'constant',          foreground: '2563EB' },
+    { token: 'identifier',        foreground: '1E293B' },
+    { token: 'number',            foreground: '16A34A' },
+    { token: 'number.hex',        foreground: '16A34A' },
+    { token: 'number.octal',      foreground: '16A34A' },
+    { token: 'number.binary',     foreground: '16A34A' },
+    { token: 'number.float',      foreground: '16A34A' },
+    { token: 'string',            foreground: 'C2410C' },
+    { token: 'string.escape',     foreground: 'A16207' },
+    { token: 'string.interpolation', foreground: '7C3AED' },
+    { token: 'comment',           foreground: '6B7280', fontStyle: 'italic' },
+    { token: 'operator',          foreground: '475569' },
+    { token: 'operator.pipe',     foreground: '0D9488', fontStyle: 'bold' },
+    { token: 'delimiter',         foreground: '475569' },
+    { token: '@brackets',         foreground: 'B45309' },
+  ],
+  colors: {
+    'editor.background':                '#FAFAFA',
+    'editor.foreground':                '#1E293B',
+    'editorCursor.foreground':          '#7C3AED',
+    'editor.lineHighlightBackground':   '#F1F5F9',
+    'editor.selectionBackground':       '#BFDBFE',
+    'editorLineNumber.foreground':      '#94A3B8',
+    'editorLineNumber.activeForeground':'#475569',
+    'editor.inactiveSelectionBackground':'#E2E8F0',
   },
 };

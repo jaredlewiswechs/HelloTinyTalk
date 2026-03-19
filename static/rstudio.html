@@ -31,11 +31,18 @@
       <input type="file" id="file-import" accept=".csv,.json" style="display:none">
     </div>
     <div class="toolbar-right">
+      <button id="btn-zoom-out" class="btn-icon" title="Decrease font size (Ctrl+-)">A&minus;</button>
+      <button id="btn-zoom-in" class="btn-icon" title="Increase font size (Ctrl+=)">A+</button>
+      <button id="btn-format" class="btn-secondary" title="Format code (Ctrl+Shift+F)">Format</button>
+      <div class="separator"></div>
       <button id="btn-share" class="btn-secondary" title="Share program via URL">Share</button>
       <div class="separator"></div>
       <button id="btn-transpile-py" class="btn-secondary">Python</button>
       <button id="btn-transpile-sql" class="btn-secondary">SQL</button>
       <button id="btn-transpile-js" class="btn-secondary">JS</button>
+      <div class="separator"></div>
+      <button id="btn-shortcuts" class="btn-secondary" title="Keyboard shortcuts">&#9000;</button>
+      <button id="btn-settings" class="btn-secondary" title="Editor settings">&#9881;</button>
     </div>
   </header>
 
@@ -103,6 +110,7 @@
         <button class="ptab" data-pane="output" data-target="out-help">Help</button>
         <button class="ptab" data-pane="output" data-target="out-debug">Debug</button>
         <button class="ptab" data-pane="output" data-target="out-transpiled">Transpiled</button>
+        <button class="ptab" data-pane="output" data-target="out-learn">Learn</button>
       </div>
       <div id="out-output" class="pane-body active">
         <pre id="output-text"></pre>
@@ -146,6 +154,54 @@
         </div>
         <pre id="transpiled-code"></pre>
       </div>
+      <div id="out-learn" class="pane-body">
+        <div id="learn-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings dropdown -->
+  <div id="settings-dropdown" class="settings-panel" style="display:none;">
+    <div class="settings-title">Editor Settings</div>
+    <label class="settings-row">
+      <span>Theme</span>
+      <select id="setting-theme">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </label>
+    <label class="settings-row">
+      <span>Minimap</span>
+      <input type="checkbox" id="setting-minimap">
+    </label>
+    <label class="settings-row">
+      <span>Word Wrap</span>
+      <input type="checkbox" id="setting-wordwrap" checked>
+    </label>
+  </div>
+
+  <!-- Shortcuts modal -->
+  <div id="shortcuts-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Keyboard Shortcuts</span>
+        <button id="shortcuts-close" class="btn-icon">&times;</button>
+      </div>
+      <table class="shortcuts-table">
+        <tr><td><kbd>Ctrl+Enter</kbd></td><td>Run all code</td></tr>
+        <tr><td><kbd>Ctrl+Shift+Enter</kbd></td><td>Run selection / current line</td></tr>
+        <tr><td><kbd>Ctrl+F</kbd></td><td>Find</td></tr>
+        <tr><td><kbd>Ctrl+H</kbd></td><td>Find &amp; Replace</td></tr>
+        <tr><td><kbd>Ctrl+Shift+F</kbd></td><td>Format code</td></tr>
+        <tr><td><kbd>Ctrl+=</kbd></td><td>Increase font size</td></tr>
+        <tr><td><kbd>Ctrl+-</kbd></td><td>Decrease font size</td></tr>
+        <tr><td><kbd>Ctrl+/</kbd></td><td>Toggle line comment</td></tr>
+        <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+        <tr><td><kbd>Ctrl+Shift+Z</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Indent</td></tr>
+        <tr><td><kbd>Shift+Tab</kbd></td><td>Outdent</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
+      </table>
     </div>
   </div>
 
@@ -162,6 +218,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <script src="/static/js/tinytalk.monarch.js"></script>
   <script src="/static/js/tinytalk.completion.js"></script>
+  <script src="/static/js/lessons.js"></script>
   <script src="/static/js/rstudio.js"></script>
 </body>
 </html>

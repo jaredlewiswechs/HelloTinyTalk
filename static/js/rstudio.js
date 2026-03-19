@@ -21,7 +21,7 @@
  *   - Transpiler view (Python / SQL / JS)
  */
 
-/* global require, monaco, tinytalkLanguageDef, tinytalkTheme, tinytalkCompletionProvider, Chart */
+/* global require, monaco, tinytalkLanguageDef, tinytalkThemeDark, tinytalkThemeLight, tinytalkCompletionProvider, Chart, LessonEngine */
 
 (function () {
   'use strict';
@@ -35,6 +35,10 @@
   var checkTimeout = null;
   var activeCharts = [];
   var currentTranspileLang = 'python';
+  var currentFontSize = parseInt(localStorage.getItem('tt_fontSize'), 10) || 14;
+  var currentTheme = localStorage.getItem('tt_theme') || 'dark';
+  var minimapEnabled = localStorage.getItem('tt_minimap') === 'true';
+  var wordWrapOn = localStorage.getItem('tt_wordwrap') !== 'false';
 
   var CHART_COLORS = [
     '#89B4FA', '#A6E3A1', '#F38BA8', '#F9E2AF', '#94E2D5',
@@ -112,17 +116,21 @@
       },
     });
 
-    monaco.editor.defineTheme('tinytalk-dark', tinytalkTheme);
+    monaco.editor.defineTheme('tinytalk-dark', tinytalkThemeDark);
+    monaco.editor.defineTheme('tinytalk-light', tinytalkThemeLight);
+
+    // Apply saved theme to body
+    if (currentTheme === 'light') document.body.classList.add('light-theme');
 
     var initialCode = getCodeFromURL() || DEFAULT_CODE;
 
     editor = monaco.editor.create(document.getElementById('editor'), {
       value: initialCode,
       language: 'tinytalk',
-      theme: 'tinytalk-dark',
-      fontSize: 14,
+      theme: currentTheme === 'light' ? 'tinytalk-light' : 'tinytalk-dark',
+      fontSize: currentFontSize,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
-      minimap: { enabled: false },
+      minimap: { enabled: minimapEnabled },
       lineNumbers: 'on',
       roundedSelection: true,
       scrollBeyondLastLine: false,
@@ -130,10 +138,24 @@
       tabSize: 4,
       insertSpaces: true,
       automaticLayout: true,
-      wordWrap: 'on',
+      wordWrap: wordWrapOn ? 'on' : 'off',
       suggestOnTriggerCharacters: true,
       quickSuggestions: true,
     });
+
+    // Expose editor and run function for lessons
+    window._ttEditor = editor;
+    window._ttRunCode = function (code, callback) {
+      fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { callback(data); })
+      .catch(function (err) { callback({ success: false, error: err.message, output: '' }); });
+    };
+    window._ttShowOutputTab = showOutputTab;
 
     // ── Keybindings ──────────────────────────────────────────────
 
@@ -147,10 +169,23 @@
       runSelection();
     });
 
-    // Live error checking
+    // Ctrl+= / Ctrl+- for font size
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal, function () { changeFontSize(1); });
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus, function () { changeFontSize(-1); });
+
+    // Register TinyTalk formatter
+    monaco.languages.registerDocumentFormattingEditProvider('tinytalk', {
+      provideDocumentFormattingEdits: function (model) {
+        var formatted = formatTinyTalkCode(model.getValue());
+        return [{ range: model.getFullModelRange(), text: formatted }];
+      }
+    });
+
+    // Live error checking + stats
     editor.onDidChangeModelContent(function () {
       clearTimeout(checkTimeout);
       checkTimeout = setTimeout(checkSyntax, 600);
+      updateEditorStats();
     });
 
     // Cursor position in status bar
@@ -159,8 +194,25 @@
         'Ln ' + e.position.lineNumber + ', Col ' + e.position.column;
     });
 
+    // Selection info
+    editor.onDidChangeCursorSelection(function (e) {
+      var sel = e.selection;
+      var text = editor.getModel().getValueInRange(sel);
+      var cursor = document.getElementById('status-cursor');
+      var pos = editor.getPosition();
+      if (text.length > 0) {
+        cursor.textContent = 'Ln ' + pos.lineNumber + ', Col ' + pos.column + ' (' + text.length + ' selected)';
+      } else {
+        cursor.textContent = 'Ln ' + pos.lineNumber + ', Col ' + pos.column;
+      }
+    });
+
+    updateEditorStats();
+    syncSettingsUI();
+
     loadExamples();
     loadHelpIndex();
+    if (typeof LessonEngine !== 'undefined') LessonEngine.init();
     editor.focus();
 
     if (getCodeFromURL()) {
@@ -1049,5 +1101,151 @@
   function escapeHtml(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  // ══════════════════════════════════════════════════════════════════
+  // EDITOR STATS
+  // ══════════════════════════════════════════════════════════════════
+
+  function updateEditorStats() {
+    if (!editor) return;
+    var model = editor.getModel();
+    var lines = model.getLineCount();
+    var chars = model.getValueLength();
+    var display = chars >= 1000 ? (chars / 1000).toFixed(1) + 'K' : chars;
+    document.getElementById('status-stats').textContent = lines + ' lines, ' + display + ' chars';
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // FONT SIZE
+  // ══════════════════════════════════════════════════════════════════
+
+  function changeFontSize(delta) {
+    currentFontSize = Math.max(10, Math.min(28, currentFontSize + delta));
+    editor.updateOptions({ fontSize: currentFontSize });
+    localStorage.setItem('tt_fontSize', currentFontSize);
+  }
+
+  document.getElementById('btn-zoom-in').addEventListener('click', function () { changeFontSize(1); });
+  document.getElementById('btn-zoom-out').addEventListener('click', function () { changeFontSize(-1); });
+
+  // ══════════════════════════════════════════════════════════════════
+  // FORMAT
+  // ══════════════════════════════════════════════════════════════════
+
+  document.getElementById('btn-format').addEventListener('click', function () {
+    if (editor) editor.getAction('editor.action.formatDocument').run();
+  });
+
+  function formatTinyTalkCode(code) {
+    var lines = code.split('\n');
+    var result = [];
+    var indent = 0;
+    var tabStr = '    ';
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) { result.push(''); continue; }
+
+      // Decrease indent before closing braces
+      var opens = (line.match(/\{/g) || []).length;
+      var closes = (line.match(/\}/g) || []).length;
+
+      // If line starts with }, decrease first
+      if (line[0] === '}') {
+        indent = Math.max(0, indent - 1);
+      }
+
+      var prefix = '';
+      for (var j = 0; j < indent; j++) prefix += tabStr;
+      result.push(prefix + line);
+
+      // Adjust indent based on net braces (but skip lines that start with })
+      if (line[0] === '}') {
+        // Already decreased; now account for remaining
+        indent += opens - (closes - 1);
+      } else {
+        indent += opens - closes;
+      }
+      indent = Math.max(0, indent);
+    }
+
+    return result.join('\n');
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SETTINGS PANEL
+  // ══════════════════════════════════════════════════════════════════
+
+  var settingsOpen = false;
+  var settingsPanel = document.getElementById('settings-dropdown');
+
+  document.getElementById('btn-settings').addEventListener('click', function (e) {
+    e.stopPropagation();
+    settingsOpen = !settingsOpen;
+    settingsPanel.style.display = settingsOpen ? '' : 'none';
+  });
+
+  document.addEventListener('click', function (e) {
+    if (settingsOpen && !settingsPanel.contains(e.target)) {
+      settingsOpen = false;
+      settingsPanel.style.display = 'none';
+    }
+  });
+
+  function syncSettingsUI() {
+    document.getElementById('setting-theme').value = currentTheme;
+    document.getElementById('setting-minimap').checked = minimapEnabled;
+    document.getElementById('setting-wordwrap').checked = wordWrapOn;
+  }
+
+  document.getElementById('setting-theme').addEventListener('change', function () {
+    currentTheme = this.value;
+    localStorage.setItem('tt_theme', currentTheme);
+    if (currentTheme === 'light') {
+      document.body.classList.add('light-theme');
+      monaco.editor.setTheme('tinytalk-light');
+    } else {
+      document.body.classList.remove('light-theme');
+      monaco.editor.setTheme('tinytalk-dark');
+    }
+  });
+
+  document.getElementById('setting-minimap').addEventListener('change', function () {
+    minimapEnabled = this.checked;
+    localStorage.setItem('tt_minimap', minimapEnabled);
+    if (editor) editor.updateOptions({ minimap: { enabled: minimapEnabled } });
+  });
+
+  document.getElementById('setting-wordwrap').addEventListener('change', function () {
+    wordWrapOn = this.checked;
+    localStorage.setItem('tt_wordwrap', wordWrapOn);
+    if (editor) editor.updateOptions({ wordWrap: wordWrapOn ? 'on' : 'off' });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // SHORTCUTS MODAL
+  // ══════════════════════════════════════════════════════════════════
+
+  var shortcutsModal = document.getElementById('shortcuts-modal');
+
+  document.getElementById('btn-shortcuts').addEventListener('click', function () {
+    shortcutsModal.style.display = '';
+  });
+
+  document.getElementById('shortcuts-close').addEventListener('click', function () {
+    shortcutsModal.style.display = 'none';
+  });
+
+  shortcutsModal.addEventListener('click', function (e) {
+    if (e.target === shortcutsModal) shortcutsModal.style.display = 'none';
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      shortcutsModal.style.display = 'none';
+      settingsOpen = false;
+      settingsPanel.style.display = 'none';
+    }
+  });
 
 })();

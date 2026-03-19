@@ -10,7 +10,7 @@
  *   - Live syntax checking with error recovery
  */
 
-/* global require, monaco, tinytalkLanguageDef, tinytalkTheme, tinytalkCompletionProvider */
+/* global require, monaco, tinytalkLanguageDef, tinytalkThemeDarkDark, tinytalkCompletionProvider */
 
 (function () {
   'use strict';
@@ -110,7 +110,7 @@
     });
 
     // Register theme
-    monaco.editor.defineTheme('tinytalk-dark', tinytalkTheme);
+    monaco.editor.defineTheme('tinytalk-dark', tinytalkThemeDark);
 
     // Check for shared code in URL
     var initialCode = getCodeFromURL() || DEFAULT_CODE;

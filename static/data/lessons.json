@@ -1,0 +1,472 @@
+{
+  "lessons": [
+    {
+      "id": "variables-and-output",
+      "title": "1. Variables & Output",
+      "description": "Learn how to store values and display them to the screen.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Your First Program",
+          "content": "Every programmer starts by saying hello! In TinyTalk, we use `show()` to display text on the screen. Text (called a \"string\") goes inside double quotes.",
+          "code": "show(\"Hello, world!\")\nshow(\"Welcome to TinyTalk!\")"
+        },
+        {
+          "type": "explain",
+          "title": "Storing Values with let",
+          "content": "Variables let you store values and reuse them. Use `let` to create a variable. You can store numbers, text, or anything else. Use `const` for values that should never change.\n\nYou can print variables with `show()` — just pass them as space-separated arguments (no commas!).",
+          "code": "let name = \"Alice\"\nlet age = 25\nconst PI = 3.14\n\nshow(\"Name:\" name)\nshow(\"Age:\" age)\nshow(\"Pi is\" PI)"
+        },
+        {
+          "type": "explain",
+          "title": "String Interpolation",
+          "content": "Instead of passing multiple arguments to `show()`, you can embed variables directly inside a string using curly braces `{variable}`. This is called string interpolation and it makes your output look clean.",
+          "code": "let animal = \"cat\"\nlet sound = \"meow\"\n\nshow(\"The {animal} goes {sound}!\")\n\nlet price = 9.99\nshow(\"Total: ${price}\")"
+        },
+        {
+          "type": "exercise",
+          "title": "Introduce Yourself",
+          "content": "Create two variables: `name` (set to your name or any name) and `hobby` (set to a hobby). Then use `show()` with string interpolation to print:\n`My name is ___ and I love ___!`",
+          "starterCode": "// Create your variables below\n\n\n// Use show() with string interpolation to print the message\n",
+          "hint": "Use `let name = \"YourName\"` and `let hobby = \"YourHobby\"`, then `show(\"My name is {name} and I love {hobby}!\")`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "My name is"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Constants and Variables",
+          "content": "Create a `const` called `SPEED_OF_LIGHT` set to `299792458`. Create a `let` variable called `distance` set to `1000`. Then show the message: `Light travels 299792458 m/s over 1000 meters`\n\nUse string interpolation!",
+          "starterCode": "// Define the constant and variable\n\n\n// Show the message using string interpolation\n",
+          "hint": "Use `const SPEED_OF_LIGHT = 299792458` and `let distance = 1000`, then `show(\"Light travels {SPEED_OF_LIGHT} m/s over {distance} meters\")`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "299792458"
+          }
+        }
+      ]
+    },
+    {
+      "id": "numbers-and-math",
+      "title": "2. Numbers & Math",
+      "description": "Perform calculations, use math functions, and compare values.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Basic Arithmetic",
+          "content": "TinyTalk supports all the standard math operators: `+` (add), `-` (subtract), `*` (multiply), `/` (divide), `%` (remainder), `**` (power), and `//` (floor division, which rounds down to the nearest whole number).",
+          "code": "show(\"Addition:\" 10 + 3)\nshow(\"Subtraction:\" 10 - 3)\nshow(\"Multiplication:\" 10 * 3)\nshow(\"Division:\" 10 / 3)\nshow(\"Floor division:\" 10 // 3)\nshow(\"Remainder:\" 10 % 3)\nshow(\"Power:\" 2 ** 8)"
+        },
+        {
+          "type": "explain",
+          "title": "Math Functions",
+          "content": "TinyTalk has built-in math functions you can use right away. `abs()` gives the absolute value, `round()` rounds a number, `sqrt()` gives the square root, and `min()` / `max()` find the smallest or largest value.",
+          "code": "show(\"Absolute value:\" abs(-42))\nshow(\"Rounded:\" round(3.7))\nshow(\"Square root:\" sqrt(144))\nshow(\"Minimum:\" min(5, 2, 8, 1))\nshow(\"Maximum:\" max(5, 2, 8, 1))"
+        },
+        {
+          "type": "explain",
+          "title": "Comparisons and Natural Operators",
+          "content": "You can compare values with `>`, `<`, `>=`, `<=`. TinyTalk also has friendly natural operators: `is` (equals), `isnt` (not equals). These return `true` or `false`.",
+          "code": "let x = 10\nlet y = 20\n\nshow(x > y)\nshow(x < y)\nshow(x is 10)\nshow(x isnt y)\n\nlet temp = 72\nshow(\"Is it warm?\" temp > 70)"
+        },
+        {
+          "type": "exercise",
+          "title": "Temperature Converter",
+          "content": "Convert a temperature from Fahrenheit to Celsius using the formula: `C = (F - 32) * 5 / 9`.\n\nSet `fahrenheit` to `98.6`, calculate `celsius`, and round the result. Then show: `98.6F is ___C`",
+          "starterCode": "let fahrenheit = 98.6\n\n// Calculate celsius using the formula\n\n\n// Show the result\n",
+          "hint": "Use `let celsius = round((fahrenheit - 32) * 5 / 9)` then `show(\"{fahrenheit}F is {celsius}C\")`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "37"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Pythagorean Theorem",
+          "content": "Given a right triangle with sides `a = 3` and `b = 4`, calculate the hypotenuse `c` using the Pythagorean theorem: `c = sqrt(a**2 + b**2)`.\n\nShow the result as: `The hypotenuse is ___`",
+          "starterCode": "let a = 3\nlet b = 4\n\n// Calculate the hypotenuse\n\n\n// Show the result\n",
+          "hint": "Use `let c = sqrt(a**2 + b**2)` — the answer should be 5.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "5"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lists-and-maps",
+      "title": "3. Lists & Maps",
+      "description": "Work with collections of data using lists and maps.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Creating Lists",
+          "content": "A list holds multiple values in order. Create one with square brackets `[]`. You can access items by index (starting at 0), check the length with `.len` or `len()`, and add items with `append()`.",
+          "code": "let fruits = [\"apple\", \"banana\", \"cherry\"]\n\nshow(\"First fruit:\" fruits[0])\nshow(\"Last fruit:\" fruits[2])\nshow(\"How many?\" fruits.len)\n\nappend(fruits, \"date\")\nshow(\"After append:\" fruits)"
+        },
+        {
+          "type": "explain",
+          "title": "Creating Maps",
+          "content": "A map (also called a dictionary) stores key-value pairs. Create one with curly braces `{}`. Access values with `map[\"key\"]`. Use `keys()` and `values()` to get all keys or values.",
+          "code": "let person = {\"name\": \"Alice\", \"age\": 30, \"city\": \"Portland\"}\n\nshow(\"Name:\" person[\"name\"])\nshow(\"Age:\" person[\"age\"])\n\nshow(\"Keys:\" keys(person))\nshow(\"Values:\" values(person))"
+        },
+        {
+          "type": "explain",
+          "title": "Lists of Numbers",
+          "content": "Lists of numbers are great for math. You can use `sum()`, `min()`, `max()`, and `len()` on them.",
+          "code": "let scores = [85, 92, 78, 95, 88]\n\nshow(\"Total:\" sum(scores))\nshow(\"Best:\" max(scores))\nshow(\"Worst:\" min(scores))\nshow(\"Count:\" len(scores))\nshow(\"Average:\" sum(scores) / len(scores))"
+        },
+        {
+          "type": "exercise",
+          "title": "Grocery List",
+          "content": "Create a list called `groceries` with three items: `\"milk\"`, `\"bread\"`, and `\"eggs\"`. Then append `\"butter\"` to it. Show the total number of items as: `I need to buy ___ items`",
+          "starterCode": "// Create your grocery list\n\n\n// Append butter\n\n\n// Show how many items\n",
+          "hint": "Use `let groceries = [\"milk\", \"bread\", \"eggs\"]`, then `append(groceries, \"butter\")`, then `show(\"I need to buy {groceries.len} items\")`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "4"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Student Record",
+          "content": "Create a map called `student` with keys `\"name\"` (set to `\"Maya\"`), `\"grade\"` (set to `95`), and `\"subject\"` (set to `\"Math\"`). Then show: `Maya scored 95 in Math`\n\nUse string interpolation, accessing the map values with `student[\"key\"]`.",
+          "starterCode": "// Create the student map\n\n\n// Show the formatted message\n",
+          "hint": "Create the map with `let student = {\"name\": \"Maya\", \"grade\": 95, \"subject\": \"Math\"}` and use `show()` with the values.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Maya"
+          }
+        }
+      ]
+    },
+    {
+      "id": "control-flow",
+      "title": "4. Control Flow",
+      "description": "Make decisions and repeat actions with if/else, loops, and match.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "If / Elif / Else",
+          "content": "Use `if` to run code only when a condition is true. Add `elif` for additional conditions and `else` as a fallback. Conditions use natural operators like `is`, `isnt`, `>`, `<`, etc.",
+          "code": "let score = 85\n\nif score >= 90 {\n  show(\"Grade: A\")\n} elif score >= 80 {\n  show(\"Grade: B\")\n} elif score >= 70 {\n  show(\"Grade: C\")\n} else {\n  show(\"Grade: F\")\n}"
+        },
+        {
+          "type": "explain",
+          "title": "For Loops",
+          "content": "A `for` loop repeats code for each item in a list. The variable after `for` takes on each value one at a time.",
+          "code": "let colors = [\"red\", \"green\", \"blue\"]\n\nfor color in colors {\n  show(\"I see {color}!\")\n}\n\n// You can also loop over ranges\nfor i in [1, 2, 3, 4, 5] {\n  show(\"{i} squared is {i ** 2}\")\n}"
+        },
+        {
+          "type": "explain",
+          "title": "While Loops and Match",
+          "content": "`while` loops repeat as long as a condition is true. `match` lets you handle multiple specific values cleanly — like a switch statement.",
+          "code": "// While loop: countdown\nlet count = 5\nwhile count > 0 {\n  show(count)\n  count = count - 1\n}\nshow(\"Liftoff!\")\n\n// Match statement\nlet day = \"Monday\"\nmatch day {\n  \"Monday\" => show(\"Start of the week\")\n  \"Friday\" => show(\"Almost weekend!\")\n  \"Saturday\" => show(\"Weekend!\")\n  \"Sunday\" => show(\"Weekend!\")\n  _ => show(\"Just another day\")\n}"
+        },
+        {
+          "type": "exercise",
+          "title": "FizzBuzz",
+          "content": "Loop through numbers 1 to 5. For each number:\n- If divisible by 3, show `Fizz`\n- Else, show the number itself\n\n(Hint: use `%` to check divisibility — `n % 3 is 0`)",
+          "starterCode": "for n in [1, 2, 3, 4, 5] {\n  // Add your if/else logic here\n\n}",
+          "hint": "Use `if n % 3 is 0 { show(\"Fizz\") } else { show(n) }` inside the loop.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Fizz"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Biggest Number",
+          "content": "Given the list `[14, 7, 23, 9, 31, 2]`, use a `for` loop to find the biggest number. Start with a variable `biggest` set to `0`, and update it each time you find something larger. At the end, show: `The biggest number is 31`",
+          "starterCode": "let numbers = [14, 7, 23, 9, 31, 2]\nlet biggest = 0\n\n// Loop through and find the biggest\n\n\nshow(\"The biggest number is {biggest}\")",
+          "hint": "Inside the loop: `if n > biggest { biggest = n }`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "31"
+          }
+        }
+      ]
+    },
+    {
+      "id": "functions",
+      "title": "5. Functions",
+      "description": "Define reusable blocks of code with functions.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Defining Functions",
+          "content": "Functions let you name a block of code and reuse it. Define one with `fn`, give it a name and parameters, and use `return` to send back a value.",
+          "code": "fn greet(name) {\n  return \"Hello, {name}!\"\n}\n\nshow(greet(\"Alice\"))\nshow(greet(\"Bob\"))\n\nfn add(a, b) {\n  return a + b\n}\n\nshow(\"Sum:\" add(10, 20))"
+        },
+        {
+          "type": "explain",
+          "title": "Functions with Logic",
+          "content": "Functions can contain any logic — conditions, loops, calculations. They help you avoid repeating code and make your programs easier to read.",
+          "code": "fn classify_temp(temp) {\n  if temp > 85 {\n    return \"hot\"\n  } elif temp > 60 {\n    return \"nice\"\n  } else {\n    return \"cold\"\n  }\n}\n\nshow(\"90 degrees is\" classify_temp(90))\nshow(\"72 degrees is\" classify_temp(72))\nshow(\"45 degrees is\" classify_temp(45))"
+        },
+        {
+          "type": "explain",
+          "title": "Recursion",
+          "content": "A function can call itself — this is called recursion. It is great for problems that break into smaller versions of themselves. Always include a base case to stop the recursion!",
+          "code": "fn factorial(n) {\n  if n <= 1 {\n    return 1\n  }\n  return n * factorial(n - 1)\n}\n\nshow(\"5! =\" factorial(5))\nshow(\"6! =\" factorial(6))\nshow(\"10! =\" factorial(10))"
+        },
+        {
+          "type": "exercise",
+          "title": "Area Calculator",
+          "content": "Write a function called `area` that takes `width` and `height` and returns their product (the area of a rectangle). Then call it with `5` and `3`, and show: `Area: 15`",
+          "starterCode": "// Define the area function\n\n\n// Call it and show the result\nshow(\"Area:\" area(5, 3))",
+          "hint": "Define `fn area(width, height) { return width * height }`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Area: 15"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Is It Even?",
+          "content": "Write a function `is_even(n)` that returns `true` if `n` is divisible by 2, and `false` otherwise. Then test it by showing the results for 4 and 7:\n```\n4 is even: true\n7 is even: false\n```",
+          "starterCode": "// Define is_even function\n\n\n// Test it\nshow(\"4 is even:\" is_even(4))\nshow(\"7 is even:\" is_even(7))",
+          "hint": "Use `n % 2 is 0` to check if a number is even. Return `true` or `false`.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "4 is even: true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "step-chains-basics",
+      "title": "6. Step Chains Basics",
+      "description": "Transform data elegantly with TinyTalk's step chain operators.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "What Are Step Chains?",
+          "content": "Step chains are TinyTalk's way of transforming data by piping it through a series of operations. Each step starts with an underscore `_` and operates on the result of the previous step. Think of it like an assembly line where data flows through each station.",
+          "code": "let nums = [5, 2, 8, 1, 9, 3]\n\n// Sort the list\nshow(nums _sort)\n\n// Reverse it\nshow(nums _reverse)\n\n// Take only the first 3\nshow(nums _take(3))"
+        },
+        {
+          "type": "explain",
+          "title": "Filter and Map",
+          "content": "`_filter` keeps only items that match a condition. `_map` transforms each item. Both use lambda syntax: `(x) => expression`.",
+          "code": "let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n\n// Keep only even numbers\nlet evens = numbers _filter((n) => n % 2 is 0)\nshow(\"Evens:\" evens)\n\n// Double every number\nlet doubled = numbers _map((n) => n * 2)\nshow(\"Doubled:\" doubled)\n\n// Square the odd numbers\nlet result = numbers _filter((n) => n % 2 isnt 0) _map((n) => n ** 2)\nshow(\"Odd squares:\" result)"
+        },
+        {
+          "type": "explain",
+          "title": "Chaining Steps Together",
+          "content": "The real power of step chains is combining multiple steps. Data flows left to right through each operation, making complex transformations readable.",
+          "code": "let scores = [72, 95, 88, 61, 43, 99, 84, 77]\n\n// Get the top 3 scores\nlet top3 = scores _sort _reverse _take(3)\nshow(\"Top 3 scores:\" top3)\n\n// Get passing scores (>= 70), sorted\nlet passing = scores _filter((s) => s >= 70) _sort\nshow(\"Passing (sorted):\" passing)"
+        },
+        {
+          "type": "exercise",
+          "title": "High Scores",
+          "content": "Given the list of scores, use step chains to:\n1. Filter to only scores above 80\n2. Sort them\n3. Reverse (so highest is first)\n\nShow the result. It should be `[95, 92, 88, 85]`.",
+          "starterCode": "let scores = [75, 92, 88, 65, 95, 70, 85, 55]\n\n// Use step chains to filter, sort, and reverse\nlet top_scores = scores\nshow(top_scores)",
+          "hint": "Chain them: `scores _filter((s) => s > 80) _sort _reverse`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "95"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Transform and Take",
+          "content": "Given a list of numbers, use step chains to:\n1. Map each number to its square (`n ** 2`)\n2. Filter to keep only squares greater than 10\n3. Sort the result\n4. Take the first 3\n\nShow the result.",
+          "starterCode": "let nums = [1, 2, 3, 4, 5, 6]\n\n// Square, filter > 10, sort, take 3\nlet result = nums\nshow(result)",
+          "hint": "Use `nums _map((n) => n ** 2) _filter((n) => n > 10) _sort _take(3)`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "16"
+          }
+        }
+      ]
+    },
+    {
+      "id": "step-chains-advanced",
+      "title": "7. Step Chains Advanced",
+      "description": "Master advanced step chain operations for powerful data transformations.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Unique and Flatten",
+          "content": "`_unique` removes duplicate values from a list. `_flatten` takes a list of lists and merges them into a single flat list.",
+          "code": "let tags = [\"js\", \"python\", \"js\", \"rust\", \"python\", \"go\", \"rust\"]\nshow(\"Unique tags:\" tags _unique)\n\nlet nested = [[1, 2], [3, 4], [5, 6]]\nshow(\"Flattened:\" nested _flatten)\n\n// Combine: flatten then get unique\nlet data = [[\"a\", \"b\"], [\"b\", \"c\"], [\"a\", \"d\"]]\nshow(\"Flat + unique:\" data _flatten _unique)"
+        },
+        {
+          "type": "explain",
+          "title": "Reduce",
+          "content": "`_reduce` combines all items in a list into a single value. It takes a lambda with two parameters: the accumulator and the current item. You can optionally provide a starting value.",
+          "code": "let nums = [1, 2, 3, 4, 5]\n\n// Sum using reduce\nlet total = nums _reduce((acc, n) => acc + n)\nshow(\"Sum:\" total)\n\n// Product using reduce\nlet product = nums _reduce((acc, n) => acc * n)\nshow(\"Product:\" product)\n\n// Build a string\nlet words = [\"Step\", \"chains\", \"are\", \"great\"]\nlet sentence = words _reduce((acc, w) => acc + \" \" + w)\nshow(sentence)"
+        },
+        {
+          "type": "explain",
+          "title": "Complex Chains",
+          "content": "You can build sophisticated data pipelines by combining many step chain operations. Each step transforms the data and passes it along.",
+          "code": "let sales = [120, 85, 200, 340, 95, 175, 280, 60, 310, 150]\n\n// Analysis pipeline:\n// 1. Filter sales over 100\n// 2. Sort ascending\n// 3. Take top 5\nlet top_sales = sales _filter((s) => s > 100) _sort _reverse _take(5)\nshow(\"Top 5 sales:\" top_sales)\n\n// Calculate stats on filtered data\nlet big_sales = sales _filter((s) => s > 100)\nshow(\"Count of big sales:\" len(big_sales))\nshow(\"Total:\" sum(big_sales))"
+        },
+        {
+          "type": "exercise",
+          "title": "Word Processor",
+          "content": "Given a list of words (some duplicated), use step chains to:\n1. Get only unique words\n2. Filter to words longer than 3 characters (use `.len`)\n3. Sort them alphabetically\n\nShow the result.",
+          "starterCode": "let words = [\"the\", \"cat\", \"sat\", \"on\", \"the\", \"comfortable\", \"mat\", \"the\", \"cat\", \"purred\", \"on\", \"it\"]\n\n// Get unique, filter long words, sort\nlet result = words\nshow(result)",
+          "hint": "Use `words _unique _filter((w) => w.len > 3) _sort`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "comfortable"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Running Total",
+          "content": "Use `_reduce` to calculate the product of all numbers in the list `[2, 3, 4, 5]`. Show the result as: `Product: 120`",
+          "starterCode": "let nums = [2, 3, 4, 5]\n\n// Use _reduce to calculate the product\n\n\n// Show: Product: 120\n",
+          "hint": "Use `nums _reduce((acc, n) => acc * n)` and show the result.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Product: 120"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-analysis",
+      "title": "8. Data Analysis",
+      "description": "Work with structured data using list-of-maps and powerful step chains.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Lists of Maps as Data Tables",
+          "content": "In TinyTalk, structured data is represented as lists of maps — like rows in a spreadsheet. Each map is a record, and each key is a column. Step chains become incredibly powerful on this kind of data.",
+          "code": "let students = [\n  {\"name\": \"Alice\", \"grade\": 92, \"subject\": \"Math\"},\n  {\"name\": \"Bob\", \"grade\": 85, \"subject\": \"English\"},\n  {\"name\": \"Carol\", \"grade\": 95, \"subject\": \"Math\"},\n  {\"name\": \"Dave\", \"grade\": 78, \"subject\": \"English\"},\n  {\"name\": \"Eve\", \"grade\": 88, \"subject\": \"Math\"}\n]\n\nshow(\"First student:\" students[0])\nshow(\"First name:\" students[0][\"name\"])\nshow(\"Total students:\" len(students))"
+        },
+        {
+          "type": "explain",
+          "title": "Filtering and Selecting Data",
+          "content": "`_filter` works on data rows just like on simple lists. Use `_select` to pick specific columns, and `_arrange` to sort by a particular field.",
+          "code": "let employees = [\n  {\"name\": \"Alice\", \"dept\": \"Engineering\", \"salary\": 95000},\n  {\"name\": \"Bob\", \"dept\": \"Marketing\", \"salary\": 72000},\n  {\"name\": \"Carol\", \"dept\": \"Engineering\", \"salary\": 105000},\n  {\"name\": \"Dave\", \"dept\": \"Marketing\", \"salary\": 68000},\n  {\"name\": \"Eve\", \"dept\": \"Engineering\", \"salary\": 88000}\n]\n\n// Filter to Engineering only\nlet engineers = employees _filter((e) => e[\"dept\"] is \"Engineering\")\nshow(\"Engineers:\" engineers)\n\n// Select just names and salaries\nlet names_salaries = employees _select([\"name\", \"salary\"])\nshow(\"Names & salaries:\" names_salaries)"
+        },
+        {
+          "type": "explain",
+          "title": "Statistics on Data",
+          "content": "TinyTalk has built-in statistics functions that work great with numeric data extracted from your records. Use `mean()`, `median()`, `sd()`, and `summary()` to quickly analyze numbers.",
+          "code": "let temps = [72, 75, 68, 80, 77, 73, 69, 85, 71, 74]\n\nshow(\"Mean:\" mean(temps))\nshow(\"Median:\" median(temps))\nshow(\"Std dev:\" round(sd(temps)))\nshow(\"Summary:\" summary(temps))"
+        },
+        {
+          "type": "exercise",
+          "title": "Filter the Data",
+          "content": "Given the list of products, use step chains to find all products in the `\"Electronics\"` category with a price greater than 50. Show the filtered results.",
+          "starterCode": "let products = [\n  {\"name\": \"Laptop\", \"category\": \"Electronics\", \"price\": 999},\n  {\"name\": \"Pen\", \"category\": \"Office\", \"price\": 2},\n  {\"name\": \"Headphones\", \"category\": \"Electronics\", \"price\": 79},\n  {\"name\": \"Notebook\", \"category\": \"Office\", \"price\": 5},\n  {\"name\": \"Mouse\", \"category\": \"Electronics\", \"price\": 25},\n  {\"name\": \"Monitor\", \"category\": \"Electronics\", \"price\": 299}\n]\n\n// Filter to Electronics over $50\nlet result = products\nshow(result)",
+          "hint": "Chain two filters: `products _filter((p) => p[\"category\"] is \"Electronics\") _filter((p) => p[\"price\"] > 50)`",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Laptop"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Analyze Scores",
+          "content": "Given the list of test scores, calculate and display the mean and median. Show them as:\n```\nMean: (value)\nMedian: (value)\n```",
+          "starterCode": "let scores = [88, 92, 75, 95, 83, 79, 91, 86, 70, 97]\n\n// Calculate and show the mean and median\n",
+          "hint": "Use `show(\"Mean:\" mean(scores))` and `show(\"Median:\" median(scores))`.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Mean:"
+          }
+        }
+      ]
+    },
+    {
+      "id": "charts-and-visualization",
+      "title": "9. Charts & Visualization",
+      "description": "Create beautiful charts and visualizations from your data.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "Bar Charts",
+          "content": "Use `chart_bar()` to create bar charts. Pass in a list of labels, a list of values, and an optional title. Bar charts are perfect for comparing categories.",
+          "code": "let languages = [\"Python\", \"JavaScript\", \"Rust\", \"Go\", \"TinyTalk\"]\nlet popularity = [30, 25, 15, 12, 18]\n\nchart_bar(languages, popularity, \"Programming Language Popularity\")"
+        },
+        {
+          "type": "explain",
+          "title": "Line and Scatter Charts",
+          "content": "`chart_line()` shows trends over time or sequences. `chart_scatter()` shows relationships between two variables. Both take x values, y values, and a title.",
+          "code": "// Line chart: temperature over a week\nlet days = [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"]\nlet temps = [72, 75, 68, 80, 77, 82, 79]\nchart_line(days, temps, \"Weekly Temperature\")\n\n// Scatter plot: study hours vs test scores\nlet hours = [1, 2, 3, 4, 5, 6, 7, 8]\nlet scores = [55, 60, 65, 72, 78, 85, 90, 95]\nchart_scatter(hours, scores, \"Study Hours vs Test Scores\")"
+        },
+        {
+          "type": "explain",
+          "title": "Pie Charts and Histograms",
+          "content": "`chart_pie()` shows proportions of a whole. `chart_histogram()` shows the distribution of a dataset by grouping values into bins.",
+          "code": "// Pie chart: budget breakdown\nlet categories = [\"Rent\", \"Food\", \"Transport\", \"Fun\", \"Savings\"]\nlet amounts = [1200, 400, 200, 150, 300]\nchart_pie(categories, amounts, \"Monthly Budget\")\n\n// Histogram: exam score distribution\nlet exam_scores = [65, 72, 78, 80, 82, 85, 85, 88, 90, 91, 93, 95, 97, 100]\nchart_histogram(exam_scores, 5, \"Exam Score Distribution\")"
+        },
+        {
+          "type": "exercise",
+          "title": "Visualize Fruit Sales",
+          "content": "Create a bar chart showing fruit sales. Use these labels: `[\"Apples\", \"Bananas\", \"Oranges\", \"Grapes\"]` and these values: `[150, 230, 180, 95]`. Give it the title `\"Fruit Sales\"`.",
+          "starterCode": "// Create the labels and values lists\n\n\n// Create a bar chart\n",
+          "hint": "Use `chart_bar([\"Apples\", \"Bananas\", \"Oranges\", \"Grapes\"], [150, 230, 180, 95], \"Fruit Sales\")`",
+          "validation": {
+            "mode": "no_error"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Score Distribution",
+          "content": "Given the list of test scores, create a histogram with 4 bins and title `\"Test Score Distribution\"`. Then separately show the mean score.",
+          "starterCode": "let scores = [55, 62, 70, 73, 78, 80, 82, 85, 88, 90, 92, 95, 98, 100]\n\n// Create a histogram with 4 bins\n\n\n// Show the mean\n",
+          "hint": "Use `chart_histogram(scores, 4, \"Test Score Distribution\")` and `show(\"Mean:\" mean(scores))`.",
+          "validation": {
+            "mode": "no_error"
+          }
+        }
+      ]
+    },
+    {
+      "id": "blueprints-and-oop",
+      "title": "10. Blueprints & OOP",
+      "description": "Create your own types with blueprints, fields, and methods.",
+      "steps": [
+        {
+          "type": "explain",
+          "title": "What Are Blueprints?",
+          "content": "Blueprints are TinyTalk's version of classes. They let you define your own types with `field` for data and `law` for methods. You create instances using `forge`. Think of a blueprint as a cookie cutter — you define the shape once, then stamp out as many cookies as you want.",
+          "code": "blueprint Dog {\n  field name\n  field breed\n\n  law bark() {\n    show(\"{self.name} says Woof!\")\n  }\n\n  law describe() {\n    show(\"{self.name} is a {self.breed}\")\n  }\n}\n\nlet rex = forge Dog(\"Rex\", \"German Shepherd\")\nrex.bark()\nrex.describe()"
+        },
+        {
+          "type": "explain",
+          "title": "Methods with Logic",
+          "content": "Methods (called `law` in TinyTalk) can contain any logic — conditions, loops, calculations. Use `self` to access the object's own fields.",
+          "code": "blueprint BankAccount {\n  field owner\n  field balance\n\n  law deposit(amount) {\n    self.balance = self.balance + amount\n    show(\"{self.owner} deposited ${amount}. Balance: ${self.balance}\")\n  }\n\n  law withdraw(amount) {\n    if amount > self.balance {\n      show(\"Insufficient funds!\")\n    } else {\n      self.balance = self.balance - amount\n      show(\"{self.owner} withdrew ${amount}. Balance: ${self.balance}\")\n    }\n  }\n}\n\nlet acct = forge BankAccount(\"Alice\", 1000)\nacct.deposit(500)\nacct.withdraw(200)\nacct.withdraw(2000)"
+        },
+        {
+          "type": "explain",
+          "title": "Methods That Return Values",
+          "content": "Methods can return values just like functions. This lets you use blueprints in calculations and chain operations together.",
+          "code": "blueprint Rectangle {\n  field width\n  field height\n\n  law area() {\n    return self.width * self.height\n  }\n\n  law perimeter() {\n    return 2 * (self.width + self.height)\n  }\n\n  law describe() {\n    show(\"{self.width}x{self.height} rectangle\")\n    show(\"  Area: {self.area()}\")\n    show(\"  Perimeter: {self.perimeter()}\")\n  }\n}\n\nlet r1 = forge Rectangle(5, 3)\nlet r2 = forge Rectangle(10, 7)\n\nr1.describe()\nr2.describe()\n\nshow(\"Total area:\" r1.area() + r2.area())"
+        },
+        {
+          "type": "exercise",
+          "title": "Build a Pet",
+          "content": "Create a blueprint called `Pet` with fields `name` and `species`, and a method `introduce()` that shows: `Hi, I'm ___ the ___!`\n\nThen forge a pet and call `introduce()` on it.",
+          "starterCode": "// Define the Pet blueprint\n\n\n// Forge a pet and introduce it\n",
+          "hint": "Use `blueprint Pet { field name; field species; law introduce() { show(\"Hi, I'm {self.name} the {self.species}!\") } }` then `let p = forge Pet(\"Buddy\", \"dog\")` and `p.introduce()`.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Hi, I'm"
+          }
+        },
+        {
+          "type": "exercise",
+          "title": "Counter Blueprint",
+          "content": "Create a `Counter` blueprint with a field `count` (starting value will be passed in). Add three methods:\n- `increment()` — adds 1 to count and shows the new count\n- `decrement()` — subtracts 1 from count and shows the new count\n- `value()` — returns the current count\n\nForge a counter starting at 0, increment it 3 times, decrement once, then show the final value using `show(\"Final:\" c.value())`.\n\nExpected output should end with `Final: 2`.",
+          "starterCode": "// Define the Counter blueprint\n\n\n// Forge a counter starting at 0\n\n\n// Increment 3 times, decrement once\n\n\n// Show the final value\n",
+          "hint": "Define `law increment() { self.count = self.count + 1; show(self.count) }` and similar for decrement. Use `law value() { return self.count }`.",
+          "validation": {
+            "mode": "output_contains",
+            "expect": "Final: 2"
+          }
+        }
+      ]
+    }
+  ]
+}
